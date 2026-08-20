@@ -1099,6 +1099,34 @@ function uid(prefix) {
   return prefix + "_" + Math.random().toString(36).slice(2, 9);
 }
 
+// ICS KALENDER EXPORT FUNKTION
+function exportToCalendar(schichtTitel, startZeitpunkt, endZeitpunkt, ort = "Festplatz SV Schapbach") {
+    function formatDate(date) {
+        return date.toISOString().replace(/-|:|\.\d+/g, "");
+    }
+    const start = formatDate(new Date(startZeitpunkt));
+    const end = formatDate(new Date(endZeitpunkt));
+    const icsContent = [
+        "BEGIN:VCALENDAR",
+        "VERSION:2.0",
+        "BEGIN:VEVENT",
+        `SUMMARY:SVS Schicht: ${schichtTitel}`,
+        `DESCRIPTION:Eingetragene Schicht beim SV Schapbach Event (100 Jahre Jubiläum).`,
+        `LOCATION:${ort}`,
+        `DTSTART:${start}`,
+        `DTEND:${end}`,
+        "END:VEVENT",
+        "END:VCALENDAR"
+    ].join("\r\n");
+    const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8" });
+    const link = document.createElement("a");
+    link.href = window.URL.createObjectURL(blob);
+    link.setAttribute("download", `Schicht_${schichtTitel.replace(/\s+/g, "_")}.ics`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
 function seedData() {
   const lieferanten = [
     { id: "l_brauerei", name: "Brauerei Alpirsbacher", kontakt: "Herr Meier", telefon: "07834 12345", email: "bestellung@alpirsbacher.de", notizen: "Kunden-Nr: 1926" },
@@ -1520,9 +1548,16 @@ const MeineSchichten = {
         html += `<div style="font-weight:600; font-size:13px; color:var(--text-muted); margin-bottom:6px;">Deine Schichten:</div>`;
         ev.schichten.forEach(s => {
           html += `
-            <div style="background:var(--surface-2); padding:8px 12px; border-radius:6px; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center; font-size:13.5px;">
-              <div><strong>📌 ${escapeHtml(s.vs)}</strong></div>
-              <div class="meta">${s.start} - ${s.ende} Uhr</div>
+            <div style="background:var(--surface-2); padding:8px 12px; border-radius:6px; margin-bottom:6px; font-size:13.5px;">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div><strong>📌 ${escapeHtml(s.vs)}</strong></div>
+                <div class="meta">${s.start} - ${s.ende} Uhr</div>
+              </div>
+              <div style="margin-top:8px;">
+                <button onclick="exportToCalendar('${s.vs.replace(/'/g, "\\'")}', '${ev.eventDatum}T${s.start}:00', '${ev.eventDatum}T${s.ende}:00')" style="background-color: var(--accent); color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">
+                  📅 In Kalender eintragen
+                </button>
+              </div>
             </div>
           `;
         });
