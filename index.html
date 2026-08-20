@@ -1,0 +1,4396 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eventplaner &amp; Schicht-Board</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
+  import { 
+    getFirestore, doc, setDoc, getDoc, updateDoc, deleteDoc, collection, onSnapshot, getDocs, writeBatch, serverTimestamp 
+  } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
+  import { 
+    getAuth, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged 
+  } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDq3KxnyKu6V7aF9ZVCFGlHLiSRES-TpQA",
+    authDomain: "eventplaner-svs.firebaseapp.com",
+    projectId: "eventplaner-svs",
+    storageBucket: "eventplaner-svs.firebasestorage.app",
+    messagingSenderId: "918052707481",
+    appId: "1:918052707481:web:79c2740c163d0d3a53ac08"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const auth = getAuth(app);
+  const googleProvider = new GoogleAuthProvider();
+
+  window.FB = {
+    db, doc, setDoc, getDoc, updateDoc, deleteDoc, collection, onSnapshot, getDocs, writeBatch, serverTimestamp,
+    auth, signInWithEmailAndPassword, signInWithPopup, googleProvider, signOut, onAuthStateChanged
+  };
+  window.dispatchEvent(new Event("firebase-ready"));
+</script>
+<style>
+  :root {
+    --bg: #f6f5f1;
+    --surface: #ffffff;
+    --surface-2: #eef1ee;
+    --border: #d9d7cd;
+    --border-strong: #b9b7ac;
+    --text: #24261f;
+    --text-muted: #6b6d61;
+    --accent: #1f5c4d;
+    --accent-light: #dceee7;
+    --accent-dark: #143f34;
+    --warn-bg: #fdf1de;
+    --warn-text: #8a5a12;
+    --warn-border: #f0c785;
+    --danger-bg: #fbe6e4;
+    --danger-text: #a3352a;
+    --danger-border: #edb0a8;
+    --ok-bg: #e3f2e7;
+    --ok-text: #276238;
+    --radius: 10px;
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+  }
+  header {
+    background: var(--accent-dark);
+    color: #fff;
+    padding: 16px 24px;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  header h1 { font-size: 19px; font-weight: 600; margin: 0; }
+  header .sub { font-size: 12.5px; color: #cfe3dc; }
+  .version-badge {
+    display: inline-block;
+    font-size: 10.5px;
+    padding: 2px 7px;
+    background: rgba(255,255,255,0.18);
+    border-radius: 999px;
+    margin-left: 6px;
+    color: #e0f2ec;
+    font-weight: 500;
+  }
+  .role-badge {
+    display: inline-block;
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-weight: 600;
+    background: #e3f2e7;
+    color: #276238;
+  }
+  .role-badge.role-B { background: #fdf1de; color: #8a5a12; }
+  .role-badge.role-A { background: #fbe6e4; color: #a3352a; }
+  .role-select-header {
+    font-size: 11.5px;
+    padding: 3px 6px;
+    border-radius: 6px;
+    background: #eef1ee;
+    border: 1px solid var(--border-strong);
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  nav.tabs {
+    display: flex;
+    gap: 4px;
+    padding: 10px 24px 0;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+  nav.tabs button {
+    border: none;
+    background: transparent;
+    padding: 10px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-muted);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+  }
+  nav.tabs button.active {
+    color: var(--accent-dark);
+    border-bottom: 2px solid var(--accent);
+  }
+  main { max-width: 1240px; margin: 0 auto; padding: 24px; }
+  .view { display: none; }
+  .view.active { display: block; }
+  .toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .toolbar h2 { font-size: 17px; margin: 0; }
+  .toolbar .desc { font-size: 12.5px; color: var(--text-muted); margin-top: 2px; }
+  button.btn, a.btn {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius);
+    padding: 8px 14px;
+    font-size: 13.5px;
+    font-weight: 500;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    text-decoration: none;
+  }
+  button.btn:hover, a.btn:hover { background: var(--accent-dark); }
+  button.btn.secondary, a.btn.secondary {
+    background: var(--surface);
+    color: var(--accent-dark);
+    border: 1px solid var(--border-strong);
+  }
+  button.btn.secondary:hover, a.btn.secondary:hover { background: var(--surface-2); }
+  button.btn.danger {
+    background: var(--danger-bg);
+    color: var(--danger-text);
+    border: 1px solid var(--danger-border);
+  }
+  button.btn.danger:hover { background: #f8d3cf; }
+  button.btn.google {
+    background: #ffffff;
+    color: #3c4043;
+    border: 1px solid #dadce0;
+    width: 100%;
+    justify-content: center;
+    padding: 10px;
+    font-weight: 500;
+  }
+  button.btn.google:hover { background: #f8f9fa; border-color: #c6c9cc; }
+  button.btn.small, a.btn.small { padding: 4px 8px; font-size: 12px; border-radius: 6px; }
+  
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    margin-bottom: 14px;
+  }
+  .card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .card-head h3 { margin: 0 0 2px; font-size: 15.5px; }
+  .card-head .meta { font-size: 12.5px; color: var(--text-muted); }
+  .card-actions { display: flex; gap: 6px; flex-shrink: 0; align-items: center; }
+  .pill {
+    display: inline-block;
+    font-size: 11.5px;
+    padding: 2px 9px;
+    border-radius: 999px;
+    background: var(--accent-light);
+    color: var(--accent-dark);
+    font-weight: 500;
+  }
+  .pill.inactive { background: var(--surface-2); color: var(--text-muted); }
+  
+  .subtable { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
+  .subtable th {
+    text-align: left;
+    font-weight: 500;
+    color: var(--text-muted);
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: .3px;
+    border-bottom: 1px solid var(--border);
+    padding: 6px 8px;
+  }
+  .subtable td { padding: 7px 8px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  .subtable tr:last-child td { border-bottom: none; }
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-muted);
+    font-size: 13.5px;
+    border: 1px dashed var(--border-strong);
+    border-radius: var(--radius);
+  }
+
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .kpi-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .kpi-card:hover {
+    border-color: var(--accent);
+    box-shadow: 0 4px 12px rgba(31,92,77,0.1);
+  }
+  .kpi-card .kpi-val { font-size: 24px; font-weight: 700; color: var(--accent-dark); line-height: 1.2; margin: 4px 0; }
+  .kpi-card .kpi-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .3px; display: flex; justify-content: space-between; align-items: center; }
+
+  /* Kachel-Navigation im Event-Detail */
+  .event-tiles-nav {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .event-tile {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: left;
+    font-family: var(--font);
+  }
+  .event-tile:hover {
+    border-color: var(--accent);
+    background: var(--surface-2);
+  }
+  .event-tile.active {
+    background: var(--accent-dark);
+    color: #fff;
+    border-color: var(--accent-dark);
+  }
+  .event-tile .tile-title { font-size: 14px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; }
+  .event-tile .tile-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .event-tile.active .tile-sub { color: #cfe3dc; }
+
+  .progress-wrap {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 16px;
+  }
+  .progress-bar-bg {
+    width: 100%;
+    height: 10px;
+    background: #dde2dc;
+    border-radius: 5px;
+    overflow: hidden;
+    margin-top: 8px;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: var(--accent);
+    width: 0%;
+    transition: width 0.3s ease;
+  }
+  
+  .overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(20,30,25,0.4);
+    align-items: flex-start;
+    justify-content: center;
+    padding: 40px 16px;
+    overflow-y: auto;
+    z-index: 50;
+  }
+  .overlay.open { display: flex; }
+
+  #login-overlay {
+    background: var(--bg);
+    z-index: 200;
+  }
+
+  .modal {
+    background: var(--surface);
+    border-radius: var(--radius);
+    max-width: 720px;
+    width: 100%;
+    padding: 22px 24px 24px;
+  }
+  .modal h3 { margin: 0 0 14px; font-size: 16px; }
+  .field { margin-bottom: 12px; }
+  .field label { display: block; font-size: 12.5px; font-weight: 500; color: var(--text-muted); margin-bottom: 4px; }
+  .field input, .field select, .field textarea {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--border-strong);
+    border-radius: 7px;
+    font-size: 13.5px;
+    font-family: var(--font);
+    background: var(--surface);
+    color: var(--text);
+  }
+  .field input:disabled {
+    background: var(--surface-2);
+    color: var(--text-muted);
+    cursor: not-allowed;
+  }
+  .field textarea { resize: vertical; min-height: 50px; }
+  .field-row { display: flex; gap: 10px; }
+  .field-row .field { flex: 1; }
+  .repeat-list { border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin-bottom: 10px; }
+  .repeat-item { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+  .repeat-item:last-child { margin-bottom: 0; }
+  .repeat-item input, .repeat-item select { flex: 1; }
+  .repeat-item button { flex-shrink: 0; }
+  .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
+  .presence-wrap { position: relative; }
+  .presence-dropdown {
+    display: none;
+    position: absolute;
+    top: 110%;
+    right: 0;
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    padding: 8px;
+    min-width: 190px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.18);
+    z-index: 60;
+  }
+  .presence-dropdown.open { display: block; }
+  .presence-item { padding: 4px 6px; font-size: 13px; color: var(--text); }
+  .presence-item.muted { color: var(--text-muted); }
+  .link-btn {
+    background: none; border: none; color: var(--accent-dark);
+    font-size: 12.5px; cursor: pointer; padding: 4px 0; font-weight: 500;
+  }
+
+  .events-list-item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 14px; border: 1px solid var(--border); border-radius: var(--radius);
+    background: var(--surface); margin-bottom: 8px; cursor: pointer;
+  }
+  .events-list-item:hover { background: var(--surface-2); border-color: var(--border-strong); }
+  .events-list-item .name { font-weight: 500; font-size: 14.5px; }
+  .events-list-item .meta { font-size: 12.5px; color: var(--text-muted); margin-top: 2px; }
+  .status-tag { font-size: 11px; padding: 2px 8px; border-radius: 999px; font-weight: 500; }
+  .status-geplant { background: #ece4f7; color: #5b3a91; }
+  .status-bestaetigt { background: var(--accent-light); color: var(--accent-dark); }
+  .status-abgeschlossen { background: var(--surface-2); color: var(--text-muted); }
+  
+  #event-detail-panel { display: none; }
+  #event-detail-panel.open { display: block; }
+  .back-link { font-size: 13px; color: var(--accent-dark); cursor: pointer; margin-bottom: 12px; display: inline-block; font-weight: 500; }
+  
+  .bereich-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 22px 0 10px;
+    padding: 6px 12px;
+    background: #e3ece8;
+    border-radius: 8px;
+    border-left: 4px solid var(--accent);
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .bereich-header-row .b-title {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--accent-dark);
+    text-transform: uppercase;
+    letter-spacing: .4px;
+  }
+  .bereich-header-row .b-assign {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12.5px;
+  }
+  .bereich-header-row select {
+    padding: 4px 8px;
+    border-radius: 6px;
+    border: 1px solid var(--border-strong);
+    background: #fff;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--accent-dark);
+  }
+  
+  .unified-item-row {
+    display: grid;
+    grid-template-columns: 32px 1fr 150px 140px 110px 36px;
+    gap: 8px;
+    align-items: center;
+    padding: 8px 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 6px;
+    font-size: 13.5px;
+  }
+  .unified-item-row.is-done { background: var(--surface-2); }
+  .unified-item-row.is-done .item-main-title { text-decoration: none; color: var(--text); }
+  .unified-item-row input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; accent-color: var(--accent); }
+
+  .status-select-gastro {
+    font-size: 11.5px;
+    padding: 4px 6px;
+    border-radius: 6px;
+    width: 100%;
+    border: 1px solid var(--border-strong);
+    background: var(--surface);
+    color: var(--text);
+    font-weight: 500;
+  }
+  .status-select-gastro.status-bestellt {
+    background: #e3f2e7 !important;
+    color: #276238 !important;
+    border-color: #a8d5b5 !important;
+    font-weight: 700 !important;
+  }
+  .status-select-gastro.status-geliefert {
+    background: #c8e6c9 !important;
+    color: #1b5e20 !important;
+    border-color: #81c784 !important;
+    font-weight: 700 !important;
+  }
+
+  .matrix-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 6px; }
+  .matrix-table th, .matrix-table td { border: 1px solid var(--border); padding: 6px 8px; text-align: center; }
+  .matrix-table th:first-child, .matrix-table td:first-child { text-align: left; }
+  
+  .toggle-btn {
+    cursor: pointer; padding: 4px 8px; border-radius: 4px; border: 1px solid var(--border-strong);
+    font-size: 11px; font-weight: bold; background: var(--surface);
+  }
+  .toggle-btn.on { background: var(--ok-bg); color: var(--ok-text); border-color: #a8d5b5; }
+  .toggle-btn.off { background: var(--surface-2); color: var(--text-muted); }
+
+  .gastro-input-matrix {
+    width: 65px; padding: 3px 5px; font-size: 12px; border: 1px solid var(--border-strong);
+    border-radius: 4px; text-align: right;
+  }
+
+  .toast {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    background: var(--accent-dark); color: #fff; padding: 10px 18px;
+    border-radius: 8px; font-size: 13.5px; z-index: 100; opacity: 0; pointer-events: none;
+    transition: opacity .25s;
+  }
+  .toast.show { opacity: 1; }
+  input[type=file] { display: none; }
+  @media print {
+    header, nav.tabs, .toolbar, .back-link, .card-actions, footer.toolbar-io, .event-tiles-nav, .no-print { display: none !important; }
+    body { background: #fff; }
+    main { max-width: 100%; padding: 0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="overlay open" id="login-overlay">
+  <div class="modal" style="max-width: 380px; margin-top: 60px;">
+    <h3 style="margin-bottom:6px;">Anmelden</h3>
+    <div class="meta" style="margin-bottom:16px;">Zugang für SV Schapbach 1926 e.V.</div>
+
+    <button type="button" class="btn google" onclick="Auth.loginGoogle()">
+      <svg width="18" height="18" viewBox="0 0 18 18" style="margin-right:8px;"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.616z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/><path fill="#FBBC05" d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707 0-.59.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.55 0 9s.347 2.825.957 4.039l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.293C4.672 5.166 6.656 3.58 9 3.58z"/></svg>
+      Mit Google anmelden
+    </button>
+
+    <div style="display:flex;align-items:center;margin:18px 0;color:var(--text-muted);font-size:12px;">
+      <div style="flex:1;height:1px;background:var(--border);"></div>
+      <span style="padding:0 8px;">oder per E-Mail</span>
+      <div style="flex:1;height:1px;background:var(--border);"></div>
+    </div>
+
+    <form onsubmit="event.preventDefault(); Auth.loginEmail();">
+      <div class="field">
+        <label>E-Mail</label>
+        <input type="email" id="login-email" placeholder="name@verein.de" autocomplete="username">
+      </div>
+      <div class="field">
+        <label>Passwort</label>
+        <input type="password" id="login-password" autocomplete="current-password">
+      </div>
+      <div id="login-error" style="color:#b3261e; font-size:12.5px; margin-bottom:8px; display:none;"></div>
+      <div class="modal-actions">
+        <button type="submit" class="btn" style="width:100%;justify-content:center;">Mit Passwort anmelden</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<header>
+  <div>
+    <h1>Eventplaner</h1>
+    <div class="sub">SV Schapbach 1926 e.V. <span class="version-badge" id="app-version-badge">v0.1.060</span></div>
+  </div>
+  <footer class="toolbar-io" style="display:flex;gap:8px;align-items:center;">
+    <select id="user-role-selector" class="role-select-header" style="display:none;" onchange="Auth.switchCurrentRole(this.value)">
+      <option value="A">👑 Rolle A (Admin)</option>
+      <option value="B">📋 Rolle B (Vorstand)</option>
+      <option value="C">👤 Rolle C (Mitglied)</option>
+    </select>
+    <span class="role-badge" id="user-role-badge"></span>
+
+    <div class="presence-wrap">
+      <button class="btn secondary small" onclick="togglePresenceList()">🟢 <span id="presence-count">0</span> online</button>
+      <div class="presence-dropdown" id="presence-dropdown">
+        <div id="presence-list"><div class="presence-item muted">Niemand online</div></div>
+      </div>
+    </div>
+    <button class="btn secondary small admin-only" onclick="IO.exportJSON()">Export</button>
+    <button class="btn secondary small admin-only" onclick="document.getElementById('importInput').click()">Import</button>
+    <input type="file" id="importInput" accept="application/json" onchange="IO.importJSON(event)">
+    <button class="btn secondary small" onclick="Auth.logout()">Abmelden</button>
+  </footer>
+</header>
+
+<nav class="tabs">
+  <button class="tab-btn active" data-view="events">Events</button>
+  <button class="tab-btn" data-view="meine-schichten">📅 Mein Schichtplan</button>
+  <button class="tab-btn admin-only" data-view="ryder">Checklisten-Ryder (Matrix)</button>
+  <button class="tab-btn admin-only" data-view="gastro">Gastro-Ryder</button>
+  <button class="tab-btn vorstand-only" data-view="personen">Personen, Lieferanten &amp; Benutzer</button>
+  <button class="tab-btn admin-only" data-view="kategorien">Kategorien</button>
+</nav>
+
+<main>
+
+  <!-- EVENTS -->
+  <section class="view active" id="view-events">
+    <div id="events-list-panel">
+      <div class="toolbar">
+        <div>
+          <h2>Events</h2>
+          <div class="desc">Veranstaltungen mit Standard-Vorauswahl &amp; flexibler Anpassung</div>
+        </div>
+        <button class="btn vorstand-only" onclick="Events.openForm()">+ Neues Event</button>
+      </div>
+      <div id="events-list"></div>
+    </div>
+
+    <div id="event-detail-panel">
+      <span class="back-link" onclick="Events.closeDetail()">&larr; Zurück zur Eventübersicht</span>
+      <div id="event-detail-content"></div>
+    </div>
+  </section>
+
+  <!-- MEINE SCHICHTEN -->
+  <section class="view" id="view-meine-schichten">
+    <div class="toolbar">
+      <div>
+        <h2>Mein Schichtplan</h2>
+        <div class="desc">Alle deine eingeteilten Schichten und Spenden, sortiert nach Events</div>
+      </div>
+    </div>
+    <div id="meine-schichten-list"></div>
+  </section>
+
+  <!-- CHECKLISTEN-RYDER (ZENTRALE ADMIN MATRIX) -->
+  <section class="view" id="view-ryder">
+    <div class="toolbar">
+      <div>
+        <h2>Checklisten-Ryder: Standard-Matrix nach Event-Typ</h2>
+        <div class="desc">Klicke auf AN / AUS, um den Standard-Bedarf für jede Event-Kategorie separat festzulegen. Neue Events übernehmen diese Auswahl automatisch.</div>
+      </div>
+      <button class="btn admin-only" onclick="Ryder.openBereichForm()">+ Neuer Bereich</button>
+    </div>
+    <div id="ryder-list"></div>
+  </section>
+
+  <!-- GASTRO-RYDER -->
+  <section class="view" id="view-gastro">
+    <div class="toolbar">
+      <div>
+        <h2>Gastro-Ryder</h2>
+        <div class="desc">Zentraler Sortimentskatalog mit Standardmengen &amp; Standard-Lieferanten</div>
+      </div>
+      <button class="btn admin-only" onclick="GastroRyder.openBereichForm()">+ Neuer Bereich</button>
+    </div>
+    <div id="gastro-ryder-list"></div>
+  </section>
+
+  <!-- PERSONEN, LIEFERANTEN & BENUTZERROLLEN -->
+  <section class="view" id="view-personen">
+    
+    <!-- Lieferanten-Verwaltung -->
+    <div style="margin-bottom:28px;">
+      <div class="toolbar">
+        <div>
+          <h2>Lieferanten</h2>
+          <div class="desc">Händler für Getränke, Metzgerei, Bäckerei etc. für automatisierte E-Mail-Bestellungen</div>
+        </div>
+        <button class="btn vorstand-only" onclick="Lieferanten.openForm()">+ Neuer Lieferant</button>
+      </div>
+      <div id="lieferanten-list"></div>
+    </div>
+
+    <!-- Benutzerverwaltung (Nur für Admins) -->
+    <div id="admin-user-management" class="admin-only" style="margin-bottom:28px;">
+      <h3 style="font-size:15px; margin-bottom:8px; color:var(--accent-dark);">🛡️ Angemeldete Benutzer &amp; Rollen (RBAC)</h3>
+      <div id="users-role-table-wrap"></div>
+    </div>
+
+    <!-- Personen / Helfer -->
+    <div>
+      <div class="toolbar">
+        <div>
+          <h2>Personen &amp; Bereichsleiter</h2>
+          <div class="desc">Zuständige Personen für Checklisten- und Gastro-Bereiche</div>
+        </div>
+        <button class="btn vorstand-only" onclick="Personen.openForm()">+ Neue Person</button>
+      </div>
+      <div id="personen-list"></div>
+    </div>
+
+  </section>
+
+  <!-- KATEGORIEN -->
+  <section class="view" id="view-kategorien">
+    <div class="toolbar">
+      <div>
+        <h2>Kategorien</h2>
+        <div class="desc">SchapArena Vorlagen (75, 150, 300, 500, 1000)</div>
+      </div>
+      <button class="btn admin-only" onclick="Kategorien.openForm()">+ Neue Kategorie</button>
+    </div>
+    <div id="kategorien-list"></div>
+  </section>
+
+</main>
+
+<div id="pdf-render-area"></div>
+
+<!-- MODALS -->
+
+<!-- Spenden-/Mitbringliste Eintragen Modal -->
+<div class="overlay" id="modal-spende-buchen">
+  <div class="modal" style="max-width: 400px;">
+    <h3 id="spende-buchen-titel">In Liste eintragen</h3>
+    <input type="hidden" id="buchenSpendeEventId">
+    <input type="hidden" id="buchenSpendeListeId">
+    
+    <div class="field">
+      <label>Google-Anmeldename (E-Mail)</label>
+      <input id="buchenSpendeAnmeldename" disabled style="background:#eef1ee; color:var(--text-muted);">
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Vorname</label>
+        <input id="buchenSpendeVorname" placeholder="z. B. Thomas">
+      </div>
+      <div class="field">
+        <label>Nachname</label>
+        <input id="buchenSpendeNachname" placeholder="z. B. Müller">
+      </div>
+    </div>
+    <div class="field">
+      <label id="buchenSpendeLabel">Was bringst du mit?</label>
+      <input id="buchenSpendeWert" placeholder="z. B. Apfelkuchen / Brettspiel X">
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn secondary" onclick="Modal.close('modal-spende-buchen')">Abbrechen</button>
+      <button class="btn" onclick="Events.confirmBuchenSpende()">Eintragen</button>
+    </div>
+  </div>
+</div>
+
+<!-- Spenden-/Mitbringliste Erstellen Modal -->
+<div class="overlay" id="modal-spende-liste">
+  <div class="modal">
+    <h3 id="spende-modal-title">Mitbring- / Spendenliste anlegen</h3>
+    <input type="hidden" id="spendeEventId">
+    <input type="hidden" id="spendeListeId">
+    <div class="field"><label>Listen-Titel</label><input id="spendeTitel" placeholder="z. B. Kuchenliste 🍰, Spieleliste 🎲"></div>
+    <div class="field"><label>Info-Text / Beschreibung (optional)</label><textarea id="spendeInfo" placeholder="z. B. Bitte am Event-Tag bis 13 Uhr am Stand abgeben. Danke!"></textarea></div>
+    <div class="field-row">
+      <div class="field">
+        <label>Max. Anzahl (leer = unbegrenzt)</label>
+        <input type="number" min="1" id="spendeMax" placeholder="z. B. 10">
+      </div>
+      <div class="field">
+        <label>Anmelde-Enddatum (Deadline)</label>
+        <input type="date" id="spendeDeadline">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn secondary" onclick="Modal.close('modal-spende-liste')">Abbrechen</button>
+      <button class="btn" onclick="Events.saveSpendenListe()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- Schicht Eintragen Modal -->
+<div class="overlay" id="modal-schicht-buchen">
+  <div class="modal" style="max-width: 400px;">
+    <h3>In Schicht eintragen</h3>
+    <input type="hidden" id="buchenEventId">
+    <input type="hidden" id="buchenSchichtId">
+    
+    <div class="field">
+      <label>Google-Anmeldename (E-Mail)</label>
+      <input id="buchenAnmeldename" disabled style="background:#eef1ee; color:var(--text-muted);">
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Vorname</label>
+        <input id="buchenVorname" placeholder="z. B. Thomas">
+      </div>
+      <div class="field">
+        <label>Nachname</label>
+        <input id="buchenNachname" placeholder="z. B. Müller">
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn secondary" onclick="Modal.close('modal-schicht-buchen')">Abbrechen</button>
+      <button class="btn" onclick="Events.confirmBuchen()">Eintragen</button>
+    </div>
+  </div>
+</div>
+
+<!-- Schicht Erstellen/Bearbeiten Modal -->
+<div class="overlay" id="modal-schicht">
+  <div class="modal">
+    <h3 id="schicht-modal-title">Schicht für dieses Event anlegen</h3>
+    <input type="hidden" id="schichtEventId">
+    <input type="hidden" id="schichtId">
+    
+    <div class="field">
+      <label>Verkaufsstelle / Stand</label>
+      <select id="schichtVsSelect" onchange="Events.onSchichtVsSelectChange()">
+        <!-- Wird dynamisch aus Kategorie befüllt -->
+      </select>
+    </div>
+    <div class="field" id="schichtCustomVsWrap" style="display:none;">
+      <label>Neuer / Eigener Stand (Bezeichnung)</label>
+      <input id="schichtCustomVs" placeholder="z. B. Kuchenstand, Losbude">
+    </div>
+
+    <div class="field-row">
+      <div class="field"><label>Startzeit</label><input type="time" id="schichtStart"></div>
+      <div class="field"><label>Endzeit</label><input type="time" id="schichtEnde"></div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Max. Personen (Kapazität)</label>
+        <input type="number" min="1" id="schichtMax" value="2">
+      </div>
+      <div class="field">
+        <label>Anmelde-Enddatum (Deadline)</label>
+        <input type="date" id="schichtDeadline">
+      </div>
+    </div>
+    <div class="field">
+      <label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;">
+        <input type="checkbox" id="schichtAustragen" checked style="width:16px;height:16px;">
+        <span>Selbstständiges Austragen durch Helfer erlauben</span>
+      </label>
+    </div>
+    <div class="modal-actions">
+      <button class="btn secondary" onclick="Modal.close('modal-schicht')">Abbrechen</button>
+      <button class="btn" onclick="Events.saveSchicht()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- Lieferanten Modal -->
+<div class="overlay" id="modal-lieferant">
+  <div class="modal">
+    <h3 id="lieferant-modal-title">Lieferant</h3>
+    <input type="hidden" id="lieferantId">
+    <div class="field"><label>Firmenname / Bezeichnung</label><input id="lieferantName" placeholder="z. B. Brauerei Alpirsbacher, Metzgerei Müller"></div>
+    <div class="field-row">
+      <div class="field"><label>Ansprechpartner (optional)</label><input id="lieferantKontakt" placeholder="z. B. Herr Schmidt"></div>
+      <div class="field"><label>Telefon / Mobil (für WhatsApp)</label><input id="lieferantTelefon" placeholder="z. B. 0170 1234567"></div>
+    </div>
+    <div class="field"><label>E-Mail-Adresse (für Bestellungen)</label><input type="email" id="lieferantEmail" placeholder="bestellung@brauerei.de"></div>
+    <div class="field"><label>Notizen / Kundennummer</label><textarea id="lieferantNotizen" placeholder="Kundennr., Lieferzeiten etc."></textarea></div>
+    <div class="modal-actions">
+      <button class="btn secondary" onclick="Modal.close('modal-lieferant')">Abbrechen</button>
+      <button class="btn" onclick="Lieferanten.save()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- Checklisten-Ryder Bereich -->
+<div class="overlay" id="modal-ryder-bereich">
+  <div class="modal">
+    <h3 id="ryder-bereich-modal-title">Checklisten-Bereich</h3>
+    <input type="hidden" id="ryderBereichId">
+    <div class="field"><label>Bereichs-Titel</label><input id="ryderBereichTitel" placeholder="z. B. Technik, Aufbau, Stationen..."></div>
+    <div class="field">
+      <label>Standard-Hauptverantwortlicher (optional)</label>
+      <select id="ryderBereichPerson"></select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn secondary" onclick="Modal.close('modal-ryder-bereich')">Abbrechen</button>
+      <button class="btn" onclick="Ryder.saveBereich()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- Checklisten-Ryder Punkt -->
+<div class="overlay" id="modal-ryder-punkt">
+  <div class="modal">
+    <h3 id="ryder-punkt-modal-title">Checklisten-Objekt</h3>
+    <input type="hidden" id="ryderPunktBereichId">
+    <input type="hidden" id="ryderPunktId">
+    <div class="field"><label>Aufgabe / Objekt-Bezeichnung</label><input id="ryderPunktTitel" placeholder="z. B. Musikanlage, Bierwagen, Mischpult"></div>
+    <div class="field">
+      <label>Standard-Status je Event-Typ</label>
+      <div id="ryderPunktKategorienMatrix"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn secondary" onclick="Modal.close('modal-ryder-punkt')">Abbrechen</button>
+      <button class="btn" onclick="Ryder.savePunkt()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: EVENT-CHECKLISTEN MATRIX-VERWALTUNG -->
+<div class="overlay" id="modal-event-objekte-matrix">
+  <div class="modal" style="max-width: 780px;">
+    <h3 id="matrix-modal-title">Objekte für dieses Event verwalten</h3>
+    <p class="meta" style="margin-top:-8px; margin-bottom:14px;">
+      Hier siehst du alle Objekte aus dem Ryder. Hake an, was bei diesem konkreten Event gebraucht wird.
+    </p>
+    <input type="hidden" id="matrixEventId">
+    <div style="max-height: 420px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px;">
+      <table class="matrix-table" style="margin: 0;">
+        <thead>
+          <tr style="background:#f4f4f4;">
+            <th style="width: 50px; text-align: center;">Aktiv</th>
+            <th>Bereich &amp; Objekt</th>
+            <th style="width: 140px; text-align: center;">Standard-Status</th>
+            <th style="width: 200px; text-align: center;">Standard-Einstellung</th>
+          </tr>
+        </thead>
+        <tbody id="matrixEventTableBody"></tbody>
+      </table>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="Events.closeMatrixModal()">Fertig &amp; Übernehmen</button>
+    </div>
+  </div>
+</div>
+
+<!-- Gastro-Ryder Bereich -->
+<div class="overlay" id="modal-gastro-bereich">
+  <div class="modal">
+    <h3 id="gastro-bereich-modal-title">Gastro-Bereich</h3>
+    <input type="hidden" id="gastroBereichId">
+    <div class="field"><label>Bereichs-Titel</label><input id="gastroBereichTitel" placeholder="z. B. Getränke, Grillstand, Kaffee & Kuchen..."></div>
+    <div class="field">
+      <label>Standard-Hauptverantwortlicher (optional)</label>
+      <select id="gastroBereichPerson"></select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn secondary" onclick="Modal.close('modal-gastro-bereich')">Abbrechen</button>
+      <button class="btn" onclick="GastroRyder.saveBereich()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- Gastro-Ryder Artikel -->
+<div class="overlay" id="modal-gastro-artikel">
+  <div class="modal">
+    <h3 id="gastro-artikel-modal-title">Gastro-Artikel</h3>
+    <input type="hidden" id="gastroArtikelBereichId">
+    <input type="hidden" id="gastroArtikelId">
+    <div class="field-row">
+      <div class="field" style="flex:2;"><label>Artikelbezeichnung</label><input id="gastroArtikelName" placeholder="z. B. Cola 1L, Bratwurst"></div>
+      <div class="field"><label>Einheit</label><input id="gastroArtikelEinheit" placeholder="z. B. Kästen, Stk."></div>
+    </div>
+    <div class="field">
+      <label>Standard-Lieferant (kann im Event für einzelne Feste gewechselt werden)</label>
+      <select id="gastroArtikelLieferant"></select>
+    </div>
+    <div class="field">
+      <label>Standardmengen je Eventkategorie</label>
+      <div id="gastroArtikelMatrix"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn secondary" onclick="Modal.close('modal-gastro-artikel')">Abbrechen</button>
+      <button class="btn" onclick="GastroRyder.saveArtikel()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- Person Modal -->
+<div class="overlay" id="modal-person">
+  <div class="modal">
+    <h3 id="person-modal-title">Person</h3>
+    <input type="hidden" id="personId">
+    <div class="field"><label>Name</label><input id="personName" placeholder="Vorname Nachname"></div>
+    <div class="field-row">
+      <div class="field"><label>Rolle / Funktion (optional)</label><input id="personRolle" placeholder="z. B. Getränkewart, Grill-Chef"></div>
+      <div class="field"><label>Telefon / Mobil</label><input id="personTelefon" placeholder="z. B. 0160 123456789"></div>
+    </div>
+    <div class="field"><label>E-Mail-Adresse</label><input type="email" id="personEmail" placeholder="name@sv-schapbach.de"></div>
+    <div class="field"><label>Status</label>
+      <select id="personStatus">
+        <option value="aktiv">Aktiv</option>
+        <option value="inaktiv">Deaktiviert (bleibt historisch erhalten)</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn secondary" onclick="Modal.close('modal-person')">Abbrechen</button>
+      <button class="btn" onclick="Personen.save()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- Kategorie -->
+<div class="overlay" id="modal-kategorie">
+  <div class="modal">
+    <h3 id="kategorie-modal-title">Kategorie</h3>
+    <input type="hidden" id="kategorieId">
+    <div class="field-row">
+      <div class="field"><label>Name</label><input id="kategorieName" placeholder="z. B. SchapArena 300"></div>
+      <div class="field"><label>Max. Personen</label><input id="kategorieMaxPersonen" placeholder="300"></div>
+    </div>
+    <label style="font-size:12.5px;font-weight:500;color:var(--text-muted);">Verkaufsstellen</label>
+    <div class="repeat-list" id="verkaufsstellenList"></div>
+    <button class="link-btn" onclick="Kategorien.addVerkaufsstelleRow()">+ Verkaufsstelle hinzufügen</button>
+
+    <div class="field-row" style="margin-top:14px;">
+      <div class="field"><label>Aufbau-Team</label><input id="kategorieAufbau" placeholder="Personal Jugendtheke, Personal Grillstand"></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Abbau-Team</label><input id="kategorieAbbau" placeholder="Personal Jugendtheke, Personal Grillstand"></div>
+    </div>
+    <div class="field"><label>Notizen</label><textarea id="kategorieNotizen"></textarea></div>
+
+    <div class="modal-actions">
+      <button class="btn secondary" onclick="Modal.close('modal-kategorie')">Abbrechen</button>
+      <button class="btn" onclick="Kategorien.save()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- Event Modal -->
+<div class="overlay" id="modal-event">
+  <div class="modal">
+    <h3 id="event-modal-title">Neues Event</h3>
+    <input type="hidden" id="eventId">
+    <div class="field"><label>Name</label><input id="eventName" placeholder="z. B. Sommerfest 2026"></div>
+    <div class="field-row">
+      <div class="field"><label>Datum</label><input type="date" id="eventDatum"></div>
+      <div class="field"><label>Ort (optional)</label><input id="eventOrt"></div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Kategorie / Event-Typ</label>
+        <select id="eventKategorie" onchange="Events.onKategorieChange()"></select>
+      </div>
+      <div class="field"><label>Status</label>
+        <select id="eventStatus">
+          <option value="geplant">Geplant</option>
+          <option value="bestaetigt">Bestätigt</option>
+          <option value="abgeschlossen">Abgeschlossen</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>✉️ Zusätzliche CC-E-Mails für Bestellungen (optional, kommagetrennt)</label>
+      <input id="eventCcEmails" placeholder="vorstand@sv-schapbach.de, kassier@sv-schapbach.de">
+    </div>
+
+    <label style="font-size:12.5px;font-weight:500;color:var(--text-muted);">Personal-Ist je Verkaufsstelle</label>
+    <div class="repeat-list" id="eventPersonalList"></div>
+    <div class="field" style="margin-top:10px;"><label>Notizen</label><textarea id="eventNotizen"></textarea></div>
+
+    <div class="modal-actions">
+      <button class="btn secondary" onclick="Modal.close('modal-event')">Abbrechen</button>
+      <button class="btn" onclick="Events.save()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- Event Checklist Item Edit -->
+<div class="overlay" id="modal-event-item">
+  <div class="modal">
+    <h3 id="event-item-modal-title">Checklistenpunkt bearbeiten</h3>
+    <input type="hidden" id="eventItemEventId">
+    <input type="hidden" id="eventItemId">
+    <div class="field"><label>Bereich</label><input id="eventItemBereich" placeholder="z. B. Technik"></div>
+    <div class="field"><label>Aufgabe / Objekt</label><input id="eventItemTitel"></div>
+    <div class="field"><label>Verantwortliche Person</label><select id="eventItemPerson"></select></div>
+    <div class="field-row">
+      <div class="field"><label>Fällig / Erledigt am</label><input type="date" id="eventItemDatum"></div>
+      <div class="field"><label>Status</label>
+        <select id="eventItemDone">
+          <option value="false">Offen</option>
+          <option value="true">Erledigt</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn secondary" onclick="Modal.close('modal-event-item')">Abbrechen</button>
+      <button class="btn" onclick="Events.saveChecklistItem()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- Event Gastro Item Edit -->
+<div class="overlay" id="modal-event-gastro-item">
+  <div class="modal">
+    <h3 id="event-gastro-item-modal-title">Gastro-Position bearbeiten</h3>
+    <input type="hidden" id="eventGastroItemEventId">
+    <input type="hidden" id="eventGastroItemId">
+    <div class="field"><label>Bereich</label><input id="eventGastroItemBereich" placeholder="z. B. Getränke"></div>
+    <div class="field"><label>Artikel</label><input id="eventGastroItemName"></div>
+    <div class="field-row">
+      <div class="field"><label>Menge</label><input type="number" step="any" min="0" id="eventGastroItemMenge"></div>
+      <div class="field"><label>Einheit</label><input id="eventGastroItemEinheit"></div>
+    </div>
+    <div class="field">
+      <label>Lieferant für dieses Event</label>
+      <select id="eventGastroItemLieferant"></select>
+    </div>
+    <div class="field"><label>Verantwortliche Person</label><select id="eventGastroItemPerson"></select></div>
+    <div class="field"><label>Status</label>
+      <select id="eventGastroItemStatus">
+        <option value="offen">Offen</option>
+        <option value="bestellt">Bestellt</option>
+        <option value="geliefert">Geliefert / Bereit</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn secondary" onclick="Modal.close('modal-event-gastro-item')">Abbrechen</button>
+      <button class="btn" onclick="Events.saveGastroItem()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   ZENTRALE KONFIGURATION & DATENSCHICHT
+   ============================================================ */
+
+const APP_VERSION = "0.1.060";
+let currentUserProfile = { role: "A", actualRole: "A", email: "", name: "" };
+
+function uid(prefix) {
+  return prefix + "_" + Math.random().toString(36).slice(2, 9);
+}
+
+function seedData() {
+  const lieferanten = [
+    { id: "l_brauerei", name: "Brauerei Alpirsbacher", kontakt: "Herr Meier", telefon: "07834 12345", email: "bestellung@alpirsbacher.de", notizen: "Kunden-Nr: 1926" },
+    { id: "l_metzger", name: "Metzgerei Schmieder", kontakt: "Herr Schmieder", telefon: "07839 5678", email: "info@metzgerei-schmieder.de", notizen: "Lieferung bis 10 Uhr" },
+    { id: "l_baecker", name: "Bäckerei Wolber", kontakt: "Herr Wolber", telefon: "07839 9988", email: "bestellung@baeckerei-wolber.de", notizen: "Frische Wecken morgens" }
+  ];
+
+  const kategorien = [
+    {
+      id: "schaparena_75", name: "SchapArena 75", maxPersonen: "75",
+      verkaufsstellen: [{ id: "jugendtheke", name: "Jugendtheke", personalMin: 1, personalMax: 2 }],
+      aufbau: "Personal Jugendtheke", abbau: "Personal Jugendtheke", notizen: ""
+    },
+    {
+      id: "schaparena_150", name: "SchapArena 150", maxPersonen: "150",
+      verkaufsstellen: [
+        { id: "jugendtheke", name: "Jugendtheke", personalMin: 2, personalMax: 4 },
+        { id: "grillstand_ht", name: "Grillstand Haupttribüne", personalMin: 1, personalMax: 2 }
+      ],
+      aufbau: "Personal Jugendtheke, Personal Grillstand", abbau: "Personal Jugendtheke, Personal Grillstand", notizen: ""
+    },
+    {
+      id: "schaparena_300", name: "SchapArena 300", maxPersonen: "300",
+      verkaufsstellen: [
+        { id: "jugendtheke", name: "Jugendtheke", personalMin: 4, personalMax: 4 },
+        { id: "grillstand_ht", name: "Grillstand Haupttribüne", personalMin: 2, personalMax: 2 },
+        { id: "bollerwagen1", name: "Bollerwagen 1", personalMin: 2, personalMax: 2 }
+      ],
+      aufbau: "Personal Jugendtheke, Personal Grillstand", abbau: "Personal Jugendtheke, Personal Grillstand", notizen: ""
+    },
+    {
+      id: "schaparena_500", name: "SchapArena 500", maxPersonen: "500",
+      verkaufsstellen: [
+        { id: "jugendtheke", name: "Jugendtheke", personalMin: 4, personalMax: 4 },
+        { id: "getraenkestand_ht", name: "Getränkestand Haupttribüne", personalMin: 4, personalMax: 4 },
+        { id: "grillstand_ht", name: "Grillstand Haupttribüne", personalMin: 3, personalMax: 3 },
+        { id: "bollerwagen1", name: "Bollerwagen 1", personalMin: 2, personalMax: 2 }
+      ],
+      aufbau: "Personal Jugendtheke, Personal Grillstand", abbau: "Personal Jugendtheke, Personal Grillstand", notizen: ""
+    },
+    {
+      id: "schaparena_1000", name: "SchapArena 1000", maxPersonen: "750-1000",
+      verkaufsstellen: [
+        { id: "jugendtheke", name: "Jugendtheke", personalMin: 4, personalMax: 4 },
+        { id: "bierwagen_ht", name: "Bierwagen Haupttribüne", personalMin: 4, personalMax: 4 },
+        { id: "getraenkestand_gg", name: "Getränkestand Gegengerade", personalMin: 4, personalMax: 4 },
+        { id: "grillstand_ht", name: "Grillstand Haupttribüne", personalMin: 3, personalMax: 3 },
+        { id: "grillstand_gg", name: "Grillstand Gegengerade", personalMin: 2, personalMax: 2 },
+        { id: "bollerwagen1", name: "Bollerwagen 1", personalMin: 2, personalMax: 2 }
+      ],
+      aufbau: "Separates Aufbau-Team", abbau: "Separates Abbau-Team", notizen: ""
+    }
+  ];
+
+  const personen = [
+    { id: "p1", name: "Max Mustermann", rolle: "Technik-Leitung", telefon: "0160 1122334", email: "technik@sv-schapbach.de", status: "aktiv" },
+    { id: "p2", name: "Anna Beispiel", rolle: "Getränke & Einkauf", telefon: "0171 4455667", email: "einkauf@sv-schapbach.de", status: "aktiv" },
+    { id: "p3", name: "Peter Muster", rolle: "Grillstand & Essen", telefon: "0151 8899001", email: "kueche@sv-schapbach.de", status: "aktiv" }
+  ];
+
+  const ryder = [
+    {
+      id: "b_technik",
+      titel: "Technik",
+      personId: "",
+      punkte: [
+        { id: "rp_1", titel: "Musikanlage (Standard)", kategorien: { schaparena_75: true, schaparena_150: true, schaparena_300: true, schaparena_500: true, schaparena_1000: true } },
+        { id: "rp_2", titel: "Mikrofone testen", kategorien: { schaparena_75: true, schaparena_150: true, schaparena_300: true, schaparena_500: true, schaparena_1000: true } },
+        { id: "rp_3", titel: "Großes Mischpult (Zelt-PA)", kategorien: { schaparena_75: false, schaparena_150: false, schaparena_300: false, schaparena_500: true, schaparena_1000: true } }
+      ]
+    },
+    {
+      id: "b_aufbau",
+      titel: "Aufbau & Logistik",
+      personId: "",
+      punkte: [
+        { id: "rp_4", titel: "Bühne & Pavillons aufstellen", kategorien: { schaparena_75: true, schaparena_150: true, schaparena_300: true, schaparena_500: true, schaparena_1000: true } },
+        { id: "rp_5", titel: "Stromverteiler & Kabelbrücken", kategorien: { schaparena_75: true, schaparena_150: true, schaparena_300: true, schaparena_500: true, schaparena_1000: true } },
+        { id: "rp_6", titel: "Bierwagen aufstellen & anschließen", kategorien: { schaparena_75: false, schaparena_150: false, schaparena_300: false, schaparena_500: false, schaparena_1000: true } },
+        { id: "rp_7", titel: "Flutlicht / Beleuchtung", kategorien: { schaparena_75: false, schaparena_150: true, schaparena_300: true, schaparena_500: true, schaparena_1000: true } }
+      ]
+    }
+  ];
+
+  const gastroRyder = [
+    {
+      id: "gb_getraenke",
+      titel: "Getränke",
+      personId: "",
+      artikel: [
+        { id: "ga_1", name: "Bier (Fass 50L)", einheit: "Fässer", lieferantId: "l_brauerei", mengen: { schaparena_75: 2, schaparena_150: 4, schaparena_300: 8, schaparena_500: 14, schaparena_1000: 25 } },
+        { id: "ga_2", name: "Cola / Spezi 1L", einheit: "Kästen", lieferantId: "l_brauerei", mengen: { schaparena_75: 4, schaparena_150: 8, schaparena_300: 16, schaparena_500: 25, schaparena_1000: 45 } },
+        { id: "ga_3", name: "Mineralwasser 1L", einheit: "Kästen", lieferantId: "l_brauerei", mengen: { schaparena_75: 3, schaparena_150: 6, schaparena_300: 12, schaparena_500: 20, schaparena_1000: 35 } }
+      ]
+    },
+    {
+      id: "gb_speisen",
+      titel: "Speisen & Grill",
+      personId: "",
+      artikel: [
+        { id: "ga_4", name: "Rote Wurst", einheit: "Stück", lieferantId: "l_metzger", mengen: { schaparena_75: 50, schaparena_150: 120, schaparena_300: 250, schaparena_500: 450, schaparena_1000: 900 } },
+        { id: "ga_5", name: "Currywurst-Sauce", einheit: "Eimer (5kg)", lieferantId: "l_metzger", mengen: { schaparena_75: 0, schaparena_150: 1, schaparena_300: 2, schaparena_500: 4, schaparena_1000: 8 } },
+        { id: "ga_6", name: "Brötchen", einheit: "Stück", lieferantId: "l_baecker", mengen: { schaparena_75: 60, schaparena_150: 140, schaparena_300: 300, schaparena_500: 550, schaparena_1000: 1100 } }
+      ]
+    },
+    {
+      id: "gb_snacks",
+      titel: "Snacks & Zubehör",
+      personId: "",
+      artikel: [
+        { id: "ga_7", name: "Chips-Tüten", einheit: "Kartons", lieferantId: "", mengen: { schaparena_75: 1, schaparena_150: 2, schaparena_300: 4, schaparena_500: 6, schaparena_1000: 12 } },
+        { id: "ga_8", name: "Servietten", einheit: "Packungen", lieferantId: "", mengen: { schaparena_75: 2, schaparena_150: 4, schaparena_300: 8, schaparena_500: 12, schaparena_1000: 24 } }
+      ]
+    }
+  ];
+
+  return { lieferanten, personen, kategorien, ryder, gastroRyder, events: [] };
+}
+
+const PATH_BASE = ["eventplaner", "svs"];
+
+const Store = {
+  data: {
+    lieferanten: [],
+    kategorien: [],
+    ryder: [],
+    gastroRyder: [],
+    personen: [],
+    events: [],
+    users: []
+  },
+  _unsubscribes: [],
+
+  unsubscribeAll() {
+    this._unsubscribes.forEach(unsub => {
+      if (typeof unsub === "function") unsub();
+    });
+    this._unsubscribes = [];
+  },
+
+  async init(onReady) {
+    const { db, doc, collection, onSnapshot, getDoc, setDoc } = window.FB;
+
+    const configDocRef = doc(db, ...PATH_BASE, "config", "stammdaten");
+    const unsubConfig = onSnapshot(configDocRef, (snap) => {
+      if (snap.exists()) {
+        const d = snap.data();
+        Store.data.lieferanten = d.lieferanten || [];
+        Store.data.kategorien = d.kategorien || [];
+        Store.data.ryder = d.ryder || [];
+        Store.data.gastroRyder = d.gastroRyder || [];
+      } else {
+        const seed = seedData();
+        Store.data.lieferanten = seed.lieferanten;
+        Store.data.kategorien = seed.kategorien;
+        Store.data.ryder = seed.ryder;
+        Store.data.gastroRyder = seed.gastroRyder;
+        setDoc(configDocRef, {
+          lieferanten: seed.lieferanten,
+          kategorien: seed.kategorien,
+          ryder: seed.ryder,
+          gastroRyder: seed.gastroRyder
+        });
+      }
+      Lieferanten.render();
+      Kategorien.render();
+      Ryder.render();
+      GastroRyder.render();
+      Events.refreshKategorieSelect();
+    });
+
+    const personenCol = collection(db, ...PATH_BASE, "personen");
+    const unsubPersonen = onSnapshot(personenCol, (snap) => {
+      Store.data.personen = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      if (Store.data.personen.length === 0) {
+        const seed = seedData();
+        seed.personen.forEach(p => Store.savePerson(p));
+      }
+      Personen.render();
+    });
+
+    const eventsCol = collection(db, ...PATH_BASE, "events");
+    const unsubEvents = onSnapshot(eventsCol, (snap) => {
+      Store.data.events = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      Events.render();
+
+      const detailPanel = document.getElementById("event-detail-panel");
+      if (detailPanel.classList.contains("open") && detailPanel.dataset.eventId) {
+        Events.openDetail(detailPanel.dataset.eventId);
+      }
+    });
+
+    const usersCol = collection(db, ...PATH_BASE, "users");
+    const unsubUsers = onSnapshot(usersCol, (snap) => {
+      Store.data.users = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      Personen.renderUsersTable();
+    });
+
+    this._unsubscribes.push(unsubConfig, unsubPersonen, unsubEvents, unsubUsers);
+    if (onReady) onReady();
+  },
+
+  async persistConfig() {
+    const { db, doc, setDoc } = window.FB;
+    const ref = doc(db, ...PATH_BASE, "config", "stammdaten");
+    await setDoc(ref, {
+      lieferanten: this.data.lieferanten || [],
+      kategorien: this.data.kategorien || [],
+      ryder: this.data.ryder || [],
+      gastroRyder: this.data.gastroRyder || []
+    });
+  },
+
+  async savePerson(person) {
+    const { db, doc, setDoc } = window.FB;
+    const ref = doc(db, ...PATH_BASE, "personen", person.id);
+    await setDoc(ref, person);
+  },
+
+  async deletePerson(id) {
+    const { db, doc, deleteDoc } = window.FB;
+    const ref = doc(db, ...PATH_BASE, "personen", id);
+    await deleteDoc(ref);
+  },
+
+  async saveEvent(event) {
+    const { db, doc, setDoc } = window.FB;
+    const ref = doc(db, ...PATH_BASE, "events", event.id);
+    await setDoc(ref, event);
+  },
+
+  async updateEventField(eventId, updateData) {
+    const { db, doc, updateDoc } = window.FB;
+    const ref = doc(db, ...PATH_BASE, "events", eventId);
+    await updateDoc(ref, updateData);
+  },
+
+  async deleteEvent(id) {
+    const { db, doc, deleteDoc } = window.FB;
+    const ref = doc(db, ...PATH_BASE, "events", id);
+    await deleteDoc(ref);
+  },
+
+  async updateUserRole(uid, newRole) {
+    const { db, doc, updateDoc } = window.FB;
+    const ref = doc(db, ...PATH_BASE, "users", uid);
+    await updateDoc(ref, { role: newRole });
+    toast(`Rolle auf ${newRole} aktualisiert.`);
+  },
+
+  getLieferant(id) { return (this.data.lieferanten || []).find(l => l.id === id); },
+  getKategorie(id) { return (this.data.kategorien || []).find(k => k.id === id); },
+  getEvent(id) { return (this.data.events || []).find(e => e.id === id); },
+  getPerson(id) { return (this.data.personen || []).find(p => p.id === id); }
+};
+
+function toast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 2200);
+}
+
+function escapeHtml(str) {
+  return String(str ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+function copyToClipboard(text) {
+  if (!text) return;
+  navigator.clipboard.writeText(text).then(() => {
+    toast("In die Zwischenablage kopiert!");
+  }).catch(() => {
+    prompt("Kopieren:", text);
+  });
+}
+
+const Modal = {
+  open(id) { document.getElementById(id).classList.add("open"); },
+  close(id) { document.getElementById(id).classList.remove("open"); }
+};
+
+function applyRolePermissions(role) {
+  const isActualAdmin = currentUserProfile.actualRole === "A";
+  const isEffectiveA = role === "A";
+  const isEffectiveB = role === "B";
+  const isVorstandOrAdmin = isEffectiveA || isEffectiveB;
+
+  document.querySelectorAll(".admin-only").forEach(el => {
+    if (el.id === "user-role-selector") {
+      el.style.display = isActualAdmin ? "" : "none";
+    } else {
+      el.style.display = isEffectiveA ? "" : "none";
+    }
+  });
+  
+  document.querySelectorAll(".vorstand-only").forEach(el => {
+    el.style.display = isVorstandOrAdmin ? "" : "none";
+  });
+
+  const selector = document.getElementById("user-role-selector");
+  const badge = document.getElementById("user-role-badge");
+
+  if (isActualAdmin) {
+    if (selector) {
+      selector.style.display = "";
+      selector.value = role;
+    }
+    if (badge) badge.style.display = "none";
+  } else {
+    if (selector) selector.style.display = "none";
+    if (badge) {
+      badge.style.display = "";
+      badge.className = `role-badge role-${role}`;
+      badge.textContent = role === "B" ? "📋 Vorstand (B)" : "👤 Mitglied (C)";
+    }
+  }
+}
+
+function clearAllUI() {
+  Store.data = { lieferanten: [], kategorien: [], ryder: [], gastroRyder: [], personen: [], events: [], users: [] };
+  document.getElementById("events-list").innerHTML = "";
+  document.getElementById("ryder-list").innerHTML = "";
+  document.getElementById("gastro-ryder-list").innerHTML = "";
+  document.getElementById("lieferanten-list").innerHTML = "";
+  document.getElementById("personen-list").innerHTML = "";
+  document.getElementById("kategorien-list").innerHTML = "";
+  document.getElementById("event-detail-content").innerHTML = "";
+  document.getElementById("event-detail-panel").classList.remove("open");
+  document.getElementById("events-list-panel").style.display = "";
+  document.getElementById("presence-count").textContent = "0";
+  document.getElementById("presence-list").innerHTML = '<div class="presence-item muted">Niemand online</div>';
+}
+
+/* ============================================================
+   NAVIGATION
+   ============================================================ */
+
+document.querySelectorAll(".tab-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+    document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById("view-" + btn.dataset.view).classList.add("active");
+    if (btn.dataset.view === "events") Events.render();
+    if (btn.dataset.view === "meine-schichten") MeineSchichten.render();
+    if (btn.dataset.view === "ryder") Ryder.render();
+    if (btn.dataset.view === "gastro") GastroRyder.render();
+    if (btn.dataset.view === "personen") { Lieferanten.render(); Personen.render(); }
+    if (btn.dataset.view === "kategorien") Kategorien.render();
+  });
+});
+
+/* ============================================================
+   MEIN SCHICHTPLAN & MITBRINGLISTEN (GLOBAL)
+   ============================================================ */
+
+const MeineSchichten = {
+  render() {
+    const list = document.getElementById("meine-schichten-list");
+    if (!list) return;
+    const userUid = window.FB.auth.currentUser ? window.FB.auth.currentUser.uid : null;
+    if (!userUid) {
+      list.innerHTML = '<div class="empty-state">Bitte melde dich an, um deine Schichten zu sehen.</div>';
+      return;
+    }
+
+    const eventMap = {};
+
+    Store.data.events.forEach(e => {
+      const mySchichtenForEvent = [];
+      const mySpendenForEvent = [];
+
+      (e.schichten || []).forEach(s => {
+        if (s.eintragungen && s.eintragungen.some(en => en.uid === userUid)) {
+          mySchichtenForEvent.push(s);
+        }
+      });
+
+      (e.spendenListen || []).forEach(l => {
+        (l.eintragungen || []).forEach(en => {
+          if (en.uid === userUid) {
+            mySpendenForEvent.push({ listenTitel: l.titel, ...en });
+          }
+        });
+      });
+
+      if (mySchichtenForEvent.length > 0 || mySpendenForEvent.length > 0) {
+        eventMap[e.id] = {
+          eventName: e.name,
+          eventDatum: e.datum,
+          eventOrt: e.ort,
+          schichten: mySchichtenForEvent,
+          spenden: mySpendenForEvent
+        };
+      }
+    });
+
+    const eventIds = Object.keys(eventMap);
+
+    if (eventIds.length === 0) {
+      list.innerHTML = '<div class="empty-state">Du bist aktuell in keine Schichten oder Mitbringlisten eingeteilt. Klicke bei einem Event auf den Schichtplan, um dich einzutragen!</div>';
+      return;
+    }
+
+    let html = "";
+    eventIds.forEach(id => {
+      const ev = eventMap[id];
+      html += `
+        <div class="card" style="border-left: 5px solid var(--accent); margin-bottom: 20px;">
+          <div class="card-head" style="border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 12px;">
+            <div>
+              <h3 style="font-size: 17px; color: var(--accent-dark);">📅 ${escapeHtml(ev.eventName)}</h3>
+              <div class="meta">Datum: <strong>${ev.eventDatum || 'Offen'}</strong> ${ev.eventOrt ? '&middot; Ort: ' + escapeHtml(ev.eventOrt) : ''}</div>
+            </div>
+          </div>
+      `;
+
+      if (ev.schichten.length > 0) {
+        html += `<div style="font-weight:600; font-size:13px; color:var(--text-muted); margin-bottom:6px;">Deine Schichten:</div>`;
+        ev.schichten.forEach(s => {
+          html += `
+            <div style="background:var(--surface-2); padding:8px 12px; border-radius:6px; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center; font-size:13.5px;">
+              <div><strong>📌 ${escapeHtml(s.vs)}</strong></div>
+              <div class="meta">${s.start} - ${s.ende} Uhr</div>
+            </div>
+          `;
+        });
+      }
+
+      if (ev.spenden.length > 0) {
+        html += `<div style="font-weight:600; font-size:13px; color:var(--text-muted); margin-top:10px; margin-bottom:6px;">Deine Mitbring- &amp; Spendenlisten:</div>`;
+        ev.spenden.forEach(sp => {
+          html += `
+            <div style="background:#fdf9f0; padding:8px 12px; border-radius:6px; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center; font-size:13.5px;">
+              <div><strong>🍰 ${escapeHtml(sp.listenTitel)}</strong></div>
+              <div class="meta">Mitbringsel: <strong>${escapeHtml(sp.wert)}</strong></div>
+            </div>
+          `;
+        });
+      }
+
+      html += `</div>`;
+    });
+
+    list.innerHTML = html;
+  }
+};
+
+/* ============================================================
+   LIEFERANTEN-MANAGEMENT
+   ============================================================ */
+
+const Lieferanten = {
+  render() {
+    const list = document.getElementById("lieferanten-list");
+    if (!list) return;
+    const lList = Store.data.lieferanten || [];
+    if (lList.length === 0) {
+      list.innerHTML = '<div class="empty-state">Noch keine Lieferanten angelegt. Klicke auf „+ Neuer Lieferant“.</div>';
+      return;
+    }
+
+    list.innerHTML = lList.map(l => `
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <h3>🚚 ${escapeHtml(l.name)}</h3>
+            <div class="meta">
+              ${l.kontakt ? '👤 ' + escapeHtml(l.kontakt) + ' &middot; ' : ''}
+              ${l.telefon ? '📞 ' + escapeHtml(l.telefon) + ' &middot; ' : ''}
+              ${l.email ? '✉️ <strong>' + escapeHtml(l.email) + '</strong>' : '<span style="color:#a3352a;">Keine E-Mail hinterlegt</span>'}
+            </div>
+            ${l.notizen ? `<div style="font-size:12px;color:var(--text-muted);margin-top:4px;">${escapeHtml(l.notizen)}</div>` : ''}
+          </div>
+          <div class="card-actions vorstand-only">
+            <button class="btn secondary small" onclick="Lieferanten.openForm('${l.id}')">Bearbeiten</button>
+            <button class="btn danger small admin-only" onclick="Lieferanten.remove('${l.id}')">Löschen</button>
+          </div>
+        </div>
+      </div>
+    `).join("");
+    applyRolePermissions(currentUserProfile.role);
+  },
+
+  openForm(id) {
+    document.getElementById("lieferantId").value = id || "";
+    const isEdit = !!id;
+    document.getElementById("lieferant-modal-title").textContent = isEdit ? "Lieferant bearbeiten" : "Neuer Lieferant";
+    const l = isEdit ? Store.getLieferant(id) : { name: "", kontakt: "", telefon: "", email: "", notizen: "" };
+    document.getElementById("lieferantName").value = l.name || "";
+    document.getElementById("lieferantKontakt").value = l.kontakt || "";
+    document.getElementById("lieferantTelefon").value = l.telefon || "";
+    document.getElementById("lieferantEmail").value = l.email || "";
+    document.getElementById("lieferantNotizen").value = l.notizen || "";
+    Modal.open("modal-lieferant");
+  },
+
+  async save() {
+    const id = document.getElementById("lieferantId").value || uid("l");
+    const name = document.getElementById("lieferantName").value.trim();
+    if (!name) { toast("Bitte einen Lieferantennamen angeben."); return; }
+
+    const lieferant = {
+      id, name,
+      kontakt: document.getElementById("lieferantKontakt").value.trim(),
+      telefon: document.getElementById("lieferantTelefon").value.trim(),
+      email: document.getElementById("lieferantEmail").value.trim(),
+      notizen: document.getElementById("lieferantNotizen").value.trim()
+    };
+
+    if (!Store.data.lieferanten) Store.data.lieferanten = [];
+    const idx = Store.data.lieferanten.findIndex(l => l.id === id);
+    if (idx >= 0) Store.data.lieferanten[idx] = lieferant;
+    else Store.data.lieferanten.push(lieferant);
+
+    await Store.persistConfig();
+    Modal.close("modal-lieferant");
+    toast("Lieferant gespeichert.");
+  },
+
+  async remove(id) {
+    if (!confirm("Lieferant wirklich löschen?")) return;
+    Store.data.lieferanten = (Store.data.lieferanten || []).filter(l => l.id !== id);
+    await Store.persistConfig();
+    toast("Lieferant gelöscht.");
+  }
+};
+
+/* ============================================================
+   CHECKLISTEN-RYDER (ZENTRALE ADMIN MATRIX)
+   ============================================================ */
+
+const Ryder = {
+  render() {
+    const list = document.getElementById("ryder-list");
+    if (!list) return;
+    if (!Store.data.ryder || Store.data.ryder.length === 0) {
+      list.innerHTML = '<div class="empty-state">Noch keine Bereiche im Checklisten-Ryder definiert. Klicke oben auf „+ Neuer Bereich“.</div>';
+      return;
+    }
+
+    const kategorien = Store.data.kategorien;
+
+    list.innerHTML = Store.data.ryder.map((bereich, bIdx) => {
+      const pers = Store.getPerson(bereich.personId);
+      return `
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <h3>📁 ${escapeHtml(bereich.titel)}</h3>
+              <div class="meta">
+                ${bereich.punkte.length} Checklisten-Objekte &middot;
+                Standard-Hauptverantwortlich: <strong>${pers ? escapeHtml(pers.name) : 'Keine'}</strong>
+              </div>
+            </div>
+            <div class="card-actions admin-only">
+              <button class="btn secondary small" onclick="Ryder.moveBereich(${bIdx}, -1)" ${bIdx === 0 ? 'disabled' : ''}>▲</button>
+              <button class="btn secondary small" onclick="Ryder.moveBereich(${bIdx}, 1)" ${bIdx === Store.data.ryder.length - 1 ? 'disabled' : ''}>▼</button>
+              <button class="btn secondary small" onclick="Ryder.openBereichForm('${bereich.id}')">Bearbeiten</button>
+              <button class="btn secondary small" onclick="Ryder.openPunktForm('${bereich.id}')">+ Objekt</button>
+              <button class="btn danger small" onclick="Ryder.removeBereich('${bereich.id}')">Löschen</button>
+            </div>
+          </div>
+
+          ${bereich.punkte.length > 0 ? `
+            <div style="overflow-x:auto;">
+              <table class="matrix-table">
+                <thead>
+                  <tr>
+                    <th style="min-width:180px;">Objekt / Aufgabe</th>
+                    ${kategorien.map(k => `<th>${escapeHtml(k.name)}</th>`).join("")}
+                    <th style="width:130px;" class="admin-only">Aktionen</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${bereich.punkte.map((p, pIdx) => `
+                    <tr>
+                      <td><strong>${escapeHtml(p.titel)}</strong></td>
+                      ${kategorien.map(k => {
+                        const isAn = !!p.kategorien?.[k.id];
+                        return `
+                          <td>
+                            <button type="button" class="toggle-btn ${isAn ? 'on' : 'off'}" onclick="Ryder.quickToggle('${bereich.id}', '${p.id}', '${k.id}')">
+                              ${isAn ? 'AN' : 'AUS'}
+                            </button>
+                          </td>
+                        `;
+                      }).join("")}
+                      <td class="admin-only">
+                        <div style="display:flex;gap:3px;justify-content:center;">
+                          <button class="btn secondary small" onclick="Ryder.movePunkt('${bereich.id}', ${pIdx}, -1)" ${pIdx === 0 ? 'disabled' : ''}>▲</button>
+                          <button class="btn secondary small" onclick="Ryder.movePunkt('${bereich.id}', ${pIdx}, 1)" ${pIdx === bereich.punkte.length - 1 ? 'disabled' : ''}>▼</button>
+                          <button class="btn secondary small" onclick="Ryder.openPunktForm('${bereich.id}', '${p.id}')">✎</button>
+                          <button class="btn danger small" onclick="Ryder.removePunkt('${bereich.id}', '${p.id}')">&times;</button>
+                        </div>
+                      </td>
+                    </tr>
+                  `).join("")}
+                </tbody>
+              </table>
+            </div>
+          ` : '<div class="meta" style="margin-top:8px;">Noch keine Objekte in diesem Bereich. Klicke auf „+ Objekt“.</div>'}
+        </div>
+      `;
+    }).join("");
+    applyRolePermissions(currentUserProfile.role);
+  },
+
+  openBereichForm(id) {
+    document.getElementById("ryderBereichId").value = id || "";
+    const isEdit = !!id;
+    document.getElementById("ryder-bereich-modal-title").textContent = isEdit ? "Bereich bearbeiten" : "Neuer Bereich";
+    const b = isEdit ? Store.data.ryder.find(x => x.id === id) : { titel: "", personId: "" };
+    document.getElementById("ryderBereichTitel").value = b ? b.titel : "";
+
+    const persSel = document.getElementById("ryderBereichPerson");
+    persSel.innerHTML = '<option value="">-- Keine Person zugewiesen --</option>' + Store.data.personen.map(p => `
+      <option value="${p.id}" ${b && b.personId === p.id ? 'selected' : ''}>${escapeHtml(p.name)} ${p.status === 'inaktiv' ? '(inaktiv)' : ''}</option>
+    `).join("");
+
+    Modal.open("modal-ryder-bereich");
+  },
+
+  async saveBereich() {
+    const id = document.getElementById("ryderBereichId").value || uid("b");
+    const titel = document.getElementById("ryderBereichTitel").value.trim();
+    if (!titel) { toast("Bitte einen Bereichsnamen eingeben."); return; }
+    const personId = document.getElementById("ryderBereichPerson").value;
+
+    const existing = Store.data.ryder.find(x => x.id === id);
+    if (existing) {
+      existing.titel = titel;
+      existing.personId = personId;
+    } else {
+      Store.data.ryder.push({ id, titel, personId, punkte: [] });
+    }
+
+    await Store.persistConfig();
+    Modal.close("modal-ryder-bereich");
+    toast("Bereich gespeichert.");
+  },
+
+  async moveBereich(index, direction) {
+    const target = index + direction;
+    if (target < 0 || target >= Store.data.ryder.length) return;
+    const item = Store.data.ryder.splice(index, 1)[0];
+    Store.data.ryder.splice(target, 0, item);
+    await Store.persistConfig();
+  },
+
+  async removeBereich(id) {
+    if (!confirm("Bereich samt Vorlagenobjekten löschen?")) return;
+    Store.data.ryder = Store.data.ryder.filter(x => x.id !== id);
+    await Store.persistConfig();
+    toast("Bereich gelöscht.");
+  },
+
+  openPunktForm(bereichId, punktId) {
+    document.getElementById("ryderPunktBereichId").value = bereichId;
+    document.getElementById("ryderPunktId").value = punktId || "";
+    const isEdit = !!punktId;
+    document.getElementById("ryder-punkt-modal-title").textContent = isEdit ? "Objekt bearbeiten" : "Neues Checklisten-Objekt";
+    
+    const bereich = Store.data.ryder.find(b => b.id === bereichId);
+    const p = isEdit ? (bereich ? bereich.punkte.find(x => x.id === punktId) : null) : { titel: "", kategorien: {} };
+
+    document.getElementById("ryderPunktTitel").value = p ? p.titel : "";
+
+    const matrixWrap = document.getElementById("ryderPunktKategorienMatrix");
+    matrixWrap.innerHTML = `
+      <table class="matrix-table">
+        <thead><tr><th>Kategorie</th><th style="width:90px;">Standard</th></tr></thead>
+        <tbody>
+          ${Store.data.kategorien.map(k => {
+            const active = !!(p && p.kategorien && p.kategorien[k.id]);
+            return `
+              <tr>
+                <td>${escapeHtml(k.name)}</td>
+                <td>
+                  <label style="cursor:pointer;display:inline-flex;align-items:center;gap:6px;">
+                    <input type="checkbox" class="modal-kat-cb" data-katid="${k.id}" ${active ? 'checked' : ''} style="width:16px;height:16px;">
+                    <span>${active ? 'AN' : 'AUS'}</span>
+                  </label>
+                </td>
+              </tr>
+            `;
+          }).join("")}
+        </tbody>
+      </table>
+    `;
+
+    Modal.open("modal-ryder-punkt");
+  },
+
+  async savePunkt() {
+    const bereichId = document.getElementById("ryderPunktBereichId").value;
+    const punktId = document.getElementById("ryderPunktId").value || uid("rp");
+    const titel = document.getElementById("ryderPunktTitel").value.trim();
+    if (!titel) { toast("Bitte eine Bezeichnung eingeben."); return; }
+
+    const bereich = Store.data.ryder.find(b => b.id === bereichId);
+    if (!bereich) { toast("Fehler: Bereich nicht gefunden."); return; }
+
+    const katMap = {};
+    document.querySelectorAll("#modal-ryder-punkt .modal-kat-cb").forEach(cb => {
+      katMap[cb.dataset.katid] = cb.checked;
+    });
+
+    const punktData = { id: punktId, titel, kategorien: katMap };
+    const idx = bereich.punkte.findIndex(p => p.id === punktId);
+    if (idx >= 0) bereich.punkte[idx] = punktData;
+    else bereich.punkte.push(punktData);
+
+    await Store.persistConfig();
+    Modal.close("modal-ryder-punkt");
+    toast("Objekt gespeichert.");
+  },
+
+  async quickToggle(bereichId, punktId, katId) {
+    if (currentUserProfile.role !== "A") {
+      toast("Nur Administratoren (Rolle A) dürfen Standard-Vorlagen ändern.");
+      return;
+    }
+    const b = Store.data.ryder.find(x => x.id === bereichId);
+    if (!b) return;
+    const p = b.punkte.find(x => x.id === punktId);
+    if (!p) return;
+    if (!p.kategorien) p.kategorien = {};
+    p.kategorien[katId] = !p.kategorien[katId];
+    await Store.persistConfig();
+    const katName = Store.getKategorie(katId)?.name;
+    toast(`Standard geändert: "${p.titel}" für ${katName} ist jetzt ${p.kategorien[katId] ? 'AN' : 'AUS'}`);
+  },
+
+  async movePunkt(bereichId, index, direction) {
+    const b = Store.data.ryder.find(x => x.id === bereichId);
+    if (!b) return;
+    const target = index + direction;
+    if (target < 0 || target >= b.punkte.length) return;
+    const item = b.punkte.splice(index, 1)[0];
+    b.punkte.splice(target, 0, item);
+    await Store.persistConfig();
+  },
+
+  async removePunkt(bereichId, punktId) {
+    const b = Store.data.ryder.find(x => x.id === bereichId);
+    if (!b) return;
+    b.punkte = b.punkte.filter(p => p.id !== punktId);
+    await Store.persistConfig();
+    toast("Objekt gelöscht.");
+  }
+};
+
+/* ============================================================
+   GASTRO-RYDER (SORTIMENTSKATALOG MIT LIEFERANTEN)
+   ============================================================ */
+
+const GastroRyder = {
+  render() {
+    const list = document.getElementById("gastro-ryder-list");
+    if (!list) return;
+    if (!Store.data.gastroRyder || Store.data.gastroRyder.length === 0) {
+      list.innerHTML = '<div class="empty-state">Noch keine Bereiche im Gastro-Ryder hinterlegt. Klicke auf „+ Neuer Bereich“.</div>';
+      return;
+    }
+
+    const kategorien = Store.data.kategorien;
+
+    list.innerHTML = Store.data.gastroRyder.map((bereich, bIdx) => {
+      const person = Store.getPerson(bereich.personId);
+      return `
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <h3>🍽️ ${escapeHtml(bereich.titel)}</h3>
+              <div class="meta">
+                ${bereich.artikel.length} Artikel &middot; 
+                Standard-Hauptverantwortlich: <strong>${person ? escapeHtml(person.name) : 'Keine'}</strong>
+              </div>
+            </div>
+            <div class="card-actions admin-only">
+              <button class="btn secondary small" onclick="GastroRyder.moveBereich(${bIdx}, -1)" ${bIdx === 0 ? 'disabled' : ''}>▲</button>
+              <button class="btn secondary small" onclick="GastroRyder.moveBereich(${bIdx}, 1)" ${bIdx === Store.data.gastroRyder.length - 1 ? 'disabled' : ''}>▼</button>
+              <button class="btn secondary small" onclick="GastroRyder.openBereichForm('${bereich.id}')">Bearbeiten</button>
+              <button class="btn secondary small" onclick="GastroRyder.openArtikelForm('${bereich.id}')">+ Artikel</button>
+              <button class="btn danger small" onclick="GastroRyder.removeBereich('${bereich.id}')">Löschen</button>
+            </div>
+          </div>
+
+          ${bereich.artikel.length > 0 ? `
+            <div style="overflow-x:auto;">
+              <table class="matrix-table">
+                <thead>
+                  <tr>
+                    <th style="min-width:160px;">Artikel</th>
+                    <th style="width:70px;">Einheit</th>
+                    <th style="width:140px;">Standard-Lieferant</th>
+                    ${kategorien.map(k => `<th>${escapeHtml(k.name)}</th>`).join("")}
+                    <th style="width:130px;" class="admin-only">Aktionen</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${bereich.artikel.map((art, aIdx) => {
+                    const lief = Store.getLieferant(art.lieferantId);
+                    return `
+                      <tr>
+                        <td><strong>${escapeHtml(art.name)}</strong></td>
+                        <td><span class="meta">${escapeHtml(art.einheit || "-")}</span></td>
+                        <td><span class="pill ${lief ? '' : 'inactive'}" style="font-size:11px;">${lief ? '🚚 ' + escapeHtml(lief.name) : 'Keiner'}</span></td>
+                        ${kategorien.map(k => {
+                          const menge = art.mengen?.[k.id] ?? 0;
+                          return `
+                            <td>
+                              <input type="number" step="any" min="0" class="gastro-input-matrix" value="${menge}"
+                                ${currentUserProfile.role !== 'A' ? 'disabled' : ''}
+                                onchange="GastroRyder.updateMenge('${bereich.id}', '${art.id}', '${k.id}', this.value)">
+                            </td>
+                          `;
+                        }).join("")}
+                        <td class="admin-only">
+                          <div style="display:flex;gap:3px;justify-content:center;">
+                            <button class="btn secondary small" onclick="GastroRyder.moveArtikel('${bereich.id}', ${aIdx}, -1)" ${aIdx === 0 ? 'disabled' : ''}>▲</button>
+                            <button class="btn secondary small" onclick="GastroRyder.moveArtikel('${bereich.id}', ${aIdx}, 1)" ${aIdx === bereich.artikel.length - 1 ? 'disabled' : ''}>▼</button>
+                            <button class="btn secondary small" onclick="GastroRyder.openArtikelForm('${bereich.id}', '${art.id}')">✎</button>
+                            <button class="btn danger small" onclick="GastroRyder.removeArtikel('${bereich.id}', '${art.id}')">&times;</button>
+                          </div>
+                        </td>
+                      </tr>
+                    `;
+                  }).join("")}
+                </tbody>
+              </table>
+            </div>
+          ` : '<div class="meta" style="margin-top:8px;">Noch keine Artikel in diesem Bereich. Klicke auf „+ Artikel“.</div>'}
+        </div>
+      `;
+    }).join("");
+    applyRolePermissions(currentUserProfile.role);
+  },
+
+  openBereichForm(id) {
+    document.getElementById("gastroBereichId").value = id || "";
+    const isEdit = !!id;
+    document.getElementById("gastro-bereich-modal-title").textContent = isEdit ? "Gastro-Bereich bearbeiten" : "Neuer Gastro-Bereich";
+    const b = isEdit ? Store.data.gastroRyder.find(x => x.id === id) : { titel: "", personId: "" };
+    document.getElementById("gastroBereichTitel").value = b ? b.titel : "";
+
+    const persSel = document.getElementById("gastroBereichPerson");
+    persSel.innerHTML = '<option value="">-- Keine Person zugewiesen --</option>' + Store.data.personen.map(p => `
+      <option value="${p.id}" ${b && b.personId === p.id ? 'selected' : ''}>${escapeHtml(p.name)} ${p.status === 'inaktiv' ? '(inaktiv)' : ''}</option>
+    `).join("");
+
+    Modal.open("modal-gastro-bereich");
+  },
+
+  async saveBereich() {
+    const id = document.getElementById("gastroBereichId").value || uid("gb");
+    const titel = document.getElementById("gastroBereichTitel").value.trim();
+    if (!titel) { toast("Bitte einen Bereichsnamen eingeben."); return; }
+    const personId = document.getElementById("gastroBereichPerson").value;
+
+    const existing = Store.data.gastroRyder.find(x => x.id === id);
+    if (existing) {
+      existing.titel = titel;
+      existing.personId = personId;
+    } else {
+      Store.data.gastroRyder.push({ id, titel, personId, artikel: [] });
+    }
+
+    await Store.persistConfig();
+    Modal.close("modal-gastro-bereich");
+    toast("Gastro-Bereich gespeichert.");
+  },
+
+  async moveBereich(index, direction) {
+    const target = index + direction;
+    if (target < 0 || target >= Store.data.gastroRyder.length) return;
+    const item = Store.data.gastroRyder.splice(index, 1)[0];
+    Store.data.gastroRyder.splice(target, 0, item);
+    await Store.persistConfig();
+  },
+
+  async removeBereich(id) {
+    if (!confirm("Bereich samt Artikeln löschen?")) return;
+    Store.data.gastroRyder = Store.data.gastroRyder.filter(x => x.id !== id);
+    await Store.persistConfig();
+    toast("Gastro-Bereich gelöscht.");
+  },
+
+  openArtikelForm(bereichId, artikelId) {
+    document.getElementById("gastroArtikelBereichId").value = bereichId;
+    document.getElementById("gastroArtikelId").value = artikelId || "";
+    const isEdit = !!artikelId;
+    document.getElementById("gastro-artikel-modal-title").textContent = isEdit ? "Artikel bearbeiten" : "Neuer Gastro-Artikel";
+
+    const bereich = Store.data.gastroRyder.find(b => b.id === bereichId);
+    const a = isEdit ? (bereich ? bereich.artikel.find(x => x.id === artikelId) : null) : { name: "", einheit: "", lieferantId: "", mengen: {} };
+
+    document.getElementById("gastroArtikelName").value = a ? a.name : "";
+    document.getElementById("gastroArtikelEinheit").value = a ? a.einheit : "";
+
+    const liefSel = document.getElementById("gastroArtikelLieferant");
+    liefSel.innerHTML = '<option value="">-- Kein Standard-Lieferant --</option>' + (Store.data.lieferanten || []).map(l => `
+      <option value="${l.id}" ${a && a.lieferantId === l.id ? 'selected' : ''}>🚚 ${escapeHtml(l.name)}</option>
+    `).join("");
+
+    const matrixWrap = document.getElementById("gastroArtikelMatrix");
+    matrixWrap.innerHTML = `
+      <table class="matrix-table">
+        <thead><tr><th>Kategorie</th><th style="width:120px;">Menge</th></tr></thead>
+        <tbody>
+          ${Store.data.kategorien.map(k => `
+            <tr>
+              <td>${escapeHtml(k.name)}</td>
+              <td><input type="number" step="any" min="0" class="modal-gastro-menge" data-katid="${k.id}" value="${a?.mengen?.[k.id] ?? 0}" style="width:90px;padding:4px;text-align:right;"></td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+    `;
+
+    Modal.open("modal-gastro-artikel");
+  },
+
+  async saveArtikel() {
+    const bereichId = document.getElementById("gastroArtikelBereichId").value;
+    const artikelId = document.getElementById("gastroArtikelId").value || uid("ga");
+    const name = document.getElementById("gastroArtikelName").value.trim();
+    const einheit = document.getElementById("gastroArtikelEinheit").value.trim();
+    const lieferantId = document.getElementById("gastroArtikelLieferant").value;
+    if (!name) { toast("Bitte eine Artikelbezeichnung eingeben."); return; }
+
+    const bereich = Store.data.gastroRyder.find(b => b.id === bereichId);
+    if (!bereich) { toast("Fehler: Bereich nicht gefunden."); return; }
+
+    const mengen = {};
+    document.querySelectorAll(".modal-gastro-menge").forEach(inp => {
+      mengen[inp.dataset.katid] = Number(inp.value) || 0;
+    });
+
+    const artData = { id: artikelId, name, einheit, lieferantId, mengen };
+    const idx = bereich.artikel.findIndex(a => a.id === artikelId);
+    if (idx >= 0) bereich.artikel[idx] = artData;
+    else bereich.artikel.push(artData);
+
+    await Store.persistConfig();
+    Modal.close("modal-gastro-artikel");
+    toast("Artikel gespeichert.");
+  },
+
+  async updateMenge(bereichId, artikelId, katId, val) {
+    const b = Store.data.gastroRyder.find(x => x.id === bereichId);
+    if (!b) return;
+    const a = b.artikel.find(x => x.id === artikelId);
+    if (!a) return;
+    if (!a.mengen) a.mengen = {};
+    a.mengen[katId] = Number(val) || 0;
+    await Store.persistConfig();
+  },
+
+  async moveArtikel(bereichId, index, direction) {
+    const b = Store.data.gastroRyder.find(x => x.id === bereichId);
+    if (!b) return;
+    const target = index + direction;
+    if (target < 0 || target >= b.artikel.length) return;
+    const item = b.artikel.splice(index, 1)[0];
+    b.artikel.splice(target, 0, item);
+    await Store.persistConfig();
+  },
+
+  async removeArtikel(bereichId, artikelId) {
+    const b = Store.data.gastroRyder.find(x => x.id === bereichId);
+    if (!b) return;
+    b.artikel = b.artikel.filter(a => a.id !== artikelId);
+    await Store.persistConfig();
+    toast("Artikel gelöscht.");
+  }
+};
+
+/* ============================================================
+   PERSONEN & BENUTZERROLLEN
+   ============================================================ */
+
+const Personen = {
+  render() {
+    this.renderUsersTable();
+    const list = document.getElementById("personen-list");
+    if (!list) return;
+    if (Store.data.personen.length === 0) {
+      list.innerHTML = '<div class="empty-state">Noch keine Personen angelegt.</div>';
+      return;
+    }
+    list.innerHTML = Store.data.personen.map(p => `
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <h3>${escapeHtml(p.name)} <span class="pill ${p.status === 'inaktiv' ? 'inactive' : ''}">${p.status === 'aktiv' ? 'Aktiv' : 'Deaktiviert'}</span></h3>
+            <div class="meta">
+              ${p.rolle ? escapeHtml(p.rolle) : 'Keine Rolle'}
+              ${p.telefon ? ' &middot; 📞 ' + escapeHtml(p.telefon) : ''}
+              ${p.email ? ' &middot; ✉️ ' + escapeHtml(p.email) : ''}
+            </div>
+          </div>
+          <div class="card-actions vorstand-only">
+            <button class="btn secondary small" onclick="Personen.openForm('${p.id}')">Bearbeiten</button>
+            <button class="btn danger small admin-only" onclick="Personen.remove('${p.id}')">Löschen</button>
+          </div>
+        </div>
+      </div>
+    `).join("");
+    applyRolePermissions(currentUserProfile.role);
+  },
+
+  renderUsersTable() {
+    const wrap = document.getElementById("users-role-table-wrap");
+    if (!wrap) return;
+    if (!Store.data.users || Store.data.users.length === 0) {
+      wrap.innerHTML = '<div class="meta">Keine registrierten Accounts gefunden.</div>';
+      return;
+    }
+
+    wrap.innerHTML = `
+      <table class="subtable" style="background:#fff;border-radius:8px;border:1px solid var(--border);">
+        <thead>
+          <tr>
+            <th>E-Mail / Name</th>
+            <th>Aktuelle Rolle</th>
+            <th style="width:160px;">Rolle zuweisen</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${Store.data.users.map(u => `
+            <tr>
+              <td>
+                <strong>${escapeHtml(u.name || u.email)}</strong>
+                <div class="meta">${escapeHtml(u.email)}</div>
+              </td>
+              <td>
+                <span class="pill ${u.role === 'A' ? '' : 'inactive'}">${u.role === 'A' ? 'A (Admin)' : (u.role === 'B' ? 'B (Vorstand)' : 'C (Mitglied)')}</span>
+              </td>
+              <td>
+                <select style="font-size:12px;padding:3px;" onchange="Store.updateUserRole('${u.id}', this.value)">
+                  <option value="C" ${(u.role || 'C') === 'C' ? 'selected' : ''}>C: Mitglied</option>
+                  <option value="B" ${u.role === 'B' ? 'selected' : ''}>B: Vorstand</option>
+                  <option value="A" ${u.role === 'A' ? 'selected' : ''}>A: Administrator</option>
+                </select>
+              </td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+    `;
+  },
+
+  openForm(id) {
+    document.getElementById("personId").value = id || "";
+    const isEdit = !!id;
+    document.getElementById("person-modal-title").textContent = isEdit ? "Person bearbeiten" : "Neue Person anlegen";
+    const p = isEdit ? Store.getPerson(id) : { name: "", rolle: "", telefon: "", email: "", status: "aktiv" };
+    document.getElementById("personName").value = p.name || "";
+    document.getElementById("personRolle").value = p.rolle || "";
+    document.getElementById("personTelefon").value = p.telefon || "";
+    document.getElementById("personEmail").value = p.email || "";
+    document.getElementById("personStatus").value = p.status || "aktiv";
+    Modal.open("modal-person");
+  },
+
+  async save() {
+    const id = document.getElementById("personId").value || uid("pers");
+    const name = document.getElementById("personName").value.trim();
+    if (!name) { toast("Bitte einen Namen eingeben."); return; }
+
+    const person = {
+      id, name,
+      rolle: document.getElementById("personRolle").value.trim(),
+      telefon: document.getElementById("personTelefon").value.trim(),
+      email: document.getElementById("personEmail").value.trim(),
+      status: document.getElementById("personStatus").value
+    };
+
+    await Store.savePerson(person);
+    Modal.close("modal-person");
+    toast("Person gespeichert.");
+  },
+
+  async remove(id) {
+    if (!confirm("Person wirklich löschen?")) return;
+    await Store.deletePerson(id);
+    toast("Person gelöscht.");
+  }
+};
+
+/* ============================================================
+   KATEGORIEN
+   ============================================================ */
+
+const Kategorien = {
+  render() {
+    const list = document.getElementById("kategorien-list");
+    if (!list) return;
+    if (Store.data.kategorien.length === 0) {
+      list.innerHTML = '<div class="empty-state">Noch keine Kategorien angelegt.</div>';
+      return;
+    }
+    list.innerHTML = Store.data.kategorien.map(k => `
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <h3>${escapeHtml(k.name)}</h3>
+            <div class="meta">Max. ${escapeHtml(k.maxPersonen)} Personen &middot; ${k.verkaufsstellen.length} Verkaufsstelle(n)</div>
+          </div>
+          <div class="card-actions admin-only">
+            <button class="btn secondary small" onclick="Kategorien.openForm('${k.id}')">Bearbeiten</button>
+            <button class="btn secondary small" onclick="Kategorien.duplicate('${k.id}')">Duplizieren</button>
+            <button class="btn danger small" onclick="Kategorien.remove('${k.id}')">Löschen</button>
+          </div>
+        </div>
+        <table class="subtable">
+          <thead><tr><th>Verkaufsstelle</th><th>Personal-Bedarf</th></tr></thead>
+          <tbody>
+            ${k.verkaufsstellen.map(vs => `
+              <tr><td>${escapeHtml(vs.name)}</td><td>${vs.personalMin}${vs.personalMax !== vs.personalMin ? "–" + vs.personalMax : ""} Pers.</td></tr>
+            `).join("")}
+          </tbody>
+        </table>
+        <div style="margin-top:10px;font-size:12.5px;color:var(--text-muted);">
+          Aufbau: ${escapeHtml(k.aufbau || "—")} &middot; Abbau: ${escapeHtml(k.abbau || "—")}
+        </div>
+      </div>
+    `).join("");
+    applyRolePermissions(currentUserProfile.role);
+  },
+
+  openForm(id) {
+    document.getElementById("kategorieId").value = id || "";
+    const isEdit = !!id;
+    document.getElementById("kategorie-modal-title").textContent = isEdit ? "Kategorie bearbeiten" : "Neue Kategorie";
+    const k = isEdit ? Store.getKategorie(id) : { name: "", maxPersonen: "", verkaufsstellen: [], aufbau: "", abbau: "", notizen: "" };
+    document.getElementById("kategorieName").value = k.name;
+    document.getElementById("kategorieMaxPersonen").value = k.maxPersonen;
+    document.getElementById("kategorieAufbau").value = k.aufbau || "";
+    document.getElementById("kategorieAbbau").value = k.abbau || "";
+    document.getElementById("kategorieNotizen").value = k.notizen || "";
+
+    document.getElementById("verkaufsstellenList").innerHTML = "";
+    (k.verkaufsstellen || []).forEach(vs => this.addVerkaufsstelleRow(vs));
+    Modal.open("modal-kategorie");
+  },
+
+  addVerkaufsstelleRow(vs) {
+    vs = vs || { id: uid("vs"), name: "", personalMin: 1, personalMax: 1 };
+    const wrap = document.getElementById("verkaufsstellenList");
+    const row = document.createElement("div");
+    row.className = "repeat-item";
+    row.dataset.vsid = vs.id;
+    row.innerHTML = `
+      <input placeholder="Name der Verkaufsstelle" class="vs-name" value="${escapeHtml(vs.name)}">
+      <input type="number" min="0" placeholder="Min" class="vs-min" value="${vs.personalMin}" style="max-width:80px;">
+      <input type="number" min="0" placeholder="Max" class="vs-max" value="${vs.personalMax}" style="max-width:80px;">
+      <button class="btn danger small" onclick="this.closest('.repeat-item').remove()">&times;</button>
+    `;
+    wrap.appendChild(row);
+  },
+
+  async save() {
+    const isNew = !document.getElementById("kategorieId").value;
+    const id = document.getElementById("kategorieId").value || uid("kat");
+    const name = document.getElementById("kategorieName").value.trim();
+    if (!name) { toast("Bitte einen Namen angeben."); return; }
+
+    const verkaufsstellen = Array.from(document.querySelectorAll("#verkaufsstellenList .repeat-item")).map(r => ({
+      id: r.dataset.vsid,
+      name: r.querySelector(".vs-name").value.trim(),
+      personalMin: Number(r.querySelector(".vs-min").value) || 0,
+      personalMax: Number(r.querySelector(".vs-max").value) || 0
+    })).filter(vs => vs.name);
+
+    const kategorie = {
+      id, name,
+      maxPersonen: document.getElementById("kategorieMaxPersonen").value.trim(),
+      verkaufsstellen,
+      aufbau: document.getElementById("kategorieAufbau").value.trim(),
+      abbau: document.getElementById("kategorieAbbau").value.trim(),
+      notizen: document.getElementById("kategorieNotizen").value.trim()
+    };
+
+    const idx = Store.data.kategorien.findIndex(k => k.id === id);
+    if (idx >= 0) {
+      Store.data.kategorien[idx] = kategorie;
+    } else {
+      Store.data.kategorien.push(kategorie);
+      (Store.data.ryder || []).forEach(b => {
+        (b.punkte || []).forEach(p => {
+          if (!p.kategorien) p.kategorien = {};
+          if (p.kategorien[id] === undefined) p.kategorien[id] = false;
+        });
+      });
+      (Store.data.gastroRyder || []).forEach(b => {
+        (b.artikel || []).forEach(a => {
+          if (!a.mengen) a.mengen = {};
+          a.mengen[id] = 0;
+        });
+      });
+    }
+
+    await Store.persistConfig();
+    Modal.close("modal-kategorie");
+    toast(isNew ? "Kategorie angelegt." : "Kategorie gespeichert.");
+  },
+
+  async duplicate(id) {
+    const k = Store.getKategorie(id);
+    if (!k) return;
+    const copy = JSON.parse(JSON.stringify(k));
+    const newId = uid("kat");
+    copy.id = newId;
+    copy.name = k.name + " (Kopie)";
+    Store.data.kategorien.push(copy);
+
+    (Store.data.ryder || []).forEach(b => {
+      (b.punkte || []).forEach(p => {
+        if (!p.kategorien) p.kategorien = {};
+        p.kategorien[newId] = false;
+      });
+    });
+
+    (Store.data.gastroRyder || []).forEach(b => {
+      (b.artikel || []).forEach(a => {
+        if (!a.mengen) a.mengen = {};
+        a.mengen[newId] = 0;
+      });
+    });
+
+    await Store.persistConfig();
+    toast("Kategorie dupliziert.");
+  },
+
+  async remove(id) {
+    const inUse = Store.data.events.some(e => e.kategorieId === id);
+    if (inUse && !confirm("Diese Kategorie wird von mindestens einem Event verwendet. Trotzdem löschen?")) return;
+    Store.data.kategorien = Store.data.kategorien.filter(k => k.id !== id);
+
+    (Store.data.ryder || []).forEach(b => {
+      (b.punkte || []).forEach(p => {
+        if (p.kategorien) delete p.kategorien[id];
+      });
+    });
+
+    (Store.data.gastroRyder || []).forEach(b => {
+      (b.artikel || []).forEach(a => {
+        if (a.mengen) delete a.mengen[id];
+      });
+    });
+
+    await Store.persistConfig();
+    toast("Kategorie gelöscht.");
+  }
+};
+
+/* ============================================================
+   EVENTS & SCHICHT-BOARD
+   ============================================================ */
+
+let currentEventTab = "dashboard";
+let currentGastroFilterLieferant = "alle";
+
+const Events = {
+  render() {
+    const list = document.getElementById("events-list");
+    if (!list) return;
+    if (!Store.data.events || Store.data.events.length === 0) {
+      list.innerHTML = '<div class="empty-state">Noch keine Events angelegt.</div>';
+      return;
+    }
+    const sorted = [...Store.data.events].sort((a, b) => (a.datum || "").localeCompare(b.datum || ""));
+    const isVorstandOrAdmin = currentUserProfile.role === "A" || currentUserProfile.role === "B";
+
+    list.innerHTML = sorted.map(e => {
+      const k = Store.getKategorie(e.kategorieId);
+      const totalTasks = e.checkliste ? e.checkliste.length : 0;
+      const doneTasks = e.checkliste ? e.checkliste.filter(item => item.erledigt).length : 0;
+      const totalSchichten = e.schichten ? e.schichten.length : 0;
+      const totalListen = e.spendenListen ? e.spendenListen.length : 0;
+
+      return `
+        <div class="events-list-item" onclick="Events.openDetail('${e.id}')">
+          <div>
+            <div class="name">${escapeHtml(e.name)}</div>
+            <div class="meta">
+              ${e.datum ? escapeHtml(e.datum) : "kein Datum"} &middot; 
+              ${k ? escapeHtml(k.name) : "Kategorie fehlt"} 
+              ${e.ort ? "&middot; " + escapeHtml(e.ort) : ""}
+              ${isVorstandOrAdmin ? `&middot; 📋 ${doneTasks}/${totalTasks} Tasks &middot; 👥 ${totalSchichten} Schichten &middot; 🍰 ${totalListen} Listen` : ''}
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;" onclick="event.stopPropagation();">
+            <span class="status-tag status-${e.status}">${{ geplant: "Geplant", bestaetigt: "Bestätigt", abgeschlossen: "Abgeschlossen" }[e.status]}</span>
+            <button class="btn secondary small vorstand-only" onclick="Events.duplicate('${e.id}')" title="Event klonen">📑 Klonen</button>
+            <button class="btn secondary small" onclick="Events.exportEventPDF('${e.id}')">📄 PDF</button>
+            <button class="btn secondary small vorstand-only" onclick="Events.openForm('${e.id}')">Bearbeiten</button>
+            <button class="btn danger small admin-only" onclick="Events.remove('${e.id}')">Löschen</button>
+          </div>
+        </div>
+      `;
+    }).join("");
+    applyRolePermissions(currentUserProfile.role);
+  },
+
+  async duplicate(id) {
+    const orig = Store.getEvent(id);
+    if (!orig) return;
+
+    const copy = JSON.parse(JSON.stringify(orig));
+    copy.id = uid("evt");
+    copy.name = orig.name + " (Kopie)";
+    copy.status = "geplant";
+    const now = new Date().toISOString();
+    copy.erstelltAm = now;
+    copy.geaendertAm = now;
+
+    if (copy.checkliste) {
+      copy.checkliste.forEach(item => {
+        item.id = uid("item");
+        item.erledigt = false;
+        item.datum = "";
+      });
+    }
+
+    if (copy.gastroListe) {
+      copy.gastroListe.forEach(g => {
+        g.id = uid("gitem");
+        g.status = "offen";
+      });
+    }
+
+    if (copy.schichten) {
+      copy.schichten.forEach(s => {
+        s.id = uid("schicht");
+        s.eintragungen = [];
+      });
+    }
+
+    if (copy.spendenListen) {
+      copy.spendenListen.forEach(l => {
+        l.id = uid("liste");
+        l.eintragungen = [];
+      });
+    }
+
+    copy.personalIst = {};
+    await Store.saveEvent(copy);
+    toast(`Event "${orig.name}" dupliziert! Bestellungen, Schichten & Listen zurückgesetzt.`);
+  },
+
+  refreshKategorieSelect() {
+    const sel = document.getElementById("eventKategorie");
+    if (!sel) return;
+    const current = sel.value;
+    sel.innerHTML = Store.data.kategorien.map(k => `<option value="${k.id}">${escapeHtml(k.name)}</option>`).join("");
+    if (current) sel.value = current;
+  },
+
+  openForm(id) {
+    this.refreshKategorieSelect();
+    document.getElementById("eventId").value = id || "";
+    const isEdit = !!id;
+    document.getElementById("event-modal-title").textContent = isEdit ? "Event bearbeiten" : "Neues Event";
+    const e = isEdit ? Store.getEvent(id) : { name: "", datum: "", ort: "", kategorieId: Store.data.kategorien[0]?.id || "", status: "geplant", ccEmails: "", notizen: "", personalIst: {} };
+    document.getElementById("eventName").value = e.name;
+    document.getElementById("eventDatum").value = e.datum || "";
+    document.getElementById("eventOrt").value = e.ort || "";
+    document.getElementById("eventKategorie").value = e.kategorieId || "";
+    document.getElementById("eventStatus").value = e.status || "geplant";
+    document.getElementById("eventCcEmails").value = e.ccEmails || "";
+    document.getElementById("eventNotizen").value = e.notizen || "";
+    this.renderPersonalRows(e.kategorieId, e.personalIst || {});
+    Modal.open("modal-event");
+  },
+
+  onKategorieChange() {
+    const katId = document.getElementById("eventKategorie").value;
+    this.renderPersonalRows(katId, {});
+  },
+
+  renderPersonalRows(katId, personalIst) {
+    const wrap = document.getElementById("eventPersonalList");
+    if (!wrap) return;
+    const k = Store.getKategorie(katId);
+    if (!k || k.verkaufsstellen.length === 0) {
+      wrap.innerHTML = '<div class="meta">Diese Kategorie hat keine Verkaufsstellen.</div>';
+      return;
+    }
+    wrap.innerHTML = k.verkaufsstellen.map(vs => `
+      <div class="repeat-item">
+        <span style="flex:2;font-size:13px;">${escapeHtml(vs.name)} <span class="meta">(Soll ${vs.personalMin}${vs.personalMax !== vs.personalMin ? "–" + vs.personalMax : ""} Pers.)</span></span>
+        <input type="number" min="0" class="personal-ist" data-vsid="${vs.id}" placeholder="Ist" value="${personalIst[vs.id] ?? ""}" style="max-width:100px;">
+      </div>
+    `).join("");
+  },
+
+  generateChecklistFromRyder(kategorieId) {
+    const checklist = [];
+    (Store.data.ryder || []).forEach(bereich => {
+      (bereich.punkte || []).forEach(punkt => {
+        if (punkt.kategorien && punkt.kategorien[kategorieId]) {
+          checklist.push({
+            id: uid("item"),
+            bereich: bereich.titel,
+            titel: punkt.titel,
+            erledigt: false,
+            personId: bereich.personId || "",
+            datum: ""
+          });
+        }
+      });
+    });
+    return checklist;
+  },
+
+  generateGastroListFromRyder(kategorieId) {
+    const gastroList = [];
+    (Store.data.gastroRyder || []).forEach(bereich => {
+      (bereich.artikel || []).forEach(art => {
+        const menge = art.mengen?.[kategorieId] ?? 0;
+        if (menge > 0) {
+          gastroList.push({
+            id: uid("gitem"),
+            bereich: bereich.titel,
+            name: art.name,
+            menge: menge,
+            einheit: art.einheit || "",
+            lieferantId: art.lieferantId || "",
+            personId: bereich.personId || "",
+            status: "offen"
+          });
+        }
+      });
+    });
+    return gastroList;
+  },
+
+  async save() {
+    const id = document.getElementById("eventId").value || uid("evt");
+    const name = document.getElementById("eventName").value.trim();
+    if (!name) { toast("Bitte einen Namen angeben."); return; }
+    const kategorieId = document.getElementById("eventKategorie").value;
+    if (!kategorieId) { toast("Bitte eine Kategorie wählen."); return; }
+
+    const personalIst = {};
+    document.querySelectorAll("#eventPersonalList .personal-ist").forEach(inp => {
+      if (inp.value !== "") personalIst[inp.dataset.vsid] = Number(inp.value);
+    });
+
+    const existing = Store.getEvent(id);
+    const now = new Date().toISOString();
+
+    let checkliste = existing ? existing.checkliste : null;
+    if (!checkliste) checkliste = this.generateChecklistFromRyder(kategorieId);
+
+    let gastroListe = existing ? existing.gastroListe : null;
+    if (!gastroListe) gastroListe = this.generateGastroListFromRyder(kategorieId);
+
+    let bereichVerantwortliche = existing ? (existing.bereichVerantwortliche || { checklist: {}, gastro: {} }) : { checklist: {}, gastro: {} };
+    if (!existing) {
+      (Store.data.ryder || []).forEach(b => {
+        if (b.personId) bereichVerantwortliche.checklist[b.titel] = b.personId;
+      });
+      (Store.data.gastroRyder || []).forEach(b => {
+        if (b.personId) bereichVerantwortliche.gastro[b.titel] = b.personId;
+      });
+    }
+
+    const event = {
+      id, name,
+      datum: document.getElementById("eventDatum").value,
+      ort: document.getElementById("eventOrt").value.trim(),
+      kategorieId,
+      status: document.getElementById("eventStatus").value,
+      ccEmails: document.getElementById("eventCcEmails").value.trim(),
+      notizen: document.getElementById("eventNotizen").value.trim(),
+      personalIst,
+      checkliste,
+      gastroListe,
+      schichten: existing ? (existing.schichten || []) : [],
+      spendenListen: existing ? (existing.spendenListen || []) : [],
+      bereichVerantwortliche,
+      erstelltAm: existing ? existing.erstelltAm : now,
+      geaendertAm: now
+    };
+
+    await Store.saveEvent(event);
+    Modal.close("modal-event");
+    toast("Event gespeichert.");
+  },
+
+  async remove(id) {
+    if (!confirm("Dieses Event wirklich löschen?")) return;
+    await Store.deleteEvent(id);
+    toast("Event gelöscht.");
+  },
+
+  setTab(tab) {
+    currentEventTab = tab;
+    const currentId = document.getElementById("event-detail-panel").dataset.eventId;
+    if (currentId) this.openDetail(currentId);
+  },
+
+  async setBereichHauptverantwortlicher(eventId, listType, bereichName, newPersonId) {
+    const e = Store.getEvent(eventId);
+    if (!e) return;
+    if (!e.bereichVerantwortliche) e.bereichVerantwortliche = { checklist: {}, gastro: {} };
+    if (!e.bereichVerantwortliche[listType]) e.bereichVerantwortliche[listType] = {};
+
+    e.bereichVerantwortliche[listType][bereichName] = newPersonId;
+
+    if (listType === "checklist" && e.checkliste) {
+      e.checkliste.forEach(item => {
+        if (item.bereich === bereichName) item.personId = newPersonId;
+      });
+    } else if (listType === "gastro" && e.gastroListe) {
+      e.gastroListe.forEach(item => {
+        if (item.bereich === bereichName) item.personId = newPersonId;
+      });
+    }
+
+    await Store.saveEvent(e);
+    toast(`Hauptverantwortlicher für "${bereichName}" gesetzt.`);
+  },
+
+  openMatrixModal(eventId) {
+    const e = Store.getEvent(eventId);
+    if (!e) return;
+    const kat = Store.getKategorie(e.kategorieId);
+
+    document.getElementById("matrixEventId").value = eventId;
+    document.getElementById("matrix-modal-title").textContent = `Objekte für ${escapeHtml(e.name)} (${escapeHtml(kat?.name || '')})`;
+
+    const tbody = document.getElementById("matrixEventTableBody");
+    const activeTitles = new Set((e.checkliste || []).map(item => item.titel.toLowerCase()));
+
+    let html = "";
+    (Store.data.ryder || []).forEach(bereich => {
+      html += `
+        <tr style="background:#eaf2ee; font-weight:bold;">
+          <td colspan="4" style="text-align:left; padding:6px 8px; color:var(--accent-dark);">📁 ${escapeHtml(bereich.titel)}</td>
+        </tr>
+      `;
+      (bereich.punkte || []).forEach(p => {
+        const isActiveInEvent = activeTitles.has(p.titel.toLowerCase());
+        const isStandardForKat = !!p.kategorien?.[e.kategorieId];
+
+        html += `
+          <tr>
+            <td style="text-align:center;">
+              <input type="checkbox" style="width:17px; height:17px; cursor:pointer;" 
+                ${isActiveInEvent ? 'checked' : ''} 
+                onchange="Events.toggleEventObject('${eventId}', '${escapeHtml(bereich.titel)}', '${escapeHtml(p.titel)}', this.checked)">
+            </td>
+            <td><strong>${escapeHtml(p.titel)}</strong></td>
+            <td style="text-align:center;">
+              <span class="pill ${isStandardForKat ? '' : 'inactive'}" style="font-size:11px;">
+                ${isStandardForKat ? 'Standard: AN' : 'Standard: AUS'}
+              </span>
+            </td>
+            <td style="text-align:center;">
+              <button class="btn secondary small admin-only" style="font-size:11px; padding:3px 6px;" 
+                onclick="Events.toggleStandardFromEventModal('${eventId}', '${bereich.id}', '${p.id}')">
+                ${isStandardForKat ? '❌ Nicht mehr Standard' : '⭐ Als Standard merken'}
+              </button>
+            </td>
+          </tr>
+        `;
+      });
+    });
+
+    tbody.innerHTML = html || '<tr><td colspan="4" class="meta">Keine Vorlagen im Ryder vorhanden.</td></tr>';
+    Modal.open("modal-event-objekte-matrix");
+    applyRolePermissions(currentUserProfile.role);
+  },
+
+  async toggleEventObject(eventId, bereichName, titel, isChecked) {
+    const e = Store.getEvent(eventId);
+    if (!e) return;
+    if (!e.checkliste) e.checkliste = [];
+
+    if (isChecked) {
+      if (!e.checkliste.some(i => i.titel.toLowerCase() === titel.toLowerCase())) {
+        const defaultPerson = e.bereichVerantwortliche?.checklist?.[bereichName] || "";
+        e.checkliste.push({
+          id: uid("item"),
+          bereich: bereichName,
+          titel: titel,
+          erledigt: false,
+          personId: defaultPerson,
+          datum: ""
+        });
+      }
+    } else {
+      e.checkliste = e.checkliste.filter(i => i.titel.toLowerCase() !== titel.toLowerCase());
+    }
+
+    await Store.saveEvent(e);
+    toast(isChecked ? `"${titel}" aktiviert.` : `"${titel}" abgewählt.`);
+  },
+
+  async toggleStandardFromEventModal(eventId, bereichId, punktId) {
+    if (currentUserProfile.role !== "A") {
+      toast("Nur Administratoren (Rolle A) dürfen Standard-Vorlagen definieren.");
+      return;
+    }
+    const e = Store.getEvent(eventId);
+    if (!e) return;
+    const b = Store.data.ryder.find(x => x.id === bereichId);
+    if (!b) return;
+    const p = b.punkte.find(x => x.id === punktId);
+    if (!p) return;
+
+    if (!p.kategorien) p.kategorien = {};
+    p.kategorien[e.kategorieId] = !p.kategorien[e.kategorieId];
+    await Store.persistConfig();
+
+    this.openMatrixModal(eventId);
+    const katName = Store.getKategorie(e.kategorieId)?.name;
+    toast(`Standard geändert: "${p.titel}" für ${katName} ist jetzt ${p.kategorien[e.kategorieId] ? 'Standard (AN)' : 'Standard (AUS)'}.`);
+  },
+
+  closeMatrixModal() {
+    Modal.close("modal-event-objekte-matrix");
+  },
+
+  shareWhatsApp(eventId) {
+    const e = Store.getEvent(eventId);
+    if (!e) return;
+    const k = Store.getKategorie(e.kategorieId);
+
+    const tasks = e.checkliste || [];
+    const doneTasks = tasks.filter(t => t.erledigt).length;
+    const taskPct = tasks.length > 0 ? Math.round((doneTasks / tasks.length) * 100) : 0;
+
+    const gastro = e.gastroListe || [];
+    const doneGastro = gastro.filter(g => g.status === 'geliefert' || g.status === 'bestellt').length;
+
+    let gesamtSollMin = 0;
+    let gesamtIst = 0;
+    if (k && k.verkaufsstellen) {
+      k.verkaufsstellen.forEach(vs => {
+        gesamtSollMin += vs.personalMin || 0;
+        gesamtIst += Number(e.personalIst?.[vs.id]) || 0;
+      });
+    }
+
+    let msg = `📅 *EVENT-UPDATE: ${e.name.toUpperCase()}*\n`;
+    msg += `------------------------------------\n`;
+    msg += `🗓 Datum: ${e.datum ? e.datum : 'Noch offen'}\n`;
+    if (e.ort) msg += `📍 Ort: ${e.ort}\n`;
+    msg += `🏷 Kategorie: ${k ? k.name : '—'}\n\n`;
+
+    msg += `📊 *Aktueller Stand:*\n`;
+    msg += `📋 Checkliste: ${doneTasks}/${tasks.length} erledigt (${taskPct}%)\n`;
+    msg += `🍽 Gastro-Bedarf: ${doneGastro}/${gastro.length} bestellt/bereitgestellt\n`;
+    msg += `👥 Personal: ${gesamtIst}/${gesamtSollMin} Helfer eingeteilt\n\n`;
+
+    const openTasks = tasks.filter(t => !t.erledigt);
+    if (openTasks.length > 0) {
+      msg += `⚠️ *Dringende offene Punkte:*\n`;
+      openTasks.slice(0, 3).forEach(t => {
+        const pers = Store.getPerson(t.personId);
+        msg += `• ${t.titel} (${pers ? pers.name : 'Unbesetzt'})\n`;
+      });
+      if (openTasks.length > 3) msg += `• ... und ${openTasks.length - 3} weitere\n`;
+      msg += `\n`;
+    }
+
+    copyToClipboard(msg);
+  },
+
+  getDefaultLieferantForArtikel(name) {
+    if (!name) return "";
+    for (const b of Store.data.gastroRyder || []) {
+      const found = (b.artikel || []).find(a => a.name.toLowerCase() === name.toLowerCase());
+      if (found && found.lieferantId) return found.lieferantId;
+    }
+    return "";
+  },
+
+  openDetail(id) {
+    const e = Store.getEvent(id);
+    if (!e) return;
+    const k = Store.getKategorie(e.kategorieId) || { id: "fallback", name: "Standard-Kategorie", maxPersonen: "100", verkaufsstellen: [], aufbau: "", abbau: "", notizen: "" };
+    const panel = document.getElementById("event-detail-panel");
+    panel.dataset.eventId = id;
+    const content = document.getElementById("event-detail-content");
+
+    if (!e.bereichVerantwortliche) e.bereichVerantwortliche = { checklist: {}, gastro: {} };
+
+    const isMemberOnly = currentUserProfile.role === "C";
+    const tasks = e.checkliste || [];
+    const doneTasks = tasks.filter(i => i.erledigt).length;
+    const taskPct = tasks.length > 0 ? Math.round((doneTasks / tasks.length) * 100) : 0;
+    
+    const gastroItems = (e.gastroListe || []).map(g => {
+      if (!g.lieferantId) {
+        const defaultLief = this.getDefaultLieferantForArtikel(g.name);
+        if (defaultLief) g.lieferantId = defaultLief;
+      }
+      return g;
+    });
+
+    const doneGastro = gastroItems.filter(g => g.status === 'geliefert').length;
+    const orderedGastro = gastroItems.filter(g => g.status === 'bestellt').length;
+    const openGastro = gastroItems.filter(g => g.status === 'offen').length;
+    const gastroOrderedOrDoneCount = gastroItems.filter(g => g.status === 'bestellt' || g.status === 'geliefert').length;
+    const gastroPct = gastroItems.length > 0 ? Math.round((gastroOrderedOrDoneCount / gastroItems.length) * 100) : 0;
+    
+    // Schichten Zählung (Belegt / Gesamt)
+    let totalSchichtSlots = 0;
+    let bookedSchichtSlots = 0;
+    (e.schichten || []).forEach(s => {
+      totalSchichtSlots += Number(s.max) || 1;
+      bookedSchichtSlots += (s.eintragungen ? s.eintragungen.length : 0);
+    });
+    const schichtPct = totalSchichtSlots > 0 ? Math.round((bookedSchichtSlots / totalSchichtSlots) * 100) : 0;
+
+    let tabContentHtml = "";
+
+    // TAB: ADMIN-DASHBOARD
+    if (currentEventTab === "dashboard") {
+      tabContentHtml = `
+        <div class="kpi-grid">
+          <div class="kpi-card ${isMemberOnly ? 'admin-only' : ''}" onclick="Events.setTab('checklist')" title="Zur Checkliste wechseln">
+            <div class="kpi-label"><span>Checklisten-Fortschritt</span> <span>&rarr;</span></div>
+            <div class="kpi-val">${taskPct}%</div>
+            <div class="meta">${doneTasks}/${tasks.length} erledigt</div>
+          </div>
+          <div class="kpi-card ${isMemberOnly ? 'admin-only' : ''}" onclick="Events.setTab('gastro')" title="Zur Gastro-Liste wechseln">
+            <div class="kpi-label"><span>Gastro-Bestellungen</span> <span>&rarr;</span></div>
+            <div class="kpi-val">${gastroPct}%</div>
+            <div class="meta">${gastroOrderedOrDoneCount}/${gastroItems.length} erledigt</div>
+          </div>
+          <div class="kpi-card" onclick="Events.setTab('schichten')" title="Zum Schichtplan wechseln">
+            <div class="kpi-label"><span>Schichten &amp; Listen</span> <span>&rarr;</span></div>
+            <div class="kpi-val">${schichtPct}%</div>
+            <div class="meta">${bookedSchichtSlots}/${totalSchichtSlots} belegt</div>
+          </div>
+        </div>
+
+        ${!isMemberOnly ? `
+          <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(320px, 1fr));gap:14px;">
+            <div class="card">
+              <div class="card-head">
+                <h3>Dringende offene Aufgaben</h3>
+                <button class="link-btn" onclick="Events.setTab('checklist')">Alle ${tasks.length} anzeigen &rarr;</button>
+              </div>
+              ${tasks.filter(t => !t.erledigt).length === 0 ? '<div class="meta" style="margin-top:10px;">🎉 Alle Aufgaben erledigt!</div>' : `
+                <div style="margin-top:10px;">
+                  ${tasks.filter(t => !t.erledigt).slice(0, 5).map(t => `
+                    <div style="padding:6px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;font-size:13px;">
+                      <span><strong>${escapeHtml(t.titel)}</strong> <span class="meta">(${escapeHtml(t.bereich)})</span></span>
+                      <span class="pill inactive" style="font-size:10.5px;">${t.personId ? escapeHtml(Store.getPerson(t.personId)?.name || 'Zuständig') : 'Unbesetzt'}</span>
+                    </div>
+                  `).join("")}
+                </div>
+              `}
+            </div>
+
+            <div class="card">
+              <div class="card-head">
+                <h3>Gastro-Positionen</h3>
+                <button class="link-btn" onclick="Events.setTab('gastro')">Zur Gastro-Liste &rarr;</button>
+              </div>
+              ${gastroItems.length === 0 ? '<div class="meta" style="margin-top:10px;">Keine Gastro-Artikel generiert.</div>' : `
+                <div style="margin-top:10px;">
+                  ${gastroItems.slice(0, 5).map(g => {
+                    const pers = Store.getPerson(g.personId);
+                    const lief = Store.getLieferant(g.lieferantId);
+                    const isOrderedOrDone = g.status === 'bestellt' || g.status === 'geliefert';
+                    return `
+                      <div style="padding:6px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;font-size:13px;align-items:center;">
+                        <div>
+                          <span>${escapeHtml(g.name)}: <strong>${g.menge} ${escapeHtml(g.einheit)}</strong></span>
+                          <div class="meta">${pers ? '👤 ' + escapeHtml(pers.name) : 'Unbesetzt'} ${lief ? ' &middot; 🚚 ' + escapeHtml(lief.name) : ''}</div>
+                        </div>
+                        <span class="pill ${isOrderedOrDone ? '' : 'inactive'}" style="font-size:10.5px; ${g.status === 'bestellt' ? 'background:#e3f2e7;color:#276238;font-weight:bold;' : ''}">${g.status}</span>
+                      </div>
+                    `;
+                  }).join("")}
+                </div>
+              `}
+            </div>
+          </div>
+        ` : `
+          <div class="card" style="font-size:13.5px;">
+            <h3>Veranstaltungsinformationen</h3>
+            <div><strong>Ort:</strong> ${escapeHtml(e.ort || 'Sportplatz')}</div>
+            <div style="margin-top:6px;"><strong>Aufbau-Team:</strong> ${escapeHtml(k.aufbau || "—")}</div>
+            <div style="margin-top:6px;"><strong>Abbau-Team:</strong> ${escapeHtml(k.abbau || "—")}</div>
+            ${e.notizen ? `<div style="margin-top:6px;"><strong>Notizen:</strong> ${escapeHtml(e.notizen)}</div>` : ''}
+          </div>
+        `}
+      `;
+    } 
+    // TAB: CHECKLISTE
+    else if (currentEventTab === "checklist" && !isMemberOnly) {
+      const groups = {};
+      tasks.forEach(item => {
+        const b = item.bereich || "Allgemein";
+        if (!groups[b]) groups[b] = [];
+        groups[b].push(item);
+      });
+
+      tabContentHtml = `
+        <div class="toolbar" style="margin-top:14px;">
+          <div>
+            <h3>Event-Checkliste (${escapeHtml(k.name)})</h3>
+            <div class="desc">Vorausgewählte Standard-Objekte &amp; individuell aktivierte Aufgaben</div>
+          </div>
+          <div style="display:flex;gap:6px;">
+            <button class="btn small" onclick="Events.openMatrixModal('${e.id}')">⚡ Objekte für dieses Event verwalten</button>
+            <button class="btn secondary small" onclick="Events.openChecklistItemForm('${e.id}')">+ Freie Aufgabe</button>
+          </div>
+        </div>
+
+        <div class="progress-wrap">
+          <div style="display:flex;justify-content:space-between;align-items:center;font-size:13.5px;">
+            <strong>Fortschritt: ${doneTasks} von ${tasks.length} erledigt</strong>
+            <span style="font-weight:600;color:var(--accent-dark);">${taskPct}%</span>
+          </div>
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" style="width: ${taskPct}%;"></div>
+          </div>
+        </div>
+
+        ${tasks.length === 0 ? '<div class="empty-state">Keine Checklistenpunkte hinterlegt. Klicke auf „Objekte für dieses Event verwalten“.</div>' : Object.keys(groups).map(bereichName => {
+          const currentLeader = e.bereichVerantwortliche?.checklist?.[bereichName] || "";
+
+          return `
+            <div class="bereich-header-row">
+              <span class="b-title">📁 ${escapeHtml(bereichName)}</span>
+              <div class="b-assign">
+                <span>Hauptverantwortlich:</span>
+                <select onchange="Events.setBereichHauptverantwortlicher('${e.id}', 'checklist', '${escapeHtml(bereichName)}', this.value)">
+                  <option value="">-- Bereichsleiter wählen --</option>
+                  ${Store.data.personen.map(pers => `
+                    <option value="${pers.id}" ${currentLeader === pers.id ? 'selected' : ''}>${escapeHtml(pers.name)}</option>
+                  `).join("")}
+                </select>
+              </div>
+            </div>
+
+            ${groups[bereichName].map(item => {
+              const p = Store.getPerson(item.personId);
+              return `
+                <div class="unified-item-row ${item.erledigt ? 'is-done' : ''}" style="grid-template-columns: 32px 1fr 180px 140px 36px;">
+                  <div>
+                    <input type="checkbox" ${item.erledigt ? 'checked' : ''} onchange="Events.toggleChecklistDone('${e.id}', '${item.id}', this.checked)">
+                  </div>
+                  <div class="item-main-title" onclick="Events.openChecklistItemForm('${e.id}', '${item.id}')" style="cursor:pointer;">
+                    <strong>${escapeHtml(item.titel)}</strong>
+                    ${item.datum ? `<span class="meta" style="margin-left:6px;">📅 ${escapeHtml(item.datum)}</span>` : ''}
+                  </div>
+                  <div>
+                    <select style="font-size:12px;padding:4px;width:100%;" onchange="Events.assignPerson('${e.id}', '${item.id}', this.value)">
+                      <option value="">-- Zuständig --</option>
+                      ${Store.data.personen.map(pers => `
+                        <option value="${pers.id}" ${item.personId === pers.id ? 'selected' : ''}>${escapeHtml(pers.name)}</option>
+                      `).join("")}
+                    </select>
+                  </div>
+                  <div style="font-size:12px;color:var(--text-muted);text-align:right;">
+                    ${p ? `<span class="pill" style="font-size:11px;">${escapeHtml(p.name)}</span>` : '<span style="color:#aaa;">Unbesetzt</span>'}
+                  </div>
+                  <div style="text-align:right;">
+                    <button class="btn danger small" style="padding:2px 6px;" onclick="Events.removeChecklistItem('${e.id}', '${item.id}')">&times;</button>
+                  </div>
+                </div>
+              `;
+            }).join("")}
+          `;
+        }).join("")}
+      `;
+    } 
+    // TAB: GASTRO-BEDARF & LIEFERANTEN-BESTELLUNGEN
+    else if (currentEventTab === "gastro" && !isMemberOnly) {
+      const allLieferanten = Store.data.lieferanten || [];
+      const filteredGastro = currentGastroFilterLieferant === "alle" 
+        ? gastroItems 
+        : (currentGastroFilterLieferant === "ohne" ? gastroItems.filter(g => !g.lieferantId) : gastroItems.filter(g => g.lieferantId === currentGastroFilterLieferant));
+
+      const groups = {};
+      filteredGastro.forEach(item => {
+        const b = item.bereich || "Allgemein";
+        if (!groups[b]) groups[b] = [];
+        groups[b].push(item);
+      });
+
+      const gastroOrderedOrDoneCount = gastroItems.filter(g => g.status === 'bestellt' || g.status === 'geliefert').length;
+      const gastroPct = gastroItems.length > 0 ? Math.round((gastroOrderedOrDoneCount / gastroItems.length) * 100) : 0;
+
+      tabContentHtml = `
+        <div class="toolbar" style="margin-top:14px;background:#fff;padding:12px 14px;border:1px solid var(--border);border-radius:8px;">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;width:100%;margin-bottom:8px;">
+            <strong>🚚 Filter nach Lieferant:</strong>
+            <select style="font-size:13px;padding:6px 8px;font-weight:500;flex:1;min-width:200px;" onchange="Events.setGastroLieferantFilter(this.value)">
+              <option value="alle" ${currentGastroFilterLieferant === 'alle' ? 'selected' : ''}>Alle Lieferanten anzeigen (${gastroItems.length})</option>
+              ${allLieferanten.map(l => {
+                const count = gastroItems.filter(g => g.lieferantId === l.id).length;
+                return `<option value="${l.id}" ${currentGastroFilterLieferant === l.id ? 'selected' : ''}>🚚 ${escapeHtml(l.name)} (${count})</option>`;
+              }).join("")}
+              <option value="ohne" ${currentGastroFilterLieferant === 'ohne' ? 'selected' : ''}>Ohne Lieferant (${gastroItems.filter(g => !g.lieferantId).length})</option>
+            </select>
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;width:100%;">
+            ${currentGastroFilterLieferant !== 'alle' && currentGastroFilterLieferant !== 'ohne' ? `
+              <button class="btn small" style="background:#1f5c4d;color:#fff;flex:1;justify-content:center;" onclick="Events.sendLieferantenOrderMailClient('${e.id}', '${currentGastroFilterLieferant}')">✉️ E-Mail senden</button>
+              <button class="btn secondary small" style="flex:1;justify-content:center;" onclick="Events.exportLieferantenPDF('${e.id}', '${currentGastroFilterLieferant}')">📄 PDF</button>
+              <button class="btn small" style="background:#25D366;color:#fff;flex:1;justify-content:center;" onclick="Events.shareLieferantenWhatsApp('${e.id}', '${currentGastroFilterLieferant}')">💬 WhatsApp</button>
+            ` : ''}
+            <button class="btn secondary small" style="flex:1;justify-content:center;" onclick="Events.openGastroItemForm('${e.id}')">+ Artikel</button>
+          </div>
+        </div>
+
+        <div class="progress-wrap" style="margin-top:14px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;font-size:13.5px;">
+            <strong>Bestellstand: ${gastroOrderedOrDoneCount} von ${gastroItems.length} Artikeln bestellt / da</strong>
+            <span style="font-weight:600;color:var(--accent-dark);">${gastroPct}%</span>
+          </div>
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" style="width: ${gastroPct}%;"></div>
+          </div>
+        </div>
+
+        ${filteredGastro.length === 0 ? '<div class="empty-state">Keine Gastro-Artikel für diesen Lieferantenfilter vorhanden.</div>' : Object.keys(groups).map(bereichName => {
+          const currentLeader = e.bereichVerantwortliche?.gastro?.[bereichName] || "";
+
+          return `
+            <div class="bereich-header-row">
+              <span class="b-title">🍽️ ${escapeHtml(bereichName)}</span>
+              <div class="b-assign">
+                <span>Hauptverantwortlich:</span>
+                <select onchange="Events.setBereichHauptverantwortlicher('${e.id}', 'gastro', '${escapeHtml(bereichName)}', this.value)">
+                  <option value="">-- Bereichsleiter wählen --</option>
+                  ${Store.data.personen.map(pers => `
+                    <option value="${pers.id}" ${currentLeader === pers.id ? 'selected' : ''}>${escapeHtml(pers.name)}</option>
+                  `).join("")}
+                </select>
+              </div>
+            </div>
+
+            ${groups[bereichName].map(item => {
+              const isChecked = item.status === 'bestellt' || item.status === 'geliefert';
+              const statusClass = item.status === 'bestellt' ? 'status-bestellt' : (item.status === 'geliefert' ? 'status-geliefert' : '');
+
+              return `
+                <div class="unified-item-row ${isChecked ? 'is-done' : ''}">
+                  <div>
+                    <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="Events.toggleGastroDone('${e.id}', '${item.id}', this.checked)">
+                  </div>
+                  <div class="item-main-title" onclick="Events.openGastroItemForm('${e.id}', '${item.id}')" style="cursor:pointer;">
+                    <strong>${escapeHtml(item.name)}</strong>
+                    <span class="meta" style="margin-left:6px;font-weight:600;">(${item.menge} ${escapeHtml(item.einheit)})</span>
+                  </div>
+                  <div>
+                    <select style="font-size:12px;padding:3px;width:100%;" onchange="Events.changeGastroItemLieferant('${e.id}', '${item.id}', this.value)">
+                      <option value="">-- Lieferant --</option>
+                      ${allLieferanten.map(l => `
+                        <option value="${l.id}" ${item.lieferantId === l.id ? 'selected' : ''}>🚚 ${escapeHtml(l.name)}</option>
+                      `).join("")}
+                    </select>
+                  </div>
+                  <div>
+                    <select style="font-size:12px;padding:3px;width:100%;" onchange="Events.assignGastroPerson('${e.id}', '${item.id}', this.value)">
+                      <option value="">-- Zuständig --</option>
+                      ${Store.data.personen.map(pers => `
+                        <option value="${pers.id}" ${item.personId === pers.id ? 'selected' : ''}>${escapeHtml(pers.name)}</option>
+                      `).join("")}
+                    </select>
+                  </div>
+                  <div>
+                    <select class="status-select-gastro ${statusClass}" onchange="Events.updateGastroStatus('${e.id}', '${item.id}', this.value)">
+                      <option value="offen" ${item.status === 'offen' ? 'selected' : ''}>Offen</option>
+                      <option value="bestellt" ${item.status === 'bestellt' ? 'selected' : ''}>Bestellt</option>
+                      <option value="geliefert" ${item.status === 'geliefert' ? 'selected' : ''}>Geliefert</option>
+                    </select>
+                  </div>
+                  <div style="text-align:right;">
+                    <button class="btn danger small" style="padding:2px 6px;" onclick="Events.removeGastroItem('${e.id}', '${item.id}')">&times;</button>
+                  </div>
+                </div>
+              `;
+            }).join("")}
+          `;
+        }).join("")}
+      `;
+    } 
+    // TAB: SCHICHTEN
+    else if (currentEventTab === "schichten") {
+      const isVorstandOrAdmin = currentUserProfile.role === 'A' || currentUserProfile.role === 'B';
+
+      tabContentHtml = `
+        <div class="toolbar" style="margin-top:14px;">
+          <div>
+            <h3>Schichtplan &amp; Mitbringlisten</h3>
+            <div class="desc">Trage dich in Schichten ein oder bringe Kuchen, Spiele etc. mit</div>
+          </div>
+          ${isVorstandOrAdmin ? `
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+              <button class="btn small" onclick="Events.openSchichtModal('${e.id}')">+ Schicht anlegen</button>
+              <button class="btn small secondary" onclick="Events.openSpendenListeModal('${e.id}')">+ Mitbringliste anlegen</button>
+            </div>
+          ` : ''}
+        </div>
+        <div id="event-schichten-container"></div>
+      `;
+      setTimeout(() => Events.renderSchichten(e.id), 50);
+    }
+    // TAB: PERSONAL & ORGA
+    else {
+      const personalRows = k.verkaufsstellen.map(vs => {
+        const ist = e.personalIst[vs.id];
+        let badge = '<span class="meta">kein Ist erfasst</span>';
+        if (ist !== undefined) {
+          badge = ist < vs.personalMin
+            ? `<span class="pill inactive" style="background:var(--danger-bg);color:var(--danger-text);">Unterbesetzt: ${ist} (Soll ${vs.personalMin})</span>`
+            : `<span class="pill" style="background:var(--ok-bg);color:var(--ok-text);">Besetzt: ${ist} Pers.</span>`;
+        }
+        return `<tr><td><strong>${escapeHtml(vs.name)}</strong></td><td>Soll: ${vs.personalMin}${vs.personalMax !== vs.personalMin ? "–" + vs.personalMax : ""} Pers.</td><td>${badge}</td></tr>`;
+      }).join("");
+
+      tabContentHtml = `
+        <div class="section-title">Personal-Soll je Verkaufsstelle</div>
+        <table class="subtable">
+          <thead><tr><th>Verkaufsstelle</th><th>Soll-Spanne</th><th>Status</th></tr></thead>
+          <tbody>${personalRows || '<tr><td colspan="3" class="meta">Keine Verkaufsstellen</td></tr>'}</tbody>
+        </table>
+
+        <div class="section-title" style="margin-top:20px;">Auf- &amp; Abbau</div>
+        <div class="card" style="font-size:13.5px;">
+          <div><strong>Aufbau-Team:</strong> ${escapeHtml(k.aufbau || "—")}</div>
+          <div style="margin-top:6px;"><strong>Abbau-Team:</strong> ${escapeHtml(k.abbau || "—")}</div>
+        </div>
+
+        ${e.notizen ? `
+          <div class="section-title" style="margin-top:20px;">Notizen</div>
+          <div class="card" style="font-size:13.5px;">${escapeHtml(e.notizen)}</div>
+        ` : ''}
+      `;
+    }
+
+    content.innerHTML = `
+      <div class="toolbar">
+        <div>
+          <h2>${escapeHtml(e.name)}</h2>
+          <div class="desc">${e.datum ? escapeHtml(e.datum) : "kein Datum"} &middot; ${escapeHtml(k.name)} (max. ${escapeHtml(k.maxPersonen)} Personen) ${e.ort ? "&middot; " + escapeHtml(e.ort) : ""}</div>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <button class="btn small" style="background:#25D366; color:#fff;" onclick="Events.shareWhatsApp('${e.id}')">💬 WhatsApp</button>
+          <button class="btn small" onclick="Events.exportEventPDF('${e.id}')">📄 PDF</button>
+          <button class="btn secondary small vorstand-only" onclick="Events.openForm('${e.id}')">Event bearbeiten</button>
+          <button class="btn secondary small" onclick="window.print()">Drucken</button>
+        </div>
+      </div>
+
+      <!-- Kachel-Navigation -->
+      <div class="event-tiles-nav">
+        <button class="event-tile ${currentEventTab === 'dashboard' ? 'active' : ''}" onclick="Events.setTab('dashboard')">
+          <div class="tile-title"><span>📊 Übersicht</span></div>
+          <div class="tile-sub">KPIs &amp; Kennzahlen</div>
+        </button>
+        <button class="event-tile ${currentEventTab === 'checklist' ? 'active' : ''} vorstand-only" onclick="Events.setTab('checklist')">
+          <div class="tile-title"><span>📋 Checkliste</span></div>
+          <div class="tile-sub">${doneTasks}/${tasks.length} erledigt</div>
+        </button>
+        <button class="event-tile ${currentEventTab === 'gastro' ? 'active' : ''} vorstand-only" onclick="Events.setTab('gastro')">
+          <div class="tile-title"><span>🍽️ Gastro</span></div>
+          <div class="tile-sub">${gastroItems.length} Positionen</div>
+        </button>
+        <button class="event-tile ${currentEventTab === 'schichten' ? 'active' : ''}" onclick="Events.setTab('schichten')">
+          <div class="tile-title"><span>👥 Schichten &amp; Listen</span></div>
+          <div class="tile-sub">${(e.schichten || []).length} aktiv</div>
+        </button>
+        <button class="event-tile ${currentEventTab === 'orga' ? 'active' : ''}" onclick="Events.setTab('orga')">
+          <div class="tile-title"><span>🏢 Personal</span></div>
+          <div class="tile-sub">Stationen &amp; Aufbau</div>
+        </button>
+      </div>
+
+      ${tabContentHtml}
+    `;
+
+    document.getElementById("events-list-panel").style.display = "none";
+    document.getElementById("event-detail-panel").classList.add("open");
+    applyRolePermissions(currentUserProfile.role);
+  },
+
+  /* ============================================================
+     SCHICHT- & MITBRINGLISTEN METHODEN
+     ============================================================ */
+  openSchichtModal(eventId, schichtId = "") {
+    document.getElementById("schichtEventId").value = eventId;
+    document.getElementById("schichtId").value = schichtId;
+
+    const e = Store.getEvent(eventId);
+    const kat = e ? Store.getKategorie(e.kategorieId) : null;
+    const vsSelect = document.getElementById("schichtVsSelect");
+    const customVsWrap = document.getElementById("schichtCustomVsWrap");
+    
+    let optionsHtml = "";
+    if (kat && kat.verkaufsstellen) {
+      kat.verkaufsstellen.forEach(vs => {
+        optionsHtml += `<option value="${escapeHtml(vs.name)}" data-max="${vs.personalMax || 2}">${escapeHtml(vs.name)} (Soll: ${vs.personalMin}-${vs.personalMax})</option>`;
+      });
+    }
+    optionsHtml += `<option value="CUSTOM">+ Anderen / Neuen Stand anlegen...</option>`;
+    vsSelect.innerHTML = optionsHtml;
+
+    if (schichtId && e && e.schichten) {
+      const s = e.schichten.find(x => x.id === schichtId);
+      if (s) {
+        document.getElementById("schicht-modal-title").textContent = "Schicht bearbeiten";
+        
+        const existsInKat = kat && kat.verkaufsstellen.some(vs => vs.name === s.vs);
+        if (existsInKat) {
+          vsSelect.value = s.vs;
+          customVsWrap.style.display = "none";
+          document.getElementById("schichtCustomVs").value = "";
+        } else {
+          vsSelect.value = "CUSTOM";
+          customVsWrap.style.display = "block";
+          document.getElementById("schichtCustomVs").value = s.vs || "";
+        }
+
+        document.getElementById("schichtStart").value = s.start || "14:00";
+        document.getElementById("schichtEnde").value = s.ende || "18:00";
+        document.getElementById("schichtMax").value = s.max || 2;
+        document.getElementById("schichtDeadline").value = s.deadline || "";
+        document.getElementById("schichtAustragen").checked = s.austragen !== false;
+        Modal.open("modal-schicht");
+        return;
+      }
+    }
+
+    document.getElementById("schicht-modal-title").textContent = "Schicht für dieses Event anlegen";
+    vsSelect.selectedIndex = 0;
+    customVsWrap.style.display = "none";
+    document.getElementById("schichtCustomVs").value = "";
+    document.getElementById("schichtStart").value = "14:00";
+    document.getElementById("schichtEnde").value = "18:00";
+    
+    if (kat && kat.verkaufsstellen && kat.verkaufsstellen.length > 0) {
+      document.getElementById("schichtMax").value = kat.verkaufsstellen[0].personalMax || 2;
+    } else {
+      document.getElementById("schichtMax").value = 2;
+    }
+
+    document.getElementById("schichtDeadline").value = "";
+    document.getElementById("schichtAustragen").checked = true;
+    Modal.open("modal-schicht");
+  },
+
+  onSchichtVsSelectChange() {
+    const vsSelect = document.getElementById("schichtVsSelect");
+    const customVsWrap = document.getElementById("schichtCustomVsWrap");
+    const maxInput = document.getElementById("schichtMax");
+
+    if (vsSelect.value === "CUSTOM") {
+      customVsWrap.style.display = "block";
+      document.getElementById("schichtCustomVs").value = "";
+      maxInput.value = 2;
+    } else {
+      customVsWrap.style.display = "none";
+      const selectedOpt = vsSelect.options[vsSelect.selectedIndex];
+      const maxPer = selectedOpt.getAttribute("data-max");
+      if (maxPer) maxInput.value = maxPer;
+    }
+  },
+
+  async saveSchicht() {
+    const eventId = document.getElementById("schichtEventId").value;
+    const schichtId = document.getElementById("schichtId").value || uid("schicht");
+    const e = Store.getEvent(eventId);
+    if (!e) return;
+    if (!e.schichten) e.schichten = [];
+
+    const vsSelectVal = document.getElementById("schichtVsSelect").value;
+    let vs = "";
+    if (vsSelectVal === "CUSTOM") {
+      vs = document.getElementById("schichtCustomVs").value.trim();
+    } else {
+      vs = vsSelectVal;
+    }
+
+    if (!vs) { toast("Bitte eine Verkaufsstelle / Stand angeben."); return; }
+
+    const schicht = {
+      id: schichtId,
+      vs,
+      start: document.getElementById("schichtStart").value,
+      ende: document.getElementById("schichtEnde").value,
+      max: Number(document.getElementById("schichtMax").value) || 1,
+      deadline: document.getElementById("schichtDeadline").value || "",
+      austragen: document.getElementById("schichtAustragen").checked,
+      eintragungen: []
+    };
+
+    const existingIdx = e.schichten.findIndex(s => s.id === schichtId);
+    if (existingIdx >= 0) {
+      schicht.eintragungen = e.schichten[existingIdx].eintragungen;
+      e.schichten[existingIdx] = schicht;
+    } else {
+      e.schichten.push(schicht);
+    }
+
+    await Store.saveEvent(e);
+    Modal.close("modal-schicht");
+    toast("Schicht gespeichert.");
+    this.openDetail(eventId);
+  },
+
+  openSpendenListeModal(eventId, listeId = "") {
+    document.getElementById("spendeEventId").value = eventId;
+    document.getElementById("spendeListeId").value = listeId;
+
+    const e = Store.getEvent(eventId);
+    if (listeId && e && e.spendenListen) {
+      const l = e.spendenListen.find(x => x.id === listeId);
+      if (l) {
+        document.getElementById("spende-modal-title").textContent = "Mitbringliste bearbeiten";
+        document.getElementById("spendeTitel").value = l.titel || "";
+        document.getElementById("spendeInfo").value = l.info || "";
+        document.getElementById("spendeMax").value = l.max || "";
+        document.getElementById("spendeDeadline").value = l.deadline || "";
+        Modal.open("modal-spende-liste");
+        return;
+      }
+    }
+
+    document.getElementById("spende-modal-title").textContent = "Mitbring- / Spendenliste anlegen";
+    document.getElementById("spendeTitel").value = "";
+    document.getElementById("spendeInfo").value = "";
+    document.getElementById("spendeMax").value = "";
+    document.getElementById("spendeDeadline").value = "";
+    Modal.open("modal-spende-liste");
+  },
+
+  async saveSpendenListe() {
+    const eventId = document.getElementById("spendeEventId").value;
+    const listeId = document.getElementById("spendeListeId").value || uid("spende_liste");
+    const titel = document.getElementById("spendeTitel").value.trim();
+    if (!titel) { toast("Bitte einen Listentitel eingeben."); return; }
+
+    const e = Store.getEvent(eventId);
+    if (!e) return;
+    if (!e.spendenListen) e.spendenListen = [];
+
+    const maxVal = document.getElementById("spendeMax").value.trim();
+    const liste = {
+      id: listeId,
+      titel,
+      info: document.getElementById("spendeInfo").value.trim(),
+      max: maxVal ? Number(maxVal) : null,
+      deadline: document.getElementById("spendeDeadline").value || "",
+      eintragungen: []
+    };
+
+    const existingIdx = e.spendenListen.findIndex(l => l.id === listeId);
+    if (existingIdx >= 0) {
+      liste.eintragungen = e.spendenListen[existingIdx].eintragungen;
+      e.spendenListen[existingIdx] = liste;
+    } else {
+      e.spendenListen.push(liste);
+    }
+
+    await Store.saveEvent(e);
+    Modal.close("modal-spende-liste");
+    toast("Mitbringliste gespeichert.");
+    this.openDetail(eventId);
+  },
+
+  renderSchichten(eventId) {
+    const e = Store.getEvent(eventId);
+    const container = document.getElementById("event-schichten-container");
+    if (!container) return;
+
+    const schichten = e.schichten || [];
+    const spendenListen = e.spendenListen || [];
+
+    if (schichten.length === 0 && spendenListen.length === 0) {
+      container.innerHTML = '<div class="empty-state">Noch keine Schichten oder Mitbringlisten angelegt.</div>';
+      return;
+    }
+
+    const userUid = window.FB.auth.currentUser ? window.FB.auth.currentUser.uid : "";
+    const isVorstandOrAdmin = currentUserProfile.role === 'A' || currentUserProfile.role === 'B';
+    const heute = new Date().toISOString().slice(0, 10);
+
+    let html = "";
+
+    // 1. MITBRING- & SPENDENLISTEN (Zuerst ganz oben)
+    spendenListen.forEach(l => {
+      const isFull = l.max ? l.eintragungen.length >= l.max : false;
+      const isExpired = l.deadline && heute > l.deadline;
+      const userEintrag = (l.eintragungen || []).find(en => en.uid === userUid);
+
+      let actionBtn = "";
+      if (userEintrag && (!isExpired || isVorstandOrAdmin)) {
+        actionBtn = `<button class="btn danger small" onclick="Events.austragenSpende('${e.id}', '${l.id}', '${userEintrag.uid}')">Eintrag löschen</button>`;
+      } else if (isExpired && !isVorstandOrAdmin) {
+        actionBtn = `<span class="pill inactive">Anmeldefrist abgelaufen</span>`;
+      } else if (!isFull) {
+        actionBtn = `<button class="btn small" onclick="Events.openBuchenSpendeModal('${e.id}', '${l.id}', '${escapeHtml(l.titel)}')">Eintragen</button>`;
+      } else {
+        actionBtn = `<span class="pill inactive">Liste voll</span>`;
+      }
+
+      html += `
+        <div class="card" style="border-left: 4px solid #8a5a12; background:#fdfdfc;">
+          <div class="card-head">
+            <div>
+              <h3>🍰 ${escapeHtml(l.titel)}</h3>
+              ${l.info ? `<div style="font-size:12.5px;color:var(--text-muted);margin-top:2px;">${escapeHtml(l.info)}</div>` : ''}
+              <div class="meta" style="margin-top:4px;">
+                Status: <strong>${l.eintragungen.length} ${l.max ? '/ ' + l.max : ''} eingetragen</strong>
+                ${l.deadline ? ` &middot; Frist bis: <strong>${l.deadline}</strong>` : ''}
+              </div>
+            </div>
+            <div style="display:flex;gap:6px;align-items:center;">
+              ${actionBtn}
+              ${isVorstandOrAdmin ? `
+                <button class="btn secondary small" onclick="Events.openSpendenListeModal('${e.id}', '${l.id}')">✎</button>
+                <button class="btn danger small" onclick="Events.removeSpendenListe('${e.id}', '${l.id}')">&times;</button>
+              ` : ''}
+            </div>
+          </div>
+          <div class="meta" style="margin-top:10px;border-top:1px dashed var(--border);padding-top:6px;">
+            <strong>Mitbringsel:</strong> ${l.eintragungen.length > 0 ? l.eintragungen.map((en, idx) => `
+              <span>${escapeHtml(en.name)} (${escapeHtml(en.wert)}) ${isVorstandOrAdmin || en.uid === userUid ? `<a href="javascript:void(0)" style="color:var(--danger-text);text-decoration:none;margin-left:4px;" onclick="Events.austragenSpende('${e.id}', '${l.id}', '${en.uid}')">&times;</a>` : ''}</span>
+            `).join(", ") : "Noch niemand eingetragen"}
+          </div>
+        </div>
+      `;
+    });
+
+    // 2. NORMALE SCHICHTEN (Danach)
+    schichten.forEach(s => {
+      const isFull = s.eintragungen.length >= s.max;
+      const isExpired = s.deadline && heute > s.deadline;
+      const isBooked = s.eintragungen.some(en => en.uid === userUid);
+      
+      let actionBtn = "";
+      if (isBooked) {
+        if (s.austragen !== false || isVorstandOrAdmin) {
+          actionBtn = `<button class="btn danger small" onclick="Events.austragen('${e.id}', '${s.id}', '${userUid}')">Austragen</button>`;
+        } else {
+          actionBtn = `<span class="pill" style="background:#e3f2e7;color:#276238;">Gebucht</span>`;
+        }
+      } else if (isExpired && !isVorstandOrAdmin) {
+        actionBtn = `<span class="pill inactive">Frist abgelaufen</span>`;
+      } else if (!isFull) {
+        actionBtn = `<button class="btn small" onclick="Events.openBuchenModal('${e.id}', '${s.id}')">Eintragen</button>`;
+      } else {
+        actionBtn = `<span class="pill inactive">Voll</span>`;
+      }
+
+      html += `
+        <div class="card" style="border-left: 4px solid ${isFull ? 'var(--accent)' : 'var(--border-strong)'};">
+          <div class="card-head">
+            <div>
+              <h3>📌 ${escapeHtml(s.vs)}</h3>
+              <div class="meta">
+                Uhrzeit: <strong>${s.start} - ${s.ende} Uhr</strong> &middot; Besetzung: <strong>${s.eintragungen.length} / ${s.max}</strong> Personen
+                ${s.deadline ? ` &middot; Frist: <strong>${s.deadline}</strong>` : ''}
+              </div>
+            </div>
+            <div style="display:flex;gap:6px;align-items:center;">
+              ${actionBtn}
+              ${isVorstandOrAdmin ? `
+                <button class="btn secondary small" onclick="Events.openSchichtModal('${e.id}', '${s.id}')">✎</button>
+                <button class="btn danger small" onclick="Events.removeSchicht('${e.id}', '${s.id}')">&times;</button>
+              ` : ''}
+            </div>
+          </div>
+          <div class="meta" style="margin-top:8px;">
+            <strong>Eingeteilte Helfer:</strong> ${s.eintragungen.length > 0 ? s.eintragungen.map(en => `
+              <span>${escapeHtml(en.name)} ${isVorstandOrAdmin || en.uid === userUid ? `<a href="javascript:void(0)" style="color:var(--danger-text);text-decoration:none;margin-left:3px;" onclick="Events.austragen('${e.id}', '${s.id}', '${en.uid}')">&times;</a>` : ''}</span>
+            `).join(", ") : "Noch niemand eingetragen"}
+          </div>
+        </div>
+      `;
+    });
+
+    container.innerHTML = html;
+  },
+
+  openBuchenModal(eventId, schichtId) {
+    document.getElementById("buchenEventId").value = eventId;
+    document.getElementById("buchenSchichtId").value = schichtId;
+    
+    const currentUser = window.FB.auth.currentUser;
+    document.getElementById("buchenAnmeldename").value = currentUser ? currentUser.email : "Nicht angemeldet";
+    document.getElementById("buchenVorname").value = "";
+    document.getElementById("buchenNachname").value = "";
+
+    Modal.open("modal-schicht-buchen");
+  },
+
+  async confirmBuchen() {
+    const eventId = document.getElementById("buchenEventId").value;
+    const schichtId = document.getElementById("buchenSchichtId").value;
+    const vorname = document.getElementById("buchenVorname").value.trim();
+    const nachname = document.getElementById("buchenNachname").value.trim();
+
+    if (!vorname || !nachname) {
+      toast("Bitte Vor- und Nachname eingeben.");
+      return;
+    }
+
+    const e = Store.getEvent(eventId);
+    const targetSchicht = e.schichten.find(x => x.id === schichtId);
+    if (!targetSchicht) return;
+    const userUid = window.FB.auth.currentUser.uid;
+
+    if (targetSchicht.eintragungen.some(en => en.uid === userUid)) {
+      toast("Du bist in diese Schicht bereits eingetragen.");
+      Modal.close("modal-schicht-buchen");
+      return;
+    }
+
+    const tStart = targetSchicht.start;
+    const tEnde = targetSchicht.ende;
+
+    for (const s of (e.schichten || [])) {
+      if (s.eintragungen.some(en => en.uid === userUid)) {
+        if (tStart < s.ende && tEnde > s.start) {
+          alert(`Zeitkonflikt!\nDu bist beim Event "${e.name}" bereits in der Schicht "${s.vs}" (${s.start} - ${s.ende} Uhr) eingeteilt. Gleichzeitige Schichten sind nicht möglich.`);
+          return;
+        }
+      }
+    }
+
+    const vollerName = `${vorname} ${nachname}`;
+    targetSchicht.eintragungen.push({ uid: userUid, name: vollerName });
+    
+    await Store.saveEvent(e);
+    Modal.close("modal-schicht-buchen");
+    toast("Erfolgreich in Schicht eingetragen!");
+    this.openDetail(eventId);
+  },
+
+  openBuchenSpendeModal(eventId, listeId, listenTitel) {
+    document.getElementById("buchenSpendeEventId").value = eventId;
+    document.getElementById("buchenSpendeListeId").value = listeId;
+    document.getElementById("spende-buchen-titel").textContent = `In ${listenTitel} eintragen`;
+    
+    const currentUser = window.FB.auth.currentUser;
+    document.getElementById("buchenSpendeAnmeldename").value = currentUser ? currentUser.email : "Nicht angemeldet";
+    document.getElementById("buchenSpendeVorname").value = "";
+    document.getElementById("buchenSpendeNachname").value = "";
+    document.getElementById("buchenSpendeWert").value = "";
+
+    Modal.open("modal-spende-buchen");
+  },
+
+  async confirmBuchenSpende() {
+    const eventId = document.getElementById("buchenSpendeEventId").value;
+    const listeId = document.getElementById("buchenSpendeListeId").value;
+    const vorname = document.getElementById("buchenSpendeVorname").value.trim();
+    const nachname = document.getElementById("buchenSpendeNachname").value.trim();
+    const wert = document.getElementById("buchenSpendeWert").value.trim();
+
+    if (!vorname || !nachname || !wert) {
+      toast("Bitte Vorname, Nachname und das Mitbringsel angeben.");
+      return;
+    }
+
+    const e = Store.getEvent(eventId);
+    const liste = (e.spendenListen || []).find(l => l.id === listeId);
+    if (!liste) return;
+
+    const userUid = window.FB.auth.currentUser.uid;
+    const vollerName = `${vorname} ${nachname}`;
+
+    liste.eintragungen.push({ uid: userUid, name: vollerName, wert });
+    await Store.saveEvent(e);
+
+    Modal.close("modal-spende-buchen");
+    toast("Erfolgreich in Mitbringliste eingetragen!");
+    this.openDetail(eventId);
+  },
+
+  async austragenSpende(eventId, listeId, targetUid) {
+    const e = Store.getEvent(eventId);
+    const liste = (e.spendenListen || []).find(l => l.id === listeId);
+    if (!liste) return;
+
+    const isVorstandOrAdmin = currentUserProfile.role === 'A' || currentUserProfile.role === 'B';
+    const userUid = window.FB.auth.currentUser.uid;
+
+    if (!isVorstandOrAdmin && targetUid !== userUid) {
+      toast("Du kannst nur deine eigenen Einträge löschen.");
+      return;
+    }
+
+    liste.eintragungen = liste.eintragungen.filter(en => en.uid !== targetUid);
+    await Store.saveEvent(e);
+    toast("Eintrag gelöscht.");
+    this.openDetail(eventId);
+  },
+
+  async removeSpendenListe(eventId, listeId) {
+    if (!confirm("Mitbringliste wirklich komplett löschen?")) return;
+    const e = Store.getEvent(eventId);
+    if (!e) return;
+    e.spendenListen = (e.spendenListen || []).filter(l => l.id !== listeId);
+    await Store.saveEvent(e);
+    toast("Mitbringliste gelöscht.");
+    this.openDetail(eventId);
+  },
+
+  async austragen(eventId, schichtId, targetUid) {
+    const e = Store.getEvent(eventId);
+    const s = e.schichten.find(x => x.id === schichtId);
+    if (!s) return;
+
+    const isVorstandOrAdmin = currentUserProfile.role === 'A' || currentUserProfile.role === 'B';
+    const userUid = window.FB.auth.currentUser.uid;
+
+    if (!isVorstandOrAdmin) {
+      if (s.austragen === false) {
+        toast("Das Austragen wurde für diese Schicht deaktiviert.");
+        return;
+      }
+      if (targetUid !== userUid) {
+        toast("Du kannst dich nur selbst austragen.");
+        return;
+      }
+    }
+
+    s.eintragungen = s.eintragungen.filter(en => en.uid !== targetUid);
+    await Store.saveEvent(e);
+    toast("Erfolgreich aus Schicht ausgetragen.");
+    this.openDetail(eventId);
+  },
+
+  async removeSchicht(eventId, schichtId) {
+    if (!confirm("Schicht wirklich komplett löschen?")) return;
+    const e = Store.getEvent(eventId);
+    if (!e) return;
+    e.schichten = e.schichten.filter(s => s.id !== schichtId);
+    await Store.saveEvent(e);
+    toast("Schicht gelöscht.");
+    this.openDetail(eventId);
+  },
+
+  setGastroLieferantFilter(val) {
+    currentGastroFilterLieferant = val;
+    const currentId = document.getElementById("event-detail-panel").dataset.eventId;
+    if (currentId) this.openDetail(currentId);
+  },
+
+  async changeGastroItemLieferant(eventId, itemId, lieferantId) {
+    const e = Store.getEvent(eventId);
+    if (!e || !e.gastroListe) return;
+    const item = e.gastroListe.find(i => i.id === itemId);
+    if (item) {
+      item.lieferantId = lieferantId;
+      await Store.updateEventField(eventId, { gastroListe: e.gastroListe });
+      const lief = Store.getLieferant(lieferantId);
+      toast(lief ? `Lieferant auf "${lief.name}" geändert (nur für dieses Event).` : "Lieferant für dieses Event entfernt.");
+    }
+  },
+
+  closeDetail() {
+    document.getElementById("event-detail-panel").classList.remove("open");
+    document.getElementById("events-list-panel").style.display = "";
+    this.render();
+  },
+
+  async toggleChecklistDone(eventId, itemId, done) {
+    const e = Store.getEvent(eventId);
+    if (!e || !e.checkliste) return;
+    const item = e.checkliste.find(i => i.id === itemId);
+    if (item) {
+      item.erledigt = done;
+      if (done && !item.datum) item.datum = new Date().toISOString().slice(0, 10);
+      await Store.updateEventField(eventId, { checkliste: e.checkliste });
+    }
+  },
+
+  async assignPerson(eventId, itemId, personId) {
+    const e = Store.getEvent(eventId);
+    if (!e || !e.checkliste) return;
+    const item = e.checkliste.find(i => i.id === itemId);
+    if (item) {
+      item.personId = personId;
+      await Store.updateEventField(eventId, { checkliste: e.checkliste });
+    }
+  },
+
+  async removeChecklistItem(eventId, itemId) {
+    const e = Store.getEvent(eventId);
+    if (!e || !e.checkliste) return;
+    e.checkliste = e.checkliste.filter(i => i.id !== itemId);
+    await Store.updateEventField(eventId, { checkliste: e.checkliste });
+  },
+
+  openChecklistItemForm(eventId, itemId) {
+    const e = Store.getEvent(eventId);
+    if (!e) return;
+    document.getElementById("eventItemEventId").value = eventId;
+    document.getElementById("eventItemId").value = itemId || "";
+    const isEdit = !!itemId;
+    document.getElementById("event-item-modal-title").textContent = isEdit ? "Aufgabe bearbeiten" : "Freie Aufgabe hinzufügen";
+
+    const item = isEdit ? e.checkliste.find(i => i.id === itemId) : { bereich: "Allgemein", titel: "", personId: "", datum: "", erledigt: false };
+    document.getElementById("eventItemBereich").value = item.bereich || "Allgemein";
+    document.getElementById("eventItemTitel").value = item.titel || "";
+    document.getElementById("eventItemDatum").value = item.datum || "";
+    document.getElementById("eventItemDone").value = item.erledigt ? "true" : "false";
+
+    const persSel = document.getElementById("eventItemPerson");
+    persSel.innerHTML = '<option value="">-- Keine Person zugewiesen --</option>' + Store.data.personen.map(p => `
+      <option value="${p.id}" ${item.personId === p.id ? 'selected' : ''}>${escapeHtml(p.name)} ${p.status === 'inaktiv' ? '(inaktiv)' : ''}</option>
+    `).join("");
+
+    Modal.open("modal-event-item");
+  },
+
+  async saveChecklistItem() {
+    const eventId = document.getElementById("eventItemEventId").value;
+    const itemId = document.getElementById("eventItemId").value || uid("item");
+    const e = Store.getEvent(eventId);
+    if (!e) return;
+    if (!e.checkliste) e.checkliste = [];
+
+    const titel = document.getElementById("eventItemTitel").value.trim();
+    if (!titel) { toast("Bitte eine Bezeichnung eingeben."); return; }
+
+    const itemData = {
+      id: itemId,
+      bereich: document.getElementById("eventItemBereich").value.trim() || "Allgemein",
+      titel,
+      personId: document.getElementById("eventItemPerson").value,
+      datum: document.getElementById("eventItemDatum").value,
+      erledigt: document.getElementById("eventItemDone").value === "true"
+    };
+
+    const idx = e.checkliste.findIndex(i => i.id === itemId);
+    if (idx >= 0) e.checkliste[idx] = itemData;
+    else e.checkliste.push(itemData);
+
+    await Store.updateEventField(eventId, { checkliste: e.checkliste });
+    Modal.close("modal-event-item");
+    toast("Aufgabe gespeichert.");
+  },
+
+  async toggleGastroDone(eventId, itemId, done) {
+    const e = Store.getEvent(eventId);
+    if (!e || !e.gastroListe) return;
+    const item = e.gastroListe.find(i => i.id === itemId);
+    if (item) {
+      item.status = done ? "bestellt" : "offen";
+      await Store.updateEventField(eventId, { gastroListe: e.gastroListe });
+      Events.openDetail(eventId);
+    }
+  },
+
+  async assignGastroPerson(eventId, itemId, personId) {
+    const e = Store.getEvent(eventId);
+    if (!e || !e.gastroListe) return;
+    const item = e.gastroListe.find(i => i.id === itemId);
+    if (item) {
+      item.personId = personId;
+      await Store.updateEventField(eventId, { gastroListe: e.gastroListe });
+    }
+  },
+
+  async updateGastroStatus(eventId, itemId, status) {
+    const e = Store.getEvent(eventId);
+    if (!e || !e.gastroListe) return;
+    const item = e.gastroListe.find(i => i.id === itemId);
+    if (item) {
+      item.status = status;
+      await Store.updateEventField(eventId, { gastroListe: e.gastroListe });
+      Events.openDetail(eventId);
+    }
+  },
+
+  async removeGastroItem(eventId, itemId) {
+    const e = Store.getEvent(eventId);
+    if (!e || !e.gastroListe) return;
+    e.gastroListe = e.gastroListe.filter(i => i.id !== itemId);
+    await Store.updateEventField(eventId, { gastroListe: e.gastroListe });
+  },
+
+  openGastroItemForm(eventId, itemId) {
+    const e = Store.getEvent(eventId);
+    if (!e) return;
+    document.getElementById("eventGastroItemEventId").value = eventId;
+    document.getElementById("eventGastroItemId").value = itemId || "";
+    const isEdit = !!itemId;
+    document.getElementById("event-gastro-item-modal-title").textContent = isEdit ? "Gastro-Position bearbeiten" : "Neue Gastro-Position hinzufügen";
+
+    const item = isEdit ? e.gastroListe.find(i => i.id === itemId) : { bereich: "Getränke", name: "", menge: 1, einheit: "Stk.", lieferantId: "", personId: "", status: "offen" };
+    document.getElementById("eventGastroItemBereich").value = item.bereich || "Getränke";
+    document.getElementById("eventGastroItemName").value = item.name || "";
+    document.getElementById("eventGastroItemMenge").value = item.menge || "";
+    document.getElementById("eventGastroItemEinheit").value = item.einheit || "";
+    document.getElementById("eventGastroItemStatus").value = item.status || "offen";
+
+    const currentLieferantId = item.lieferantId || (isEdit ? "" : this.getDefaultLieferantForArtikel(item.name));
+
+    const liefSel = document.getElementById("eventGastroItemLieferant");
+    liefSel.innerHTML = '<option value="">-- Kein Lieferant --</option>' + (Store.data.lieferanten || []).map(l => `
+      <option value="${l.id}" ${currentLieferantId === l.id ? 'selected' : ''}>🚚 ${escapeHtml(l.name)}</option>
+    `).join("");
+
+    const persSel = document.getElementById("eventGastroItemPerson");
+    persSel.innerHTML = '<option value="">-- Keine Person zugewiesen --</option>' + Store.data.personen.map(p => `
+      <option value="${p.id}" ${item.personId === p.id ? 'selected' : ''}>${escapeHtml(p.name)} ${p.status === 'inaktiv' ? '(inaktiv)' : ''}</option>
+    `).join("");
+
+    Modal.open("modal-event-gastro-item");
+  },
+
+  async saveGastroItem() {
+    const eventId = document.getElementById("eventGastroItemEventId").value;
+    const itemId = document.getElementById("eventGastroItemId").value || uid("gitem");
+    const e = Store.getEvent(eventId);
+    if (!e) return;
+    if (!e.gastroListe) e.gastroListe = [];
+
+    const name = document.getElementById("eventGastroItemName").value.trim();
+    if (!name) { toast("Bitte eine Bezeichnung eingeben."); return; }
+
+    const itemData = {
+      id: itemId,
+      bereich: document.getElementById("eventGastroItemBereich").value.trim() || "Allgemein",
+      name,
+      menge: Number(document.getElementById("eventGastroItemMenge").value) || 0,
+      einheit: document.getElementById("eventGastroItemEinheit").value.trim(),
+      lieferantId: document.getElementById("eventGastroItemLieferant").value,
+      personId: document.getElementById("eventGastroItemPerson").value,
+      status: document.getElementById("eventGastroItemStatus").value
+    };
+
+    const idx = e.gastroListe.findIndex(i => i.id === itemId);
+    if (idx >= 0) e.gastroListe[idx] = itemData;
+    else e.gastroListe.push(itemData);
+
+    await Store.updateEventField(eventId, { gastroListe: e.gastroListe });
+    Modal.close("modal-event-gastro-item");
+    toast("Gastro-Position gespeichert.");
+  },
+
+  /* ============================================================
+     E-MAIL BESTELLUNG (MIT DYNAMISCHEM CC & KONTAKT)
+     ============================================================ */
+  async sendLieferantenOrderMailClient(eventId, lieferantId) {
+    const e = Store.getEvent(eventId);
+    const lief = Store.getLieferant(lieferantId);
+    if (!e || !lief) return;
+
+    if (!lief.email) {
+      alert(`Für ${lief.name} ist noch keine E-Mail-Adresse hinterlegt!\nBitte trage diese unter 'Personen, Lieferanten & Benutzer' ein.`);
+      return;
+    }
+
+    const items = (e.gastroListe || []).filter(g => g.lieferantId === lieferantId);
+    if (items.length === 0) {
+      toast("Keine Artikel für diesen Lieferanten hinterlegt.");
+      return;
+    }
+
+    let verantwName = "Wirtschaftsteam SV Schapbach";
+    let verantwTel = "";
+    let verantwMail = "";
+
+    const firstItemWithPerson = items.find(i => i.personId);
+    if (firstItemWithPerson) {
+      const p = Store.getPerson(firstItemWithPerson.personId);
+      if (p) {
+        verantwName = p.name;
+        if (p.telefon) verantwTel = p.telefon;
+        if (p.email) verantwMail = p.email;
+      }
+    } else {
+      const firstBereichLeader = Object.values(e.bereichVerantwortliche?.gastro || {})[0];
+      if (firstBereichLeader) {
+        const p = Store.getPerson(firstBereichLeader);
+        if (p) {
+          verantwName = p.name;
+          if (p.telefon) verantwTel = p.telefon;
+          if (p.email) verantwMail = p.email;
+        }
+      }
+    }
+
+    if (!verantwMail && currentUserProfile.email) {
+      verantwMail = currentUserProfile.email;
+    }
+
+    let artikelText = "";
+    items.forEach((g, idx) => {
+      artikelText += `${idx + 1}. ${g.menge} ${g.einheit} ${g.name}\n`;
+    });
+
+    const subject = `Warenbestellung: ${e.name} - SV Schapbach 1926 e.V.`;
+    
+    const standardCc = "Sebastian-Kaluza@gmx.de";
+    const extraCc = e.ccEmails ? e.ccEmails.split(",").map(m => m.trim()).filter(Boolean) : [];
+    const allCc = [...new Set([standardCc, ...extraCc])].join(",");
+    
+    let kontaktZeile = "";
+    if (verantwTel && verantwMail) {
+      kontaktZeile = `telefonisch unter ${verantwTel} oder per E-Mail unter ${verantwMail}`;
+    } else if (verantwTel) {
+      kontaktZeile = `telefonisch unter ${verantwTel}`;
+    } else if (verantwMail) {
+      kontaktZeile = `per E-Mail unter ${verantwMail}`;
+    } else {
+      kontaktZeile = `per Antwort auf diese E-Mail`;
+    }
+
+    let body = `Guten Tag,\n\n`;
+    body += `hiermit bestelle ich für den SV Schapbach folgende Produkte:\n\n`;
+    body += `${artikelText}\n`;
+    body += `Bitte bestätigen Sie mir dies kurz per Mail.\n`;
+    body += `Betreffend Lieferung / Abholung kontaktieren Sie mich am besten ${kontaktZeile}.\n\n`;
+    body += `Mit freundlichen Grüßen,\n`;
+    body += `${verantwName}\n`;
+    body += `SV Schapbach 1926 e.V.`;
+
+    const mailtoUrl = `mailto:${encodeURIComponent(lief.email)}?cc=${encodeURIComponent(allCc)}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+    items.forEach(g => { g.status = "bestellt"; });
+    await Store.updateEventField(eventId, { gastroListe: e.gastroListe });
+
+    const link = document.createElement("a");
+    link.href = mailtoUrl;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    toast(`E-Mail geöffnet & Status von ${items.length} Positionen auf 'bestellt' gesetzt!`);
+    
+    setTimeout(() => {
+      Events.openDetail(eventId);
+    }, 400);
+  },
+
+  buildLieferantenHtml(e, lief, items) {
+    return `
+      <div style="font-family:sans-serif; color:#222; padding:15px;">
+        <div style="border-bottom: 2px solid #1f5c4d; padding-bottom: 8px; margin-bottom: 12px; display:flex; justify-content:space-between; align-items:flex-start;">
+          <div>
+            <h1 style="margin:0; font-size:20px; color:#143f34;">BESTELLUNG / WARENANFORDERUNG</h1>
+            <div style="font-size:13px; color:#555; margin-top:4px;">
+              Veranstaltung: <strong>${escapeHtml(e.name)}</strong><br>
+              Datum des Events: <strong>${e.datum || '—'}</strong> | Lieferort: <strong>${escapeHtml(e.ort || 'Sportgelände SV Schapbach, Wolftal')}</strong>
+            </div>
+          </div>
+          <div style="text-align:right; font-size:12px;">
+            <strong>SV Schapbach 1926 e.V.</strong><br>
+            Datum: ${new Date().toLocaleDateString('de-DE')}
+          </div>
+        </div>
+
+        <div style="background:#f9f9f9; border:1px solid #ddd; border-radius:6px; padding:10px; margin-bottom:16px; font-size:12.5px;">
+          <strong>Lieferant:</strong> ${escapeHtml(lief.name)}<br>
+          ${lief.kontakt ? `Ansprechpartner: ${escapeHtml(lief.kontakt)} &middot; ` : ''}
+          ${lief.telefon ? `Telefon: ${escapeHtml(lief.telefon)} &middot; ` : ''}
+          ${lief.email ? `E-Mail: ${escapeHtml(lief.email)}` : ''}
+          ${lief.notizen ? `<div style="color:#666; margin-top:4px;">Notizen / Kundennr.: ${escapeHtml(lief.notizen)}</div>` : ''}
+        </div>
+
+        <h2 style="font-size:14px; color:#1f5c4d; margin-bottom:8px; border-bottom:1px solid #ddd; padding-bottom:3px;">
+          Bestellte Positionen (${items.length})
+        </h2>
+        <table style="width:100%; border-collapse:collapse; font-size:13px; margin-bottom:20px;">
+          <thead>
+            <tr style="background:#f0f0f0;">
+              <th style="border:1px solid #ddd; padding:7px; width:40px; text-align:center;">Pos.</th>
+              <th style="border:1px solid #ddd; padding:7px;">Artikelbezeichnung</th>
+              <th style="border:1px solid #ddd; padding:7px; width:140px; text-align:right;">Bestellmenge</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${items.map((g, idx) => `
+              <tr>
+                <td style="border:1px solid #ddd; padding:7px; text-align:center;">${idx + 1}</td>
+                <td style="border:1px solid #ddd; padding:7px;"><strong>${escapeHtml(g.name)}</strong> <span style="font-size:11px; color:#666;">(${escapeHtml(g.bereich)})</span></td>
+                <td style="border:1px solid #ddd; padding:7px; text-align:right; font-size:14px;"><strong>${g.menge} ${escapeHtml(g.einheit)}</strong></td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+
+        <div style="margin-top:40px; display:flex; justify-content:space-between; font-size:12px; color:#555;">
+          <div style="border-top:1px solid #aaa; width:220px; text-align:center; padding-top:4px;">Besteller / SV Schapbach 1926 e.V.</div>
+          <div style="border-top:1px solid #aaa; width:220px; text-align:center; padding-top:4px;">Bestätigung Lieferant</div>
+        </div>
+      </div>
+    `;
+  },
+
+  exportLieferantenPDF(eventId, lieferantId) {
+    const e = Store.getEvent(eventId);
+    const lief = Store.getLieferant(lieferantId);
+    if (!e || !lief) return;
+
+    const items = (e.gastroListe || []).filter(g => g.lieferantId === lieferantId);
+    const pdfArea = document.getElementById("pdf-render-area");
+
+    pdfArea.innerHTML = this.buildLieferantenHtml(e, lief, items);
+    pdfArea.style.display = "block";
+
+    const opt = {
+      margin: 10,
+      filename: `Bestellung_${lief.name.replace(/[^a-zA-Z0-9_-]/g, '_')}_${e.name.replace(/[^a-zA-Z0-9_-]/g, '_')}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    html2pdf().set(opt).from(pdfArea).save().then(() => {
+      pdfArea.style.display = "none";
+      toast("Bestellzettel als PDF heruntergeladen!");
+    }).catch(err => {
+      pdfArea.style.display = "none";
+      alert("Fehler beim PDF-Export: " + err.message);
+    });
+  },
+
+  shareLieferantenWhatsApp(eventId, lieferantId) {
+    const e = Store.getEvent(eventId);
+    const lief = Store.getLieferant(lieferantId);
+    if (!e || !lief) return;
+
+    const items = (e.gastroListe || []).filter(g => g.lieferantId === lieferantId);
+    if (items.length === 0) { toast("Keine Artikel für diesen Lieferanten hinterlegt."); return; }
+
+    let msg = `📦 *WARENBESTELLUNG: ${lief.name.toUpperCase()}*\n`;
+    msg += `------------------------------------\n`;
+    msg += `⚽ *Verein:* SV Schapbach 1926 e.V.\n`;
+    msg += `🗓 *Event:* ${e.name} (${e.datum || 'Datum noch offen'})\n`;
+    if (e.ort) msg += `📍 *Lieferort:* ${e.ort}\n`;
+    if (lief.notizen) msg += `📝 *Hinweis/KdNr:* ${lief.notizen}\n`;
+    msg += `\n📋 *Bestellpositionen:*\n`;
+
+    items.forEach(g => {
+      msg += `• *${g.menge} ${g.einheit}* ${g.name}\n`;
+    });
+
+    msg += `\nBitte um kurze Bestätigung der Bestellung. Vielen Dank!`;
+
+    copyToClipboard(msg);
+  },
+
+  exportEventPDF(eventId) {
+    const e = Store.getEvent(eventId);
+    if (!e) return;
+    const k = Store.getKategorie(e.kategorieId);
+    const pdfArea = document.getElementById("pdf-render-area");
+
+    const tasks = e.checkliste || [];
+    const doneTasks = tasks.filter(t => t.erledigt).length;
+    const gastro = e.gastroListe || [];
+
+    let html = `
+      <div style="font-family:sans-serif; color:#222; padding:10px;">
+        <div style="border-bottom: 2px solid #1f5c4d; padding-bottom: 8px; margin-bottom: 12px;">
+          <h1 style="margin:0; font-size:22px; color:#143f34;">${escapeHtml(e.name)}</h1>
+          <div style="font-size:13px; color:#555; margin-top:4px;">
+            Datum: <strong>${e.datum || '—'}</strong> | Ort: <strong>${escapeHtml(e.ort || '—')}</strong> | Kategorie: <strong>${escapeHtml(k?.name || '—')}</strong>
+          </div>
+        </div>
+
+        <h2 style="font-size:15px; color:#1f5c4d; margin-top:16px; margin-bottom:6px; border-bottom:1px solid #ddd; padding-bottom:3px;">
+          1. Event-Checkliste (${doneTasks}/${tasks.length} erledigt)
+        </h2>
+        <table style="width:100%; border-collapse:collapse; font-size:12px; margin-bottom:14px;">
+          <thead>
+            <tr style="background:#f4f4f4;">
+              <th style="border:1px solid #ddd; padding:5px; width:40px; text-align:center;">Status</th>
+              <th style="border:1px solid #ddd; padding:5px;">Bereich</th>
+              <th style="border:1px solid #ddd; padding:5px;">Aufgabe</th>
+              <th style="border:1px solid #ddd; padding:5px;">Zuständig</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${tasks.map(t => {
+              const person = Store.getPerson(t.personId);
+              return `
+                <tr>
+                  <td style="border:1px solid #ddd; padding:5px; text-align:center;">${t.erledigt ? 'X' : ' '}</td>
+                  <td style="border:1px solid #ddd; padding:5px;">${escapeHtml(t.bereich)}</td>
+                  <td style="border:1px solid #ddd; padding:5px;">${escapeHtml(t.titel)}</td>
+                  <td style="border:1px solid #ddd; padding:5px;">${escapeHtml(person ? person.name : '—')}</td>
+                </tr>
+              `;
+            }).join("")}
+          </tbody>
+        </table>
+      </div>
+    `;
+
+    pdfArea.innerHTML = html;
+    pdfArea.style.display = "block";
+
+    const opt = {
+      margin: 10,
+      filename: `Eventplan_${e.name.replace(/[^a-zA-Z0-9_-]/g, '_')}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    html2pdf().set(opt).from(pdfArea).save().then(() => {
+      pdfArea.style.display = "none";
+      toast("PDF erfolgreich heruntergeladen!");
+    }).catch(err => {
+      pdfArea.style.display = "none";
+      alert("Fehler beim PDF-Export: " + err.message);
+    });
+  }
+};
+
+/* ============================================================
+   JSON EXPORT / IMPORT
+   ============================================================ */
+
+const IO = {
+  exportJSON() {
+    const payload = {
+      exportiertAm: new Date().toISOString(),
+      appVersion: APP_VERSION,
+      version: 41,
+      ...Store.data
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `eventplaner_v${APP_VERSION}_export_${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast("Export erfolgreich erstellt.");
+  },
+
+  async importJSON(evt) {
+    const file = evt.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async () => {
+      try {
+        const parsed = JSON.parse(reader.result);
+        if (!confirm("Import ersetzt bzw. aktualisiert Daten in Firestore. Fortfahren?")) return;
+        
+        const { db, doc, writeBatch } = window.FB;
+        const batch = writeBatch(db);
+
+        const configRef = doc(db, ...PATH_BASE, "config", "stammdaten");
+        batch.set(configRef, {
+          lieferanten: parsed.lieferanten || [],
+          kategorien: parsed.kategorien || [],
+          ryder: parsed.ryder || [],
+          gastroRyder: parsed.gastroRyder || []
+        });
+
+        (parsed.personen || []).forEach(p => {
+          const pRef = doc(db, ...PATH_BASE, "personen", p.id);
+          batch.set(pRef, p);
+        });
+
+        (parsed.events || []).forEach(e => {
+          const eRef = doc(db, ...PATH_BASE, "events", e.id);
+          batch.set(eRef, e);
+        });
+
+        await batch.commit();
+        toast("Import erfolgreich in Subcollections übertragen.");
+      } catch (err) {
+        alert("Fehler beim Import: " + err.message);
+      }
+      evt.target.value = "";
+    };
+    reader.readAsText(file);
+  }
+};
+
+/* ============================================================
+   START, AUTH & PRESENCE
+   ============================================================ */
+
+const Presence = {
+  _active: false,
+  _heartbeatTimer: null,
+  _renderTimer: null,
+  _unsub: null,
+  _rawDocs: [],
+
+  start(user) {
+    if (this._active) return;
+    this._active = true;
+    const { db, doc, setDoc, serverTimestamp, collection, onSnapshot } = window.FB;
+    const ref = doc(db, "presence", user.uid);
+    const beat = () => setDoc(ref, { email: user.email, name: user.displayName || user.email, lastSeen: serverTimestamp() });
+    beat();
+    this._heartbeatTimer = setInterval(beat, 20000);
+    this._unsub = onSnapshot(collection(db, "presence"), (snap) => {
+      this._rawDocs = [];
+      snap.forEach(d => this._rawDocs.push(d.data()));
+      this._render();
+    });
+    this._renderTimer = setInterval(() => this._render(), 15000);
+  },
+
+  _render() {
+    const countEl = document.getElementById("presence-count");
+    const listEl = document.getElementById("presence-list");
+    if (!countEl || !listEl) return;
+    const now = Date.now();
+    const online = this._rawDocs
+      .filter(d => d.lastSeen && d.lastSeen.toMillis && (now - d.lastSeen.toMillis() < 60000))
+      .map(d => d.name || d.email)
+      .sort();
+    countEl.textContent = online.length;
+    listEl.innerHTML = online.length
+      ? online.map(e => `<div class="presence-item">🟢 ${escapeHtml(e)}</div>`).join("")
+      : `<div class="presence-item muted">Niemand online</div>`;
+  },
+
+  async stop(user) {
+    if (!this._active) return;
+    this._active = false;
+    if (this._heartbeatTimer) clearInterval(this._heartbeatTimer);
+    if (this._renderTimer) clearInterval(this._renderTimer);
+    if (this._unsub) this._unsub();
+    if (user) {
+      const { db, doc, deleteDoc } = window.FB;
+      try {
+        await deleteDoc(doc(db, "presence", user.uid));
+      } catch (e) {}
+    }
+  }
+};
+
+function togglePresenceList() {
+  document.getElementById("presence-dropdown").classList.toggle("open");
+}
+
+document.addEventListener("click", (evt) => {
+  const wrap = document.querySelector(".presence-wrap");
+  const dropdown = document.getElementById("presence-dropdown");
+  if (wrap && dropdown && !wrap.contains(evt.target)) {
+    dropdown.classList.remove("open");
+  }
+});
+
+const Auth = {
+  async initUserProfile(user) {
+    const { db, doc, getDoc, setDoc, collection, getDocs } = window.FB;
+    const userRef = doc(db, ...PATH_BASE, "users", user.uid);
+    const snap = await getDoc(userRef);
+
+    if (snap.exists()) {
+      currentUserProfile = snap.data();
+      currentUserProfile.actualRole = currentUserProfile.role || "C";
+    } else {
+      const usersSnap = await getDocs(collection(db, ...PATH_BASE, "users"));
+      const isFirstUser = usersSnap.empty;
+      const initialRole = isFirstUser ? "A" : "C";
+
+      currentUserProfile = {
+        id: user.uid,
+        email: user.email || "",
+        name: user.displayName || user.email || "Mitglied",
+        role: initialRole,
+        actualRole: initialRole,
+        erstelltAm: new Date().toISOString()
+      };
+      await setDoc(userRef, {
+        id: currentUserProfile.id,
+        email: currentUserProfile.email,
+        name: currentUserProfile.name,
+        role: currentUserProfile.role,
+        erstelltAm: currentUserProfile.erstelltAm
+      });
+    }
+    applyRolePermissions(currentUserProfile.role);
+  },
+
+  switchCurrentRole(role) {
+    if (currentUserProfile.actualRole !== "A") {
+      toast("Keine Berechtigung zum Rollenwechsel.");
+      return;
+    }
+    currentUserProfile.role = role;
+    applyRolePermissions(role);
+    Events.render();
+    Ryder.render();
+    GastroRyder.render();
+    Lieferanten.render();
+    Personen.render();
+    Kategorien.render();
+    const detailPanel = document.getElementById("event-detail-panel");
+    if (detailPanel.classList.contains("open") && detailPanel.dataset.eventId) {
+      Events.openDetail(detailPanel.dataset.eventId);
+    }
+    toast(`Test-Rolle geändert auf: Rolle ${role}`);
+  },
+
+  loginGoogle() {
+    const { auth, signInWithPopup, googleProvider } = window.FB;
+    const errEl = document.getElementById("login-error");
+    errEl.style.display = "none";
+    signInWithPopup(auth, googleProvider).catch(err => {
+      errEl.textContent = "Google-Anmeldung abgebrochen oder fehlgeschlagen.";
+      errEl.style.display = "block";
+    });
+  },
+
+  loginEmail() {
+    const { auth, signInWithEmailAndPassword } = window.FB;
+    const email = document.getElementById("login-email").value.trim();
+    const pw = document.getElementById("login-password").value;
+    const errEl = document.getElementById("login-error");
+    errEl.style.display = "none";
+    if (!email || !pw) return;
+    signInWithEmailAndPassword(auth, email, pw).catch(err => {
+      errEl.textContent = "Anmeldung fehlgeschlagen. E-Mail/Passwort prüfen.";
+      errEl.style.display = "block";
+    });
+  },
+
+  async logout() {
+    const { auth, signOut } = window.FB;
+    const user = auth.currentUser;
+    if (user) await Presence.stop(user);
+    Store.unsubscribeAll();
+    clearAllUI();
+    appStarted = false;
+    document.getElementById("login-email").value = "";
+    document.getElementById("login-password").value = "";
+    try {
+      await signOut(auth);
+      toast("Erfolgreich abgemeldet.");
+    } catch (err) {
+      console.error("Logout-Fehler:", err);
+    }
+  }
+};
+
+let appStarted = false;
+
+function startApp() {
+  const badge = document.getElementById("app-version-badge");
+  if (badge) badge.textContent = `v${APP_VERSION}`;
+
+  const { auth, onAuthStateChanged } = window.FB;
+  let lastUser = null;
+  onAuthStateChanged(auth, async (user) => {
+    const overlay = document.getElementById("login-overlay");
+    if (user) {
+      overlay.classList.remove("open");
+      await Auth.initUserProfile(user);
+
+      if (!appStarted) {
+        appStarted = true;
+        Store.init(() => {
+          Events.refreshKategorieSelect();
+          Events.render();
+          Ryder.render();
+          GastroRyder.render();
+          Lieferanten.render();
+          Personen.render();
+          Kategorien.render();
+        });
+      }
+      Presence.start(user);
+      lastUser = user;
+    } else {
+      overlay.classList.add("open");
+      Presence.stop(lastUser);
+    }
+  });
+}
+
+if (window.FB) {
+  startApp();
+} else {
+  window.addEventListener("firebase-ready", startApp);
+}
+</script>
+
+</body>
+</html>
