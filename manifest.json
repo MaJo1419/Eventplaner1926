@@ -1,0 +1,16 @@
+{
+  "name": "SVS Eventplaner",
+  "short_name": "SVS Planer",
+  "start_url": "/Eventplaner1926/",
+  "scope": "/Eventplaner1926/",
+  "display": "standalone",
+  "background_color": "#f6f5f1",
+  "theme_color": "#143f34",
+  "icons": [
+    {
+      "src": "/Eventplaner1926/logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
