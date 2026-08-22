@@ -631,7 +631,7 @@
 <header>
   <div>
     <h1>Eventplaner</h1>
-    <div class="sub">SV Schapbach 1926 e.V. <span class="version-badge" id="app-version-badge">v0.1.063</span></div>
+    <div class="sub">SV Schapbach 1926 e.V. <span class="version-badge" id="app-version-badge">v0.1.064</span></div>
   </div>
   <footer class="toolbar-io" style="display:flex;gap:8px;align-items:center;">
     <select id="user-role-selector" class="role-select-header" style="display:none;" onchange="Auth.switchCurrentRole(this.value)">
@@ -1182,7 +1182,7 @@
    ZENTRALE KONFIGURATION & DATENSCHICHT
    ============================================================ */
 
-const APP_VERSION = "0.1.063";
+const APP_VERSION = "0.1.064";
 let currentUserProfile = { role: "A", actualRole: "A", email: "", name: "" };
 
 function uid(prefix) {
@@ -2522,7 +2522,7 @@ const Events = {
           <div style="display:flex;align-items:center;gap:6px;" onclick="event.stopPropagation();">
             <span class="status-tag status-${e.status}">${{ geplant: "Geplant", bestaetigt: "Bestätigt", abgeschlossen: "Abgeschlossen" }[e.status]}</span>
             <button class="btn secondary small vorstand-only" onclick="Events.duplicate('${e.id}')" title="Event klonen">📑 Klonen</button>
-            <button class="btn secondary small" onclick="Events.exportEventPDF('${e.id}')">📄 PDF</button>
+            <button class="btn secondary small vorstand-only" onclick="Events.exportEventPDF('${e.id}')">📄 PDF</button>
             <button class="btn secondary small vorstand-only" onclick="Events.openForm('${e.id}')">Bearbeiten</button>
             <button class="btn danger small admin-only" onclick="Events.remove('${e.id}')">Löschen</button>
           </div>
@@ -2920,6 +2920,12 @@ const Events = {
     if (!e.bereichVerantwortliche) e.bereichVerantwortliche = { checklist: {}, gastro: {} };
 
     const isMemberOnly = currentUserProfile.role === "C";
+    
+    // Wenn Mitglied, direkt auf Schichten-Tab leiten falls Dashboard/Orga gewählt
+    if (isMemberOnly && (currentEventTab === 'dashboard' || currentEventTab === 'orga' || currentEventTab === 'checklist' || currentEventTab === 'gastro')) {
+      currentEventTab = 'schichten';
+    }
+
     const tasks = e.checkliste || [];
     const doneTasks = tasks.filter(i => i.erledigt).length;
     const taskPct = tasks.length > 0 ? Math.round((doneTasks / tasks.length) * 100) : 0;
@@ -3279,16 +3285,16 @@ const Events = {
           <div class="desc">${e.datum ? escapeHtml(e.datum) : "kein Datum"} &middot; ${escapeHtml(k.name)} (max. ${escapeHtml(k.maxPersonen)} Personen) ${e.ort ? "&middot; " + escapeHtml(e.ort) : ""}</div>
         </div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;">
-          <button class="btn small" style="background:#25D366; color:#fff;" onclick="Events.shareWhatsApp('${e.id}')">💬 WhatsApp</button>
-          <button class="btn small" onclick="Events.exportEventPDF('${e.id}')">📄 PDF</button>
+          <button class="btn small vorstand-only" style="background:#25D366; color:#fff;" onclick="Events.shareWhatsApp('${e.id}')">💬 WhatsApp</button>
+          <button class="btn small vorstand-only" onclick="Events.exportEventPDF('${e.id}')">📄 PDF</button>
           <button class="btn secondary small vorstand-only" onclick="Events.openForm('${e.id}')">Event bearbeiten</button>
-          <button class="btn secondary small" onclick="window.print()">Drucken</button>
+          <button class="btn secondary small vorstand-only" onclick="window.print()">Drucken</button>
         </div>
       </div>
 
       <!-- Kachel-Navigation -->
       <div class="event-tiles-nav">
-        <button class="event-tile ${currentEventTab === 'dashboard' ? 'active' : ''}" onclick="Events.setTab('dashboard')">
+        <button class="event-tile ${currentEventTab === 'dashboard' ? 'active' : ''} vorstand-only" onclick="Events.setTab('dashboard')">
           <div class="tile-title"><span>📊 Übersicht</span></div>
           <div class="tile-sub">KPIs &amp; Kennzahlen</div>
         </button>
@@ -3304,7 +3310,7 @@ const Events = {
           <div class="tile-title"><span>👥 Schichten &amp; Listen</span></div>
           <div class="tile-sub">${(e.schichten || []).length} aktiv</div>
         </button>
-        <button class="event-tile ${currentEventTab === 'orga' ? 'active' : ''}" onclick="Events.setTab('orga')">
+        <button class="event-tile ${currentEventTab === 'orga' ? 'active' : ''} vorstand-only" onclick="Events.setTab('orga')">
           <div class="tile-title"><span>🏢 Personal</span></div>
           <div class="tile-sub">Stationen &amp; Aufbau</div>
         </button>
