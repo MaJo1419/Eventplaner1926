@@ -396,7 +396,27 @@
   
   #event-detail-panel { display: none; }
   #event-detail-panel.open { display: block; }
-  .back-link { font-size: 13px; color: var(--accent-dark); cursor: pointer; margin-bottom: 12px; display: inline-block; font-weight: 500; }
+  
+  /* Aufgewerteter Zurück-Button */
+  .back-link {
+    background-color: var(--surface);
+    color: var(--accent-dark);
+    border: 1px solid var(--border-strong);
+    padding: 8px 14px;
+    border-radius: var(--radius);
+    font-size: 13.5px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-bottom: 16px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: background-color 0.2s ease;
+  }
+  .back-link:hover {
+    background-color: var(--surface-2);
+    border-color: var(--accent);
+  }
   
   .bereich-header-row {
     display: flex;
@@ -611,7 +631,7 @@
 <header>
   <div>
     <h1>Eventplaner</h1>
-    <div class="sub">SV Schapbach 1926 e.V. <span class="version-badge" id="app-version-badge">v0.1.062</span></div>
+    <div class="sub">SV Schapbach 1926 e.V. <span class="version-badge" id="app-version-badge">v0.1.063</span></div>
   </div>
   <footer class="toolbar-io" style="display:flex;gap:8px;align-items:center;">
     <select id="user-role-selector" class="role-select-header" style="display:none;" onchange="Auth.switchCurrentRole(this.value)">
@@ -659,7 +679,7 @@
     </div>
 
     <div id="event-detail-panel">
-      <span class="back-link" onclick="Events.closeDetail()">&larr; Zurück zur Eventübersicht</span>
+      <button class="back-link" onclick="Events.closeDetail()">&larr; Zurück zur Eventübersicht</button>
       <div id="event-detail-content"></div>
     </div>
   </section>
@@ -1162,7 +1182,7 @@
    ZENTRALE KONFIGURATION & DATENSCHICHT
    ============================================================ */
 
-const APP_VERSION = "0.1.062";
+const APP_VERSION = "0.1.063";
 let currentUserProfile = { role: "A", actualRole: "A", email: "", name: "" };
 
 function uid(prefix) {
