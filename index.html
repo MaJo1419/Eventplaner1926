@@ -631,7 +631,7 @@
 <header>
   <div>
     <h1>Eventplaner</h1>
-    <div class="sub">SV Schapbach 1926 e.V. <span class="version-badge" id="app-version-badge">v0.1.064</span></div>
+    <div class="sub">SV Schapbach 1926 e.V. <span class="version-badge" id="app-version-badge">v0.1.065</span></div>
   </div>
   <footer class="toolbar-io" style="display:flex;gap:8px;align-items:center;">
     <select id="user-role-selector" class="role-select-header" style="display:none;" onchange="Auth.switchCurrentRole(this.value)">
@@ -1182,7 +1182,7 @@
    ZENTRALE KONFIGURATION & DATENSCHICHT
    ============================================================ */
 
-const APP_VERSION = "0.1.064";
+const APP_VERSION = "0.1.065";
 let currentUserProfile = { role: "A", actualRole: "A", email: "", name: "" };
 
 function uid(prefix) {
@@ -2487,7 +2487,7 @@ const Kategorien = {
    EVENTS & SCHICHT-BOARD
    ============================================================ */
 
-let currentEventTab = "dashboard";
+let currentEventTab = "schichten";
 let currentGastroFilterLieferant = "alle";
 
 const Events = {
@@ -2921,7 +2921,7 @@ const Events = {
 
     const isMemberOnly = currentUserProfile.role === "C";
     
-    // Wenn Mitglied, direkt auf Schichten-Tab leiten falls Dashboard/Orga gewählt
+    // Wenn Mitglied, direkt auf Schichten-Tab leiten falls ungültiger Tab gewählt
     if (isMemberOnly && (currentEventTab === 'dashboard' || currentEventTab === 'orga' || currentEventTab === 'checklist' || currentEventTab === 'gastro')) {
       currentEventTab = 'schichten';
     }
