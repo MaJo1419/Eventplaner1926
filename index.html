@@ -1092,7 +1092,7 @@
    ZENTRALE KONFIGURATION & DATENSCHICHT
    ============================================================ */
 
-const APP_VERSION = "0.1.060";
+const APP_VERSION = "0.1.061";
 let currentUserProfile = { role: "A", actualRole: "A", email: "", name: "" };
 
 function uid(prefix) {
@@ -3576,7 +3576,8 @@ const Events = {
     const vollerName = `${vorname} ${nachname}`;
     targetSchicht.eintragungen.push({ uid: userUid, name: vollerName });
     
-    await Store.saveEvent(e);
+    // Gezieltes Update nur des Schichten-Arrays (erlaubt auch normalen Helfern das Eintragen)
+    await Store.updateEventField(eventId, { schichten: e.schichten });
     Modal.close("modal-schicht-buchen");
     toast("Erfolgreich in Schicht eingetragen!");
     this.openDetail(eventId);
@@ -3616,7 +3617,7 @@ const Events = {
     const vollerName = `${vorname} ${nachname}`;
 
     liste.eintragungen.push({ uid: userUid, name: vollerName, wert });
-    await Store.saveEvent(e);
+    await Store.updateEventField(eventId, { spendenListen: e.spendenListen });
 
     Modal.close("modal-spende-buchen");
     toast("Erfolgreich in Mitbringliste eingetragen!");
@@ -3637,7 +3638,7 @@ const Events = {
     }
 
     liste.eintragungen = liste.eintragungen.filter(en => en.uid !== targetUid);
-    await Store.saveEvent(e);
+    await Store.updateEventField(eventId, { spendenListen: e.spendenListen });
     toast("Eintrag gelöscht.");
     this.openDetail(eventId);
   },
@@ -3672,7 +3673,7 @@ const Events = {
     }
 
     s.eintragungen = s.eintragungen.filter(en => en.uid !== targetUid);
-    await Store.saveEvent(e);
+    await Store.updateEventField(eventId, { schichten: e.schichten });
     toast("Erfolgreich aus Schicht ausgetragen.");
     this.openDetail(eventId);
   },
