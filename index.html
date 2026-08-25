@@ -259,7 +259,7 @@
   /* Kachel-Navigation im Event-Detail */
   .event-tiles-nav {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
     gap: 10px;
     margin-bottom: 20px;
   }
@@ -397,7 +397,6 @@
   #event-detail-panel { display: none; }
   #event-detail-panel.open { display: block; }
   
-  /* Aufgewerteter Zurück-Button */
   .back-link {
     background-color: var(--surface);
     color: var(--accent-dark);
@@ -522,33 +521,18 @@
     main { max-width: 100%; padding: 0; }
   }
 
-  /* ============================================================
-     MOBILE RESPONSIVE ANPASSUNGEN (Automatische Erkennung)
-     ============================================================ */
   @media screen and (max-width: 768px) {
-    main {
-      padding: 12px;
-    }
-    header {
-      padding: 12px 16px;
-    }
-    header h1 {
-      font-size: 17px;
-    }
+    main { padding: 12px; }
+    header { padding: 12px 16px; }
+    header h1 { font-size: 17px; }
     nav.tabs {
       padding: 6px 12px 0;
       overflow-x: auto;
       white-space: nowrap;
       -webkit-overflow-scrolling: touch;
     }
-    nav.tabs::-webkit-scrollbar {
-      display: none;
-    }
-    nav.tabs button {
-      padding: 8px 12px;
-      font-size: 13px;
-      flex-shrink: 0;
-    }
+    nav.tabs::-webkit-scrollbar { display: none; }
+    nav.tabs button { padding: 8px 12px; font-size: 13px; flex-shrink: 0; }
     .unified-item-row {
       display: flex;
       flex-direction: column;
@@ -556,40 +540,13 @@
       gap: 8px;
       padding: 12px;
     }
-    .unified-item-row > div {
-      width: 100% !important;
-      text-align: left !important;
-    }
-    .unified-item-row > div:first-child {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .unified-item-row select, 
-    .unified-item-row input {
-      width: 100% !important;
-      padding: 8px !important;
-      font-size: 14px !important;
-    }
-    .event-tiles-nav {
-      grid-template-columns: repeat(2, 1fr);
-      gap: 8px;
-    }
-    .event-tile {
-      padding: 10px;
-    }
-    .modal {
-      max-width: 100% !important;
-      margin: 0 8px;
-      padding: 16px;
-      max-height: 85vh;
-      overflow-y: auto;
-    }
-    .matrix-table {
-      display: block;
-      overflow-x: auto;
-      white-space: nowrap;
-    }
+    .unified-item-row > div { width: 100% !important; text-align: left !important; }
+    .unified-item-row > div:first-child { display: flex; align-items: center; gap: 10px; }
+    .unified-item-row select, .unified-item-row input { width: 100% !important; padding: 8px !important; font-size: 14px !important; }
+    .event-tiles-nav { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .event-tile { padding: 10px; }
+    .modal { max-width: 100% !important; margin: 0 8px; padding: 16px; max-height: 85vh; overflow-y: auto; }
+    .matrix-table { display: block; overflow-x: auto; white-space: nowrap; }
   }
 </style>
 </head>
@@ -632,7 +589,7 @@
 <header>
   <div>
     <h1>Eventplaner</h1>
-    <div class="sub">SV Schapbach 1926 e.V. <span class="version-badge" id="app-version-badge">v0.1.065</span></div>
+    <div class="sub">SV Schapbach 1926 e.V. <span class="version-badge" id="app-version-badge">v0.1.067</span></div>
   </div>
   <footer class="toolbar-io" style="display:flex;gap:8px;align-items:center;">
     <select id="user-role-selector" class="role-select-header" style="display:none;" onchange="Auth.switchCurrentRole(this.value)">
@@ -660,6 +617,7 @@
   <button class="tab-btn" data-view="meine-schichten">📅 Mein Schichtplan</button>
   <button class="tab-btn admin-only" data-view="ryder">Checklisten-Ryder (Matrix)</button>
   <button class="tab-btn admin-only" data-view="gastro">Gastro-Ryder</button>
+  <button class="tab-btn admin-only" data-view="material-ryder">📦 Material-Ryder</button>
   <button class="tab-btn vorstand-only" data-view="personen">Personen, Lieferanten &amp; Benutzer</button>
   <button class="tab-btn admin-only" data-view="kategorien">Kategorien</button>
 </nav>
@@ -720,6 +678,18 @@
     <div id="gastro-ryder-list"></div>
   </section>
 
+  <!-- MATERIAL-RYDER -->
+  <section class="view" id="view-material-ryder">
+    <div class="toolbar">
+      <div>
+        <h2>Material- &amp; Equipment-Ryder</h2>
+        <div class="desc">Zentraler Inventar-Pool mit Gesamtbestand, Standard-Bezugsquelle &amp; Kategorien-Mengen</div>
+      </div>
+      <button class="btn admin-only" onclick="MaterialRyder.openBereichForm()">+ Neuer Bereich</button>
+    </div>
+    <div id="material-ryder-list"></div>
+  </section>
+
   <!-- PERSONEN, LIEFERANTEN & BENUTZERROLLEN -->
   <section class="view" id="view-personen">
     
@@ -728,7 +698,7 @@
       <div class="toolbar">
         <div>
           <h2>Lieferanten</h2>
-          <div class="desc">Händler für Getränke, Metzgerei, Bäckerei etc. für automatisierte E-Mail-Bestellungen</div>
+          <div class="desc">Händler für Getränke, Metzgerei, Bäckerei, Leihmaterial etc.</div>
         </div>
         <button class="btn vorstand-only" onclick="Lieferanten.openForm()">+ Neuer Lieferant</button>
       </div>
@@ -869,9 +839,7 @@
     
     <div class="field">
       <label>Verkaufsstelle / Stand</label>
-      <select id="schichtVsSelect" onchange="Events.onSchichtVsSelectChange()">
-        <!-- Wird dynamisch aus Kategorie befüllt -->
-      </select>
+      <select id="schichtVsSelect" onchange="Events.onSchichtVsSelectChange()"></select>
     </div>
     <div class="field" id="schichtCustomVsWrap" style="display:none;">
       <label>Neuer / Eigener Stand (Bezeichnung)</label>
@@ -920,6 +888,82 @@
     <div class="modal-actions">
       <button class="btn secondary" onclick="Modal.close('modal-lieferant')">Abbrechen</button>
       <button class="btn" onclick="Lieferanten.save()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- Material-Ryder Bereich -->
+<div class="overlay" id="modal-material-bereich">
+  <div class="modal">
+    <h3 id="material-bereich-modal-title">Material-Bereich</h3>
+    <input type="hidden" id="materialBereichId">
+    <div class="field"><label>Bereichs-Titel</label><input id="materialBereichTitel" placeholder="z. B. Möbel, Technik, Schanktechnik..."></div>
+    <div class="field">
+      <label>Standard-Hauptverantwortlicher (optional)</label>
+      <select id="materialBereichPerson"></select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn secondary" onclick="Modal.close('modal-material-bereich')">Abbrechen</button>
+      <button class="btn" onclick="MaterialRyder.saveBereich()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- Material-Ryder Artikel / Equipment -->
+<div class="overlay" id="modal-material-artikel">
+  <div class="modal">
+    <h3 id="material-artikel-modal-title">Equipment / Material</h3>
+    <input type="hidden" id="materialArtikelBereichId">
+    <input type="hidden" id="materialArtikelId">
+    <div class="field-row">
+      <div class="field" style="flex:2;"><label>Bezeichnung</label><input id="materialArtikelName" placeholder="z. B. Festplatzgarnitur, Zapfanlage"></div>
+      <div class="field"><label>Gesamtbestand (Lager)</label><input type="number" min="0" id="materialArtikelGesamt" placeholder="50"></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Einheit</label><input id="materialArtikelEinheit" placeholder="z. B. Stk., Garnituren"></div>
+      <div class="field">
+        <label>Standard-Bezugsquelle (Lieferant)</label>
+        <select id="materialArtikelLieferant"></select>
+      </div>
+    </div>
+    <div class="field">
+      <label>Standardmengen je Eventkategorie</label>
+      <div id="materialArtikelMatrix"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn secondary" onclick="Modal.close('modal-material-artikel')">Abbrechen</button>
+      <button class="btn" onclick="MaterialRyder.saveArtikel()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- Event Material Item Edit -->
+<div class="overlay" id="modal-event-material-item">
+  <div class="modal">
+    <h3 id="event-material-item-modal-title">Material-Position bearbeiten</h3>
+    <input type="hidden" id="eventMaterialItemEventId">
+    <input type="hidden" id="eventMaterialItemid">
+    <div class="field"><label>Bereich</label><input id="eventMaterialItemBereich" placeholder="z. B. Möbel"></div>
+    <div class="field"><label>Bezeichnung</label><input id="eventMaterialItemName"></div>
+    <div class="field-row">
+      <div class="field"><label>Benötigte Menge</label><input type="number" step="any" min="0" id="eventMaterialItemMenge"></div>
+      <div class="field"><label>Einheit</label><input id="eventMaterialItemEinheit"></div>
+    </div>
+    <div class="field">
+      <label>Bezugsquelle für dieses Event</label>
+      <select id="eventMaterialItemLieferant"></select>
+    </div>
+    <div class="field"><label>Verantwortliche Person</label><select id="eventMaterialItemPerson"></select></div>
+    <div class="field"><label>Status</label>
+      <select id="eventMaterialItemStatus">
+        <option value="offen">Offen</option>
+        <option value="bestellt">Bestellt / Reserviert</option>
+        <option value="bereit">Bereit / Vor Ort</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn secondary" onclick="Modal.close('modal-event-material-item')">Abbrechen</button>
+      <button class="btn" onclick="Events.saveMaterialItem()">Speichern</button>
     </div>
   </div>
 </div>
@@ -1087,20 +1131,24 @@
     <input type="hidden" id="eventId">
     <div class="field"><label>Name</label><input id="eventName" placeholder="z. B. Sommerfest 2026"></div>
     <div class="field-row">
-      <div class="field"><label>Datum</label><input type="date" id="eventDatum"></div>
-      <div class="field"><label>Ort (optional)</label><input id="eventOrt"></div>
+      <div class="field"><label>Startdatum</label><input type="date" id="eventDatumStart"></div>
+      <div class="field"><label>Enddatum</label><input type="date" id="eventDatumEnde"></div>
     </div>
     <div class="field-row">
+      <div class="field"><label>Ort (optional)</label><input id="eventOrt"></div>
       <div class="field">
-        <label>Kategorie / Event-Typ</label>
-        <select id="eventKategorie" onchange="Events.onKategorieChange()"></select>
-      </div>
-      <div class="field"><label>Status</label>
+        <label>Status</label>
         <select id="eventStatus">
           <option value="geplant">Geplant</option>
           <option value="bestaetigt">Bestätigt</option>
           <option value="abgeschlossen">Abgeschlossen</option>
         </select>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field" style="flex:1;">
+        <label>Kategorie / Event-Typ</label>
+        <select id="eventKategorie" onchange="Events.onKategorieChange()"></select>
       </div>
     </div>
 
@@ -1183,7 +1231,7 @@
    ZENTRALE KONFIGURATION & DATENSCHICHT
    ============================================================ */
 
-const APP_VERSION = "0.1.066";
+const APP_VERSION = "0.1.067";
 let currentUserProfile = { role: "A", actualRole: "A", email: "", name: "" };
 
 function uid(prefix) {
@@ -1202,7 +1250,7 @@ function exportToCalendar(schichtTitel, startZeitpunkt, endZeitpunkt, ort = "Fes
         "VERSION:2.0",
         "BEGIN:VEVENT",
         `SUMMARY:SVS Schicht: ${schichtTitel}`,
-        `DESCRIPTION:Eingetragene Schicht beim SV Schapbach Event (100 Jahre Jubiläum).`,
+        `DESCRIPTION:Eingetragene Schicht beim SV Schapbach Event.`,
         `LOCATION:${ort}`,
         `DTSTART:${start}`,
         `DTEND:${end}`,
@@ -1222,7 +1270,8 @@ function seedData() {
   const lieferanten = [
     { id: "l_brauerei", name: "Brauerei Alpirsbacher", kontakt: "Herr Meier", telefon: "07834 12345", email: "bestellung@alpirsbacher.de", notizen: "Kunden-Nr: 1926" },
     { id: "l_metzger", name: "Metzgerei Schmieder", kontakt: "Herr Schmieder", telefon: "07839 5678", email: "info@metzgerei-schmieder.de", notizen: "Lieferung bis 10 Uhr" },
-    { id: "l_baecker", name: "Bäckerei Wolber", kontakt: "Herr Wolber", telefon: "07839 9988", email: "bestellung@baeckerei-wolber.de", notizen: "Frische Wecken morgens" }
+    { id: "l_baecker", name: "Bäckerei Wolber", kontakt: "Herr Wolber", telefon: "07839 9988", email: "bestellung@baeckerei-wolber.de", notizen: "Frische Wecken morgens" },
+    { id: "l_verleih", name: "Festbedarf Schwarzwald", kontakt: "Herr Braun", telefon: "07832 9876", email: "verleih@festbedarf.de", notizen: "Zelt- und Möbelverleih" }
   ];
 
   const kategorien = [
@@ -1322,19 +1371,31 @@ function seedData() {
         { id: "ga_5", name: "Currywurst-Sauce", einheit: "Eimer (5kg)", lieferantId: "l_metzger", mengen: { schaparena_75: 0, schaparena_150: 1, schaparena_300: 2, schaparena_500: 4, schaparena_1000: 8 } },
         { id: "ga_6", name: "Brötchen", einheit: "Stück", lieferantId: "l_baecker", mengen: { schaparena_75: 60, schaparena_150: 140, schaparena_300: 300, schaparena_500: 550, schaparena_1000: 1100 } }
       ]
-    },
+    }
+  ];
+
+  const materialRyder = [
     {
-      id: "gb_snacks",
-      titel: "Snacks & Zubehör",
+      id: "mb_moebel",
+      titel: "Möbel & Ausstattung",
       personId: "",
       artikel: [
-        { id: "ga_7", name: "Chips-Tüten", einheit: "Kartons", lieferantId: "", mengen: { schaparena_75: 1, schaparena_150: 2, schaparena_300: 4, schaparena_500: 6, schaparena_1000: 12 } },
-        { id: "ga_8", name: "Servietten", einheit: "Packungen", lieferantId: "", mengen: { schaparena_75: 2, schaparena_150: 4, schaparena_300: 8, schaparena_500: 12, schaparena_1000: 24 } }
+        { id: "ma_1", name: "Festplatzgarnitur (Tisch + 2 Bänke)", einheit: "Garnituren", gesamtBestand: 50, lieferantId: "l_verleih", mengen: { schaparena_75: 10, schaparena_150: 20, schaparena_300: 40, schaparena_500: 70, schaparena_1000: 120 } },
+        { id: "ma_2", name: "Stehtisch", einheit: "Stk.", gesamtBestand: 25, lieferantId: "", mengen: { schaparena_75: 5, schaparena_150: 10, schaparena_300: 20, schaparena_500: 35, schaparena_1000: 60 } }
+      ]
+    },
+    {
+      id: "mb_schank",
+      titel: "Schanktechnik & Kühlung",
+      personId: "",
+      artikel: [
+        { id: "ma_3", name: "Zapfanlage (2-Leitig)", einheit: "Stk.", gesamtBestand: 3, lieferantId: "l_brauerei", mengen: { schaparena_75: 1, schaparena_150: 1, schaparena_300: 2, schaparena_500: 3, schaparena_1000: 5 } },
+        { id: "ma_4", name: "Kühlschrank / Kühlanhänger", einheit: "Stk.", gesamtBestand: 2, lieferantId: "l_brauerei", mengen: { schaparena_75: 1, schaparena_150: 1, schaparena_300: 1, schaparena_500: 2, schaparena_1000: 3 } }
       ]
     }
   ];
 
-  return { lieferanten, personen, kategorien, ryder, gastroRyder, events: [] };
+  return { lieferanten, personen, kategorien, ryder, gastroRyder, materialRyder, events: [] };
 }
 
 const PATH_BASE = ["eventplaner", "svs"];
@@ -1345,6 +1406,7 @@ const Store = {
     kategorien: [],
     ryder: [],
     gastroRyder: [],
+    materialRyder: [],
     personen: [],
     events: [],
     users: []
@@ -1369,23 +1431,27 @@ const Store = {
         Store.data.kategorien = d.kategorien || [];
         Store.data.ryder = d.ryder || [];
         Store.data.gastroRyder = d.gastroRyder || [];
+        Store.data.materialRyder = d.materialRyder || [];
       } else {
         const seed = seedData();
         Store.data.lieferanten = seed.lieferanten;
         Store.data.kategorien = seed.kategorien;
         Store.data.ryder = seed.ryder;
         Store.data.gastroRyder = seed.gastroRyder;
+        Store.data.materialRyder = seed.materialRyder;
         setDoc(configDocRef, {
           lieferanten: seed.lieferanten,
           kategorien: seed.kategorien,
           ryder: seed.ryder,
-          gastroRyder: seed.gastroRyder
+          gastroRyder: seed.gastroRyder,
+          materialRyder: seed.materialRyder
         });
       }
       Lieferanten.render();
       Kategorien.render();
       Ryder.render();
       GastroRyder.render();
+      MaterialRyder.render();
       Events.refreshKategorieSelect();
     });
 
@@ -1427,7 +1493,8 @@ const Store = {
       lieferanten: this.data.lieferanten || [],
       kategorien: this.data.kategorien || [],
       ryder: this.data.ryder || [],
-      gastroRyder: this.data.gastroRyder || []
+      gastroRyder: this.data.gastroRyder || [],
+      materialRyder: this.data.materialRyder || []
     });
   },
 
@@ -1517,11 +1584,6 @@ function applyRolePermissions(role) {
     el.style.display = isVorstandOrAdmin ? "" : "none";
   });
 
-  // HIER DIE KORREKTUR: Elemente, die nur für Vorstand/Admin ODER strikt für Admins sind
-  document.querySelectorAll(".member-hide").forEach(el => {
-    el.style.display = isVorstandOrAdmin ? "" : "none";
-  });
-
   const selector = document.getElementById("user-role-selector");
   const badge = document.getElementById("user-role-badge");
 
@@ -1542,10 +1604,11 @@ function applyRolePermissions(role) {
 }
 
 function clearAllUI() {
-  Store.data = { lieferanten: [], kategorien: [], ryder: [], gastroRyder: [], personen: [], events: [], users: [] };
+  Store.data = { lieferanten: [], kategorien: [], ryder: [], gastroRyder: [], materialRyder: [], personen: [], events: [], users: [] };
   document.getElementById("events-list").innerHTML = "";
   document.getElementById("ryder-list").innerHTML = "";
   document.getElementById("gastro-ryder-list").innerHTML = "";
+  document.getElementById("material-ryder-list").innerHTML = "";
   document.getElementById("lieferanten-list").innerHTML = "";
   document.getElementById("personen-list").innerHTML = "";
   document.getElementById("kategorien-list").innerHTML = "";
@@ -1570,6 +1633,7 @@ document.querySelectorAll(".tab-btn").forEach(btn => {
     if (btn.dataset.view === "meine-schichten") MeineSchichten.render();
     if (btn.dataset.view === "ryder") Ryder.render();
     if (btn.dataset.view === "gastro") GastroRyder.render();
+    if (btn.dataset.view === "material-ryder") MaterialRyder.render();
     if (btn.dataset.view === "personen") { Lieferanten.render(); Personen.render(); }
     if (btn.dataset.view === "kategorien") Kategorien.render();
   });
@@ -1612,7 +1676,8 @@ const MeineSchichten = {
       if (mySchichtenForEvent.length > 0 || mySpendenForEvent.length > 0) {
         eventMap[e.id] = {
           eventName: e.name,
-          eventDatum: e.datum,
+          eventStart: e.datumStart,
+          eventEnde: e.datumEnde,
           eventOrt: e.ort,
           schichten: mySchichtenForEvent,
           spenden: mySpendenForEvent
@@ -1630,12 +1695,13 @@ const MeineSchichten = {
     let html = "";
     eventIds.forEach(id => {
       const ev = eventMap[id];
+      const datumAnzeige = ev.eventStart === ev.eventEnde || !ev.eventEnde ? (ev.eventStart || 'Offen') : `${ev.eventStart} bis ${ev.eventEnde}`;
       html += `
         <div class="card" style="border-left: 5px solid var(--accent); margin-bottom: 20px;">
           <div class="card-head" style="border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 12px;">
             <div>
               <h3 style="font-size: 17px; color: var(--accent-dark);">📅 ${escapeHtml(ev.eventName)}</h3>
-              <div class="meta">Datum: <strong>${ev.eventDatum || 'Offen'}</strong> ${ev.eventOrt ? '&middot; Ort: ' + escapeHtml(ev.eventOrt) : ''}</div>
+              <div class="meta">Zeitraum: <strong>${datumAnzeige}</strong> ${ev.eventOrt ? '&middot; Ort: ' + escapeHtml(ev.eventOrt) : ''}</div>
             </div>
           </div>
       `;
@@ -1650,7 +1716,7 @@ const MeineSchichten = {
                 <div class="meta">${s.start} - ${s.ende} Uhr</div>
               </div>
               <div style="margin-top:8px;">
-                <button onclick="exportToCalendar('${s.vs.replace(/'/g, "\\'")}', '${ev.eventDatum}T${s.start}:00', '${ev.eventDatum}T${s.ende}:00')" style="background-color: var(--accent); color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">
+                <button onclick="exportToCalendar('${s.vs.replace(/'/g, "\\'")}', '${ev.eventStart}T${s.start}:00', '${ev.eventStart}T${s.ende}:00')" style="background-color: var(--accent); color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">
                   📅 In Kalender eintragen
                 </button>
               </div>
@@ -1961,7 +2027,7 @@ const Ryder = {
     p.kategorien[katId] = !p.kategorien[katId];
     await Store.persistConfig();
     const katName = Store.getKategorie(katId)?.name;
-    toast(`Standard geändert: "${p.titel}" für ${katName} is jetzt ${p.kategorien[katId] ? 'AN' : 'AUS'}`);
+    toast(`Standard geändert: "${p.titel}" für ${katName} ist jetzt ${p.kategorien[katId] ? 'AN' : 'AUS'}`);
   },
 
   async movePunkt(bereichId, index, direction) {
@@ -2210,6 +2276,236 @@ const GastroRyder = {
 };
 
 /* ============================================================
+   MATERIAL-RYDER (INVENTAR-POOL & BESTAND)
+   ============================================================ */
+
+const MaterialRyder = {
+  render() {
+    const list = document.getElementById("material-ryder-list");
+    if (!list) return;
+    if (!Store.data.materialRyder || Store.data.materialRyder.length === 0) {
+      list.innerHTML = '<div class="empty-state">Noch keine Material-Bereiche hinterlegt. Klicke auf „+ Neuer Bereich“.</div>';
+      return;
+    }
+
+    const kategorien = Store.data.kategorien;
+
+    list.innerHTML = Store.data.materialRyder.map((bereich, bIdx) => {
+      const person = Store.getPerson(bereich.personId);
+      return `
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <h3>📦 ${escapeHtml(bereich.titel)}</h3>
+              <div class="meta">
+                ${bereich.artikel.length} Equipment-Artikel &middot; 
+                Hauptverantwortlich: <strong>${person ? escapeHtml(person.name) : 'Keine'}</strong>
+              </div>
+            </div>
+            <div class="card-actions admin-only">
+              <button class="btn secondary small" onclick="MaterialRyder.moveBereich(${bIdx}, -1)" ${bIdx === 0 ? 'disabled' : ''}>▲</button>
+              <button class="btn secondary small" onclick="MaterialRyder.moveBereich(${bIdx}, 1)" ${bIdx === Store.data.materialRyder.length - 1 ? 'disabled' : ''}>▼</button>
+              <button class="btn secondary small" onclick="MaterialRyder.openBereichForm('${bereich.id}')">Bearbeiten</button>
+              <button class="btn secondary small" onclick="MaterialRyder.openArtikelForm('${bereich.id}')">+ Artikel</button>
+              <button class="btn danger small" onclick="MaterialRyder.removeBereich('${bereich.id}')">Löschen</button>
+            </div>
+          </div>
+
+          ${bereich.artikel.length > 0 ? `
+            <div style="overflow-x:auto;">
+              <table class="matrix-table">
+                <thead>
+                  <tr>
+                    <th style="min-width:160px;">Bezeichnung</th>
+                    <th style="width:80px;">Lager</th>
+                    <th style="width:70px;">Einheit</th>
+                    <th style="width:140px;">Standard-Quelle</th>
+                    ${kategorien.map(k => `<th>${escapeHtml(k.name)}</th>`).join("")}
+                    <th style="width:130px;" class="admin-only">Aktionen</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${bereich.artikel.map((art, aIdx) => {
+                    const lief = Store.getLieferant(art.lieferantId);
+                    return `
+                      <tr>
+                        <td><strong>${escapeHtml(art.name)}</strong></td>
+                        <td><span style="font-weight:700; color:var(--accent-dark);">${art.gesamtBestand ?? 0}</span></td>
+                        <td><span class="meta">${escapeHtml(art.einheit || "-")}</span></td>
+                        <td><span class="pill ${lief ? '' : 'inactive'}" style="font-size:11px;">${lief ? '🚚 ' + escapeHtml(lief.name) : 'Eigener Bestand'}</span></td>
+                        ${kategorien.map(k => {
+                          const menge = art.mengen?.[k.id] ?? 0;
+                          return `
+                            <td>
+                              <input type="number" step="any" min="0" class="gastro-input-matrix" value="${menge}"
+                                ${currentUserProfile.role !== 'A' ? 'disabled' : ''}
+                                onchange="MaterialRyder.updateMenge('${bereich.id}', '${art.id}', '${k.id}', this.value)">
+                            </td>
+                          `;
+                        }).join("")}
+                        <td class="admin-only">
+                          <div style="display:flex;gap:3px;justify-content:center;">
+                            <button class="btn secondary small" onclick="MaterialRyder.moveArtikel('${bereich.id}', ${aIdx}, -1)" ${aIdx === 0 ? 'disabled' : ''}>▲</button>
+                            <button class="btn secondary small" onclick="MaterialRyder.moveArtikel('${bereich.id}', ${aIdx}, 1)" ${aIdx === bereich.artikel.length - 1 ? 'disabled' : ''}>▼</button>
+                            <button class="btn secondary small" onclick="MaterialRyder.openArtikelForm('${bereich.id}', '${art.id}')">✎</button>
+                            <button class="btn danger small" onclick="MaterialRyder.removeArtikel('${bereich.id}', '${art.id}')">&times;</button>
+                          </div>
+                        </td>
+                      </tr>
+                    `;
+                  }).join("")}
+                </tbody>
+              </table>
+            </div>
+          ` : '<div class="meta" style="margin-top:8px;">Noch keine Artikel in diesem Bereich.</div>'}
+        </div>
+      `;
+    }).join("");
+    applyRolePermissions(currentUserProfile.role);
+  },
+
+  openBereichForm(id) {
+    document.getElementById("materialBereichId").value = id || "";
+    const isEdit = !!id;
+    document.getElementById("material-bereich-modal-title").textContent = isEdit ? "Material-Bereich bearbeiten" : "Neuer Material-Bereich";
+    const b = isEdit ? Store.data.materialRyder.find(x => x.id === id) : { titel: "", personId: "" };
+    document.getElementById("materialBereichTitel").value = b ? b.titel : "";
+
+    const persSel = document.getElementById("materialBereichPerson");
+    persSel.innerHTML = '<option value="">-- Keine Person zugewiesen --</option>' + Store.data.personen.map(p => `
+      <option value="${p.id}" ${b && b.personId === p.id ? 'selected' : ''}>${escapeHtml(p.name)}</option>
+    `).join("");
+
+    Modal.open("modal-material-bereich");
+  },
+
+  async saveBereich() {
+    const id = document.getElementById("materialBereichId").value || uid("mb");
+    const titel = document.getElementById("materialBereichTitel").value.trim();
+    if (!titel) { toast("Bitte einen Bereichsnamen eingeben."); return; }
+    const personId = document.getElementById("materialBereichPerson").value;
+
+    const existing = Store.data.materialRyder.find(x => x.id === id);
+    if (existing) {
+      existing.titel = titel;
+      existing.personId = personId;
+    } else {
+      Store.data.materialRyder.push({ id, titel, personId, artikel: [] });
+    }
+
+    await Store.persistConfig();
+    Modal.close("modal-material-bereich");
+    toast("Material-Bereich gespeichert.");
+  },
+
+  async moveBereich(index, direction) {
+    const target = index + direction;
+    if (target < 0 || target >= Store.data.materialRyder.length) return;
+    const item = Store.data.materialRyder.splice(index, 1)[0];
+    Store.data.materialRyder.splice(target, 0, item);
+    await Store.persistConfig();
+  },
+
+  async removeBereich(id) {
+    if (!confirm("Bereich samt Equipment löschen?")) return;
+    Store.data.materialRyder = Store.data.materialRyder.filter(x => x.id !== id);
+    await Store.persistConfig();
+    toast("Bereich gelöscht.");
+  },
+
+  openArtikelForm(bereichId, artikelId) {
+    document.getElementById("materialArtikelBereichId").value = bereichId;
+    document.getElementById("materialArtikelId").value = artikelId || "";
+    const isEdit = !!artikelId;
+    document.getElementById("material-artikel-modal-title").textContent = isEdit ? "Equipment bearbeiten" : "Neues Equipment anlegen";
+
+    const bereich = Store.data.materialRyder.find(b => b.id === bereichId);
+    const a = isEdit ? (bereich ? bereich.artikel.find(x => x.id === artikelId) : null) : { name: "", einheit: "Stk.", gesamtBestand: 10, lieferantId: "", mengen: {} };
+
+    document.getElementById("materialArtikelName").value = a ? a.name : "";
+    document.getElementById("materialArtikelGesamt").value = a ? a.gesamtBestand : 10;
+    document.getElementById("materialArtikelEinheit").value = a ? a.einheit : "Stk.";
+
+    const liefSel = document.getElementById("materialArtikelLieferant");
+    liefSel.innerHTML = '<option value="">-- Eigener Bestand --</option>' + (Store.data.lieferanten || []).map(l => `
+      <option value="${l.id}" ${a && a.lieferantId === l.id ? 'selected' : ''}>🚚 ${escapeHtml(l.name)}</option>
+    `).join("");
+
+    const matrixWrap = document.getElementById("materialArtikelMatrix");
+    matrixWrap.innerHTML = `
+      <table class="matrix-table">
+        <thead><tr><th>Kategorie</th><th style="width:120px;">Standardmenge</th></tr></thead>
+        <tbody>
+          ${Store.data.kategorien.map(k => `
+            <tr>
+              <td>${escapeHtml(k.name)}</td>
+              <td><input type="number" step="any" min="0" class="modal-mat-menge" data-katid="${k.id}" value="${a?.mengen?.[k.id] ?? 0}" style="width:90px;padding:4px;text-align:right;"></td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+    `;
+
+    Modal.open("modal-material-artikel");
+  },
+
+  async saveArtikel() {
+    const bereichId = document.getElementById("materialArtikelBereichId").value;
+    const artikelId = document.getElementById("materialArtikelId").value || uid("ma");
+    const name = document.getElementById("materialArtikelName").value.trim();
+    const gesamtBestand = Number(document.getElementById("materialArtikelGesamt").value) || 0;
+    const einheit = document.getElementById("materialArtikelEinheit").value.trim();
+    const lieferantId = document.getElementById("materialArtikelLieferant").value;
+    if (!name) { toast("Bitte eine Bezeichnung eingeben."); return; }
+
+    const bereich = Store.data.materialRyder.find(b => b.id === bereichId);
+    if (!bereich) { toast("Fehler: Bereich nicht gefunden."); return; }
+
+    const mengen = {};
+    document.querySelectorAll(".modal-mat-menge").forEach(inp => {
+      mengen[inp.dataset.katid] = Number(inp.value) || 0;
+    });
+
+    const artData = { id: artikelId, name, gesamtBestand, einheit, lieferantId, mengen };
+    const idx = bereich.artikel.findIndex(a => a.id === artikelId);
+    if (idx >= 0) bereich.artikel[idx] = artData;
+    else bereich.artikel.push(artData);
+
+    await Store.persistConfig();
+    Modal.close("modal-material-artikel");
+    toast("Equipment gespeichert.");
+  },
+
+  async updateMenge(bereichId, artikelId, katId, val) {
+    const b = Store.data.materialRyder.find(x => x.id === bereichId);
+    if (!b) return;
+    const a = b.artikel.find(x => x.id === artikelId);
+    if (!a) return;
+    if (!a.mengen) a.mengen = {};
+    a.mengen[katId] = Number(val) || 0;
+    await Store.persistConfig();
+  },
+
+  async moveArtikel(bereichId, index, direction) {
+    const b = Store.data.materialRyder.find(x => x.id === bereichId);
+    if (!b) return;
+    const target = index + direction;
+    if (target < 0 || target >= b.artikel.length) return;
+    const item = b.artikel.splice(index, 1)[0];
+    b.artikel.splice(target, 0, item);
+    await Store.persistConfig();
+  },
+
+  async removeArtikel(bereichId, artikelId) {
+    const b = Store.data.materialRyder.find(x => x.id === bereichId);
+    if (!b) return;
+    b.artikel = b.artikel.filter(a => a.id !== artikelId);
+    await Store.persistConfig();
+    toast("Artikel gelöscht.");
+  }
+};
+
+/* ============================================================
    PERSONEN & BENUTZERROLLEN
    ============================================================ */
 
@@ -2433,6 +2729,12 @@ const Kategorien = {
           a.mengen[id] = 0;
         });
       });
+      (Store.data.materialRyder || []).forEach(b => {
+        (b.artikel || []).forEach(a => {
+          if (!a.mengen) a.mengen = {};
+          a.mengen[id] = 0;
+        });
+      });
     }
 
     await Store.persistConfig();
@@ -2463,6 +2765,13 @@ const Kategorien = {
       });
     });
 
+    (Store.data.materialRyder || []).forEach(b => {
+      (b.artikel || []).forEach(a => {
+        if (!a.mengen) a.mengen = {};
+        a.mengen[newId] = 0;
+      });
+    });
+
     await Store.persistConfig();
     toast("Kategorie dupliziert.");
   },
@@ -2479,6 +2788,12 @@ const Kategorien = {
     });
 
     (Store.data.gastroRyder || []).forEach(b => {
+      (b.artikel || []).forEach(a => {
+        if (a.mengen) delete a.mengen[id];
+      });
+    });
+
+    (Store.data.materialRyder || []).forEach(b => {
       (b.artikel || []).forEach(a => {
         if (a.mengen) delete a.mengen[id];
       });
@@ -2504,7 +2819,7 @@ const Events = {
       list.innerHTML = '<div class="empty-state">Noch keine Events angelegt.</div>';
       return;
     }
-    const sorted = [...Store.data.events].sort((a, b) => (a.datum || "").localeCompare(b.datum || ""));
+    const sorted = [...Store.data.events].sort((a, b) => (a.datumStart || "").localeCompare(b.datumStart || ""));
     const isVorstandOrAdmin = currentUserProfile.role === "A" || currentUserProfile.role === "B";
 
     list.innerHTML = sorted.map(e => {
@@ -2513,13 +2828,14 @@ const Events = {
       const doneTasks = e.checkliste ? e.checkliste.filter(item => item.erledigt).length : 0;
       const totalSchichten = e.schichten ? e.schichten.length : 0;
       const totalListen = e.spendenListen ? e.spendenListen.length : 0;
+      const datumAnzeige = e.datumStart === e.datumEnde || !e.datumEnde ? (e.datumStart || 'kein Datum') : `${e.datumStart} bis ${e.datumEnde}`;
 
       return `
         <div class="events-list-item" onclick="Events.openDetail('${e.id}')">
           <div>
             <div class="name">${escapeHtml(e.name)}</div>
             <div class="meta">
-              ${e.datum ? escapeHtml(e.datum) : "kein Datum"} &middot; 
+              📅 ${datumAnzeige} &middot; 
               ${k ? escapeHtml(k.name) : "Kategorie fehlt"} 
               ${e.ort ? "&middot; " + escapeHtml(e.ort) : ""}
               ${isVorstandOrAdmin ? `&middot; 📋 ${doneTasks}/${totalTasks} Tasks &middot; 👥 ${totalSchichten} Schichten &middot; 🍰 ${totalListen} Listen` : ''}
@@ -2565,6 +2881,13 @@ const Events = {
       });
     }
 
+    if (copy.materialListe) {
+      copy.materialListe.forEach(m => {
+        m.id = uid("mitem");
+        m.status = "offen";
+      });
+    }
+
     if (copy.schichten) {
       copy.schichten.forEach(s => {
         s.id = uid("schicht");
@@ -2581,7 +2904,7 @@ const Events = {
 
     copy.personalIst = {};
     await Store.saveEvent(copy);
-    toast(`Event "${orig.name}" dupliziert! Bestellungen, Schichten & Listen zurückgesetzt.`);
+    toast(`Event "${orig.name}" dupliziert! Schichten, Material & Listen zurückgesetzt.`);
   },
 
   refreshKategorieSelect() {
@@ -2597,9 +2920,10 @@ const Events = {
     document.getElementById("eventId").value = id || "";
     const isEdit = !!id;
     document.getElementById("event-modal-title").textContent = isEdit ? "Event bearbeiten" : "Neues Event";
-    const e = isEdit ? Store.getEvent(id) : { name: "", datum: "", ort: "", kategorieId: Store.data.kategorien[0]?.id || "", status: "geplant", ccEmails: "", notizen: "", personalIst: {} };
+    const e = isEdit ? Store.getEvent(id) : { name: "", datumStart: "", datumEnde: "", ort: "", kategorieId: Store.data.kategorien[0]?.id || "", status: "geplant", ccEmails: "", notizen: "", personalIst: {} };
     document.getElementById("eventName").value = e.name;
-    document.getElementById("eventDatum").value = e.datum || "";
+    document.getElementById("eventDatumStart").value = e.datumStart || e.datum || "";
+    document.getElementById("eventDatumEnde").value = e.datumEnde || e.datum || "";
     document.getElementById("eventOrt").value = e.ort || "";
     document.getElementById("eventKategorie").value = e.kategorieId || "";
     document.getElementById("eventStatus").value = e.status || "geplant";
@@ -2671,12 +2995,36 @@ const Events = {
     return gastroList;
   },
 
+  generateMaterialListFromRyder(kategorieId) {
+    const materialList = [];
+    (Store.data.materialRyder || []).forEach(bereich => {
+      (bereich.artikel || []).forEach(art => {
+        const menge = art.mengen?.[kategorieId] ?? 0;
+        if (menge > 0) {
+          materialList.push({
+            id: uid("mitem"),
+            bereich: bereich.titel,
+            name: art.name,
+            menge: menge,
+            einheit: art.einheit || "Stk.",
+            lieferantId: art.lieferantId || "",
+            status: "offen"
+          });
+        }
+      });
+    });
+    return materialList;
+  },
+
   async save() {
     const id = document.getElementById("eventId").value || uid("evt");
     const name = document.getElementById("eventName").value.trim();
     if (!name) { toast("Bitte einen Namen angeben."); return; }
     const kategorieId = document.getElementById("eventKategorie").value;
     if (!kategorieId) { toast("Bitte eine Kategorie wählen."); return; }
+
+    const datumStart = document.getElementById("eventDatumStart").value;
+    const datumEnde = document.getElementById("eventDatumEnde").value || datumStart;
 
     const personalIst = {};
     document.querySelectorAll("#eventPersonalList .personal-ist").forEach(inp => {
@@ -2692,6 +3040,9 @@ const Events = {
     let gastroListe = existing ? existing.gastroListe : null;
     if (!gastroListe) gastroListe = this.generateGastroListFromRyder(kategorieId);
 
+    let materialListe = existing ? existing.materialListe : null;
+    if (!materialListe) materialListe = this.generateMaterialListFromRyder(kategorieId);
+
     let bereichVerantwortliche = existing ? (existing.bereichVerantwortliche || { checklist: {}, gastro: {} }) : { checklist: {}, gastro: {} };
     if (!existing) {
       (Store.data.ryder || []).forEach(b => {
@@ -2704,7 +3055,8 @@ const Events = {
 
     const event = {
       id, name,
-      datum: document.getElementById("eventDatum").value,
+      datumStart,
+      datumEnde,
       ort: document.getElementById("eventOrt").value.trim(),
       kategorieId,
       status: document.getElementById("eventStatus").value,
@@ -2713,6 +3065,7 @@ const Events = {
       personalIst,
       checkliste,
       gastroListe,
+      materialListe,
       schichten: existing ? (existing.schichten || []) : [],
       spendenListen: existing ? (existing.spendenListen || []) : [],
       bereichVerantwortliche,
@@ -2881,9 +3234,11 @@ const Events = {
       });
     }
 
+    const datumAnzeige = e.datumStart === e.datumEnde || !e.datumEnde ? (e.datumStart || 'Noch offen') : `${e.datumStart} bis ${e.datumEnde}`;
+
     let msg = `📅 *EVENT-UPDATE: ${e.name.toUpperCase()}*\n`;
     msg += `------------------------------------\n`;
-    msg += `🗓 Datum: ${e.datum ? e.datum : 'Noch offen'}\n`;
+    msg += `🗓 Zeitraum: ${datumAnzeige}\n`;
     if (e.ort) msg += `📍 Ort: ${e.ort}\n`;
     msg += `🏷 Kategorie: ${k ? k.name : '—'}\n\n`;
 
@@ -2915,6 +3270,63 @@ const Events = {
     return "";
   },
 
+  getDefaultLieferantForMaterial(name) {
+    if (!name) return "";
+    for (const b of Store.data.materialRyder || []) {
+      const found = (b.artikel || []).find(a => a.name.toLowerCase() === name.toLowerCase());
+      if (found && found.lieferantId) return found.lieferantId;
+    }
+    return "";
+  },
+
+  // LIVE-BERECHNUNG DER MATERIALVERFÜGBARKEIT IM ZEITRAUM
+  getMaterialAvailability(matName, requiredQty, currentEventId, startStr, endStr) {
+    let matchedItem = null;
+    let totalStock = 0;
+
+    for (const b of Store.data.materialRyder || []) {
+      const found = (b.artikel || []).find(a => a.name.toLowerCase() === matName.toLowerCase());
+      if (found) {
+        matchedItem = found;
+        totalStock = found.gesamtBestand ?? 0;
+        break;
+      }
+    }
+
+    if (!matchedItem) {
+      return { status: 'ok', text: 'Kein Lagerartikel', free: '—' };
+    }
+
+    const s1 = startStr || '9999-99-99';
+    const e1 = endStr || s1;
+
+    let usedElsewhere = 0;
+    Store.data.events.forEach(ev => {
+      if (ev.id === currentEventId) return;
+      const evStart = ev.datumStart || ev.datum || '9999-99-99';
+      const evEnde = ev.datumEnde || ev.datum || evStart;
+
+      // Überschneidungs-Check: (StartA <= EndeB) und (EndeA >= StartB)
+      if (s1 <= evEnde && e1 >= evStart) {
+        (ev.materialListe || []).forEach(m => {
+          if (m.name.toLowerCase() === matName.toLowerCase()) {
+            usedElsewhere += Number(m.menge) || 0;
+          }
+        });
+      }
+    });
+
+    const freeStock = totalStock - usedElsewhere;
+    const isExceeded = requiredQty > freeStock;
+
+    return {
+      total: totalStock,
+      used: usedElsewhere,
+      free: freeStock,
+      isExceeded: isExceeded
+    };
+  },
+
   openDetail(id) {
     const e = Store.getEvent(id);
     if (!e) return;
@@ -2927,8 +3339,7 @@ const Events = {
 
     const isMemberOnly = currentUserProfile.role === "C";
     
-    // Wenn Mitglied, direkt auf Schichten-Tab leiten falls ungültiger Tab gewählt
-    if (isMemberOnly && (currentEventTab === 'dashboard' || currentEventTab === 'orga' || currentEventTab === 'checklist' || currentEventTab === 'gastro')) {
+    if (isMemberOnly && (currentEventTab === 'dashboard' || currentEventTab === 'orga' || currentEventTab === 'checklist' || currentEventTab === 'gastro' || currentEventTab === 'material')) {
       currentEventTab = 'schichten';
     }
 
@@ -2944,13 +3355,17 @@ const Events = {
       return g;
     });
 
-    const doneGastro = gastroItems.filter(g => g.status === 'geliefert').length;
-    const orderedGastro = gastroItems.filter(g => g.status === 'bestellt').length;
-    const openGastro = gastroItems.filter(g => g.status === 'offen').length;
+    const materialItems = (e.materialListe || []).map(m => {
+      if (!m.lieferantId) {
+        const defaultLief = this.getDefaultLieferantForMaterial(m.name);
+        if (defaultLief) m.lieferantId = defaultLief;
+      }
+      return m;
+    });
+
     const gastroOrderedOrDoneCount = gastroItems.filter(g => g.status === 'bestellt' || g.status === 'geliefert').length;
     const gastroPct = gastroItems.length > 0 ? Math.round((gastroOrderedOrDoneCount / gastroItems.length) * 100) : 0;
     
-    // Schichten Zählung (Belegt / Gesamt)
     let totalSchichtSlots = 0;
     let bookedSchichtSlots = 0;
     (e.schichten || []).forEach(s => {
@@ -2958,6 +3373,8 @@ const Events = {
       bookedSchichtSlots += (s.eintragungen ? s.eintragungen.length : 0);
     });
     const schichtPct = totalSchichtSlots > 0 ? Math.round((bookedSchichtSlots / totalSchichtSlots) * 100) : 0;
+
+    const datumAnzeige = e.datumStart === e.datumEnde || !e.datumEnde ? (e.datumStart || 'kein Datum') : `${e.datumStart} bis ${e.datumEnde}`;
 
     let tabContentHtml = "";
 
@@ -3117,7 +3534,7 @@ const Events = {
         }).join("")}
       `;
     } 
-    // TAB: GASTRO-BEDARF & LIEFERANTEN-BESTELLUNGEN
+    // TAB: GASTRO
     else if (currentEventTab === "gastro" && !isMemberOnly) {
       const allLieferanten = Store.data.lieferanten || [];
       const filteredGastro = currentGastroFilterLieferant === "alle" 
@@ -3130,9 +3547,6 @@ const Events = {
         if (!groups[b]) groups[b] = [];
         groups[b].push(item);
       });
-
-      const gastroOrderedOrDoneCount = gastroItems.filter(g => g.status === 'bestellt' || g.status === 'geliefert').length;
-      const gastroPct = gastroItems.length > 0 ? Math.round((gastroOrderedOrDoneCount / gastroItems.length) * 100) : 0;
 
       tabContentHtml = `
         <div class="toolbar" style="margin-top:14px;background:#fff;padding:12px 14px;border:1px solid var(--border);border-radius:8px;">
@@ -3151,66 +3565,33 @@ const Events = {
             ${currentGastroFilterLieferant !== 'alle' && currentGastroFilterLieferant !== 'ohne' ? `
               <button class="btn small" style="background:#1f5c4d;color:#fff;flex:1;justify-content:center;" onclick="Events.sendLieferantenOrderMailClient('${e.id}', '${currentGastroFilterLieferant}')">✉️ E-Mail senden</button>
               <button class="btn secondary small" style="flex:1;justify-content:center;" onclick="Events.exportLieferantenPDF('${e.id}', '${currentGastroFilterLieferant}')">📄 PDF</button>
-              <button class="btn small" style="background:#25D366;color:#fff;flex:1;justify-content:center;" onclick="Events.shareLieferantenWhatsApp('${e.id}', '${currentGastroFilterLieferant}')">💬 WhatsApp</button>
             ` : ''}
             <button class="btn secondary small" style="flex:1;justify-content:center;" onclick="Events.openGastroItemForm('${e.id}')">+ Artikel</button>
           </div>
         </div>
 
-        <div class="progress-wrap" style="margin-top:14px;">
-          <div style="display:flex;justify-content:space-between;align-items:center;font-size:13.5px;">
-            <strong>Bestellstand: ${gastroOrderedOrDoneCount} von ${gastroItems.length} Artikeln bestellt / da</strong>
-            <span style="font-weight:600;color:var(--accent-dark);">${gastroPct}%</span>
-          </div>
-          <div class="progress-bar-bg">
-            <div class="progress-bar-fill" style="width: ${gastroPct}%;"></div>
-          </div>
-        </div>
-
         ${filteredGastro.length === 0 ? '<div class="empty-state">Keine Gastro-Artikel für diesen Lieferantenfilter vorhanden.</div>' : Object.keys(groups).map(bereichName => {
-          const currentLeader = e.bereichVerantwortliche?.gastro?.[bereichName] || "";
-
           return `
-            <div class="bereich-header-row">
-              <span class="b-title">🍽️ ${escapeHtml(bereichName)}</span>
-              <div class="b-assign">
-                <span>Hauptverantwortlich:</span>
-                <select onchange="Events.setBereichHauptverantwortlicher('${e.id}', 'gastro', '${escapeHtml(bereichName)}', this.value)">
-                  <option value="">-- Bereichsleiter wählen --</option>
-                  ${Store.data.personen.map(pers => `
-                    <option value="${pers.id}" ${currentLeader === pers.id ? 'selected' : ''}>${escapeHtml(pers.name)}</option>
-                  `).join("")}
-                </select>
-              </div>
-            </div>
-
+            <div class="bereich-header-row"><span class="b-title">🍽️ ${escapeHtml(bereichName)}</span></div>
             ${groups[bereichName].map(item => {
               const isChecked = item.status === 'bestellt' || item.status === 'geliefert';
               const statusClass = item.status === 'bestellt' ? 'status-bestellt' : (item.status === 'geliefert' ? 'status-geliefert' : '');
-
               return `
                 <div class="unified-item-row ${isChecked ? 'is-done' : ''}">
-                  <div>
-                    <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="Events.toggleGastroDone('${e.id}', '${item.id}', this.checked)">
-                  </div>
+                  <div><input type="checkbox" ${isChecked ? 'checked' : ''} onchange="Events.toggleGastroDone('${e.id}', '${item.id}', this.checked)"></div>
                   <div class="item-main-title" onclick="Events.openGastroItemForm('${e.id}', '${item.id}')" style="cursor:pointer;">
-                    <strong>${escapeHtml(item.name)}</strong>
-                    <span class="meta" style="margin-left:6px;font-weight:600;">(${item.menge} ${escapeHtml(item.einheit)})</span>
+                    <strong>${escapeHtml(item.name)}</strong> <span class="meta" style="margin-left:6px;font-weight:600;">(${item.menge} ${escapeHtml(item.einheit)})</span>
                   </div>
                   <div>
                     <select style="font-size:12px;padding:3px;width:100%;" onchange="Events.changeGastroItemLieferant('${e.id}', '${item.id}', this.value)">
                       <option value="">-- Lieferant --</option>
-                      ${allLieferanten.map(l => `
-                        <option value="${l.id}" ${item.lieferantId === l.id ? 'selected' : ''}>🚚 ${escapeHtml(l.name)}</option>
-                      `).join("")}
+                      ${allLieferanten.map(l => `<option value="${l.id}" ${item.lieferantId === l.id ? 'selected' : ''}>🚚 ${escapeHtml(l.name)}</option>`).join("")}
                     </select>
                   </div>
                   <div>
                     <select style="font-size:12px;padding:3px;width:100%;" onchange="Events.assignGastroPerson('${e.id}', '${item.id}', this.value)">
                       <option value="">-- Zuständig --</option>
-                      ${Store.data.personen.map(pers => `
-                        <option value="${pers.id}" ${item.personId === pers.id ? 'selected' : ''}>${escapeHtml(pers.name)}</option>
-                      `).join("")}
+                      ${Store.data.personen.map(pers => `<option value="${pers.id}" ${item.personId === pers.id ? 'selected' : ''}>${escapeHtml(pers.name)}</option>`).join("")}
                     </select>
                   </div>
                   <div>
@@ -3220,9 +3601,7 @@ const Events = {
                       <option value="geliefert" ${item.status === 'geliefert' ? 'selected' : ''}>Geliefert</option>
                     </select>
                   </div>
-                  <div style="text-align:right;">
-                    <button class="btn danger small" style="padding:2px 6px;" onclick="Events.removeGastroItem('${e.id}', '${item.id}')">&times;</button>
-                  </div>
+                  <div style="text-align:right;"><button class="btn danger small" style="padding:2px 6px;" onclick="Events.removeGastroItem('${e.id}', '${item.id}')">&times;</button></div>
                 </div>
               `;
             }).join("")}
@@ -3230,6 +3609,58 @@ const Events = {
         }).join("")}
       `;
     } 
+    // TAB: MATERIAL & EQUIPMENT (MIT LIVE-BESTANDSPRÜFUNG NACH ZEITRAUM)
+    else if (currentEventTab === "material" && !isMemberOnly) {
+      const groups = {};
+      materialItems.forEach(item => {
+        const b = item.bereich || "Allgemein";
+        if (!groups[b]) groups[b] = [];
+        groups[b].push(item);
+      });
+
+      tabContentHtml = `
+        <div class="toolbar" style="margin-top:14px; background:#fff; padding:12px 14px; border:1px solid var(--border); border-radius:8px;">
+          <div>
+            <h3>📦 Material &amp; Equipment-Bedarf</h3>
+            <div class="desc">Live-Abgleich mit dem Vereinslager (${escapeHtml(e.datumStart || '')} bis ${escapeHtml(e.datumEnde || '')})</div>
+          </div>
+          <button class="btn secondary small" onclick="Events.openMaterialItemForm('${e.id}')">+ Artikel hinzufügen</button>
+        </div>
+
+        ${materialItems.length === 0 ? '<div class="empty-state" style="margin-top:14px;">Keine Material-Positionen hinterlegt.</div>' : Object.keys(groups).map(bereichName => {
+          return `
+            <div class="bereich-header-row"><span class="b-title">📦 ${escapeHtml(bereichName)}</span></div>
+            ${groups[bereichName].map(item => {
+              const check = Events.getMaterialAvailability(item.name, item.menge, e.id, e.datumStart, e.datumEnde);
+              const lief = Store.getLieferant(item.lieferantId);
+              
+              let stockBadge = '';
+              if (check.isExceeded) {
+                stockBadge = `<span class="pill" style="background:var(--danger-bg); color:var(--danger-text); font-weight:700;" title="Bestandsüberschreitung im selben Zeitraum!">⚠️ Nur ${check.free} frei im Lager (Bestand: ${check.total}, anderweitig belegt: ${check.used})</span>`;
+              } else {
+                stockBadge = `<span class="pill" style="background:var(--ok-bg); color:var(--ok-text);" title="Verfügbar">🟢 ${check.free} frei im Lager (Bestand: ${check.total})</span>`;
+              }
+
+              return `
+                <div class="card" style="margin-bottom:8px; padding:12px 14px;">
+                  <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                    <div>
+                      <strong>${escapeHtml(item.name)}</strong>: <span style="font-size:15px; font-weight:bold; color:var(--accent-dark);">${item.menge} ${escapeHtml(item.einheit)}</span>
+                      <div style="margin-top:4px;">${stockBadge}</div>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                      <span class="pill inactive">Bezug: ${lief ? '🚚 ' + escapeHtml(lief.name) : 'Eigener Bestand'}</span>
+                      <button class="btn secondary small" onclick="Events.openMaterialItemForm('${e.id}', '${item.id}')">✎</button>
+                      <button class="btn danger small" onclick="Events.removeMaterialItem('${e.id}', '${item.id}')">&times;</button>
+                    </div>
+                  </div>
+                </div>
+              `;
+            }).join("")}
+          `;
+        }).join("")}
+      `;
+    }
     // TAB: SCHICHTEN
     else if (currentEventTab === "schichten") {
       const isVorstandOrAdmin = currentUserProfile.role === 'A' || currentUserProfile.role === 'B';
@@ -3288,7 +3719,7 @@ const Events = {
       <div class="toolbar">
         <div>
           <h2>${escapeHtml(e.name)}</h2>
-          <div class="desc">${e.datum ? escapeHtml(e.datum) : "kein Datum"} &middot; ${escapeHtml(k.name)} (max. ${escapeHtml(k.maxPersonen)} Personen) ${e.ort ? "&middot; " + escapeHtml(e.ort) : ""}</div>
+          <div class="desc">📅 ${datumAnzeige} &middot; ${escapeHtml(k.name)} (max. ${escapeHtml(k.maxPersonen)} Personen) ${e.ort ? "&middot; " + escapeHtml(e.ort) : ""}</div>
         </div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;">
           <button class="btn small vorstand-only" style="background:#25D366; color:#fff;" onclick="Events.shareWhatsApp('${e.id}')">💬 WhatsApp</button>
@@ -3298,27 +3729,31 @@ const Events = {
         </div>
       </div>
 
-      <!-- Kachel-Navigation (Nur für Vorstand/Admin, Mitglieder sehen nur Schichten) -->
+      <!-- Kachel-Navigation -->
       <div class="event-tiles-nav">
         <button class="event-tile ${currentEventTab === 'dashboard' ? 'active' : ''} vorstand-only" onclick="Events.setTab('dashboard')">
           <div class="tile-title"><span>📊 Übersicht</span></div>
-          <div class="tile-sub">KPIs &amp; Kennzahlen</div>
+          <div class="tile-sub">KPIs</div>
         </button>
         <button class="event-tile ${currentEventTab === 'checklist' ? 'active' : ''} vorstand-only" onclick="Events.setTab('checklist')">
           <div class="tile-title"><span>📋 Checkliste</span></div>
-          <div class="tile-sub">${doneTasks}/${tasks.length} erledigt</div>
+          <div class="tile-sub">${doneTasks}/${tasks.length}</div>
         </button>
         <button class="event-tile ${currentEventTab === 'gastro' ? 'active' : ''} vorstand-only" onclick="Events.setTab('gastro')">
           <div class="tile-title"><span>🍽️ Gastro</span></div>
-          <div class="tile-sub">${gastroItems.length} Positionen</div>
+          <div class="tile-sub">${gastroItems.length} Pos.</div>
+        </button>
+        <button class="event-tile ${currentEventTab === 'material' ? 'active' : ''} vorstand-only" onclick="Events.setTab('material')">
+          <div class="tile-title"><span>📦 Material</span></div>
+          <div class="tile-sub">${materialItems.length} Pos.</div>
         </button>
         <button class="event-tile ${currentEventTab === 'schichten' ? 'active' : ''}" onclick="Events.setTab('schichten')">
-          <div class="tile-title"><span>👥 Schichten &amp; Listen</span></div>
+          <div class="tile-title"><span>👥 Schichten</span></div>
           <div class="tile-sub">${(e.schichten || []).length} aktiv</div>
         </button>
         <button class="event-tile ${currentEventTab === 'orga' ? 'active' : ''} vorstand-only" onclick="Events.setTab('orga')">
           <div class="tile-title"><span>🏢 Personal</span></div>
-          <div class="tile-sub">Stationen &amp; Aufbau</div>
+          <div class="tile-sub">Stationen</div>
         </button>
       </div>
 
@@ -3330,9 +3765,64 @@ const Events = {
     applyRolePermissions(currentUserProfile.role);
   },
 
-  /* ============================================================
-     SCHICHT- & MITBRINGLISTEN METHODEN
-     ============================================================ */
+  openMaterialItemForm(eventId, itemId = "") {
+    const e = Store.getEvent(eventId);
+    if (!e) return;
+    document.getElementById("eventMaterialItemEventId").value = eventId;
+    document.getElementById("eventMaterialItemid").value = itemId;
+    const isEdit = !!itemId;
+    document.getElementById("event-material-item-modal-title").textContent = isEdit ? "Material-Position bearbeiten" : "Material hinzufügen";
+
+    const item = isEdit ? (e.materialListe || []).find(m => m.id === itemId) : { bereich: "Möbel", name: "", menge: 1, einheit: "Stk.", lieferantId: "" };
+    document.getElementById("eventMaterialItemBereich").value = item.bereich || "Möbel";
+    document.getElementById("eventMaterialItemName").value = item.name || "";
+    document.getElementById("eventMaterialItemMenge").value = item.menge || 1;
+    document.getElementById("eventMaterialItemEinheit").value = item.einheit || "Stk.";
+
+    const liefSel = document.getElementById("eventMaterialItemLieferant");
+    liefSel.innerHTML = '<option value="">-- Eigener Bestand --</option>' + (Store.data.lieferanten || []).map(l => `
+      <option value="${l.id}" ${item.lieferantId === l.id ? 'selected' : ''}>🚚 ${escapeHtml(l.name)}</option>
+    `).join("");
+
+    Modal.open("modal-event-material-item");
+  },
+
+  async saveMaterialItem() {
+    const eventId = document.getElementById("eventMaterialItemEventId").value;
+    const itemId = document.getElementById("eventMaterialItemid").value || uid("mitem");
+    const e = Store.getEvent(eventId);
+    if (!e) return;
+    if (!e.materialListe) e.materialListe = [];
+
+    const name = document.getElementById("eventMaterialItemName").value.trim();
+    if (!name) { toast("Bitte eine Bezeichnung eingeben."); return; }
+
+    const itemData = {
+      id: itemId,
+      bereich: document.getElementById("eventMaterialItemBereich").value.trim() || "Möbel",
+      name,
+      menge: Number(document.getElementById("eventMaterialItemMenge").value) || 0,
+      einheit: document.getElementById("eventMaterialItemEinheit").value.trim() || "Stk.",
+      lieferantId: document.getElementById("eventMaterialItemLieferant").value
+    };
+
+    const idx = e.materialListe.findIndex(m => m.id === itemId);
+    if (idx >= 0) e.materialListe[idx] = itemData;
+    else e.materialListe.push(itemData);
+
+    await Store.updateEventField(eventId, { materialListe: e.materialListe });
+    Modal.close("modal-event-material-item");
+    toast("Material gespeichert.");
+  },
+
+  async removeMaterialItem(eventId, itemId) {
+    const e = Store.getEvent(eventId);
+    if (!e || !e.materialListe) return;
+    e.materialListe = e.materialListe.filter(m => m.id !== itemId);
+    await Store.updateEventField(eventId, { materialListe: e.materialListe });
+    toast("Material gelöscht.");
+  },
+
   openSchichtModal(eventId, schichtId = "") {
     document.getElementById("schichtEventId").value = eventId;
     document.getElementById("schichtId").value = schichtId;
@@ -3355,7 +3845,6 @@ const Events = {
       const s = e.schichten.find(x => x.id === schichtId);
       if (s) {
         document.getElementById("schicht-modal-title").textContent = "Schicht bearbeiten";
-        
         const existsInKat = kat && kat.verkaufsstellen.some(vs => vs.name === s.vs);
         if (existsInKat) {
           vsSelect.value = s.vs;
@@ -3366,7 +3855,6 @@ const Events = {
           customVsWrap.style.display = "block";
           document.getElementById("schichtCustomVs").value = s.vs || "";
         }
-
         document.getElementById("schichtStart").value = s.start || "14:00";
         document.getElementById("schichtEnde").value = s.ende || "18:00";
         document.getElementById("schichtMax").value = s.max || 2;
@@ -3383,13 +3871,7 @@ const Events = {
     document.getElementById("schichtCustomVs").value = "";
     document.getElementById("schichtStart").value = "14:00";
     document.getElementById("schichtEnde").value = "18:00";
-    
-    if (kat && kat.verkaufsstellen && kat.verkaufsstellen.length > 0) {
-      document.getElementById("schichtMax").value = kat.verkaufsstellen[0].personalMax || 2;
-    } else {
-      document.getElementById("schichtMax").value = 2;
-    }
-
+    document.getElementById("schichtMax").value = kat && kat.verkaufsstellen?.[0]?.personalMax || 2;
     document.getElementById("schichtDeadline").value = "";
     document.getElementById("schichtAustragen").checked = true;
     Modal.open("modal-schicht");
@@ -3420,13 +3902,7 @@ const Events = {
     if (!e.schichten) e.schichten = [];
 
     const vsSelectVal = document.getElementById("schichtVsSelect").value;
-    let vs = "";
-    if (vsSelectVal === "CUSTOM") {
-      vs = document.getElementById("schichtCustomVs").value.trim();
-    } else {
-      vs = vsSelectVal;
-    }
-
+    const vs = vsSelectVal === "CUSTOM" ? document.getElementById("schichtCustomVs").value.trim() : vsSelectVal;
     if (!vs) { toast("Bitte eine Verkaufsstelle / Stand angeben."); return; }
 
     const schicht = {
@@ -3533,7 +4009,6 @@ const Events = {
 
     let html = "";
 
-    // 1. MITBRING- & SPENDENLISTEN (Zuerst ganz oben)
     spendenListen.forEach(l => {
       const isFull = l.max ? l.eintragungen.length >= l.max : false;
       const isExpired = l.deadline && heute > l.deadline;
@@ -3578,7 +4053,6 @@ const Events = {
       `;
     });
 
-    // 2. NORMALE SCHICHTEN (Danach)
     schichten.forEach(s => {
       const isFull = s.eintragungen.length >= s.max;
       const isExpired = s.deadline && heute > s.deadline;
@@ -3632,12 +4106,10 @@ const Events = {
   openBuchenModal(eventId, schichtId) {
     document.getElementById("buchenEventId").value = eventId;
     document.getElementById("buchenSchichtId").value = schichtId;
-    
     const currentUser = window.FB.auth.currentUser;
     document.getElementById("buchenAnmeldename").value = currentUser ? currentUser.email : "Nicht angemeldet";
     document.getElementById("buchenVorname").value = "";
     document.getElementById("buchenNachname").value = "";
-
     Modal.open("modal-schicht-buchen");
   },
 
@@ -3647,10 +4119,7 @@ const Events = {
     const vorname = document.getElementById("buchenVorname").value.trim();
     const nachname = document.getElementById("buchenNachname").value.trim();
 
-    if (!vorname || !nachname) {
-      toast("Bitte Vor- und Nachname eingeben.");
-      return;
-    }
+    if (!vorname || !nachname) { toast("Bitte Vor- und Nachname eingeben."); return; }
 
     const e = Store.getEvent(eventId);
     const targetSchicht = e.schichten.find(x => x.id === schichtId);
@@ -3669,7 +4138,7 @@ const Events = {
     for (const s of (e.schichten || [])) {
       if (s.eintragungen.some(en => en.uid === userUid)) {
         if (tStart < s.ende && tEnde > s.start) {
-          alert(`Zeitkonflikt!\nDu bist beim Event "${e.name}" bereits in der Schicht "${s.vs}" (${s.start} - ${s.ende} Uhr) eingeteilt. Gleichzeitige Schichten sind nicht möglich.`);
+          alert(`Zeitkonflikt!\nDu bist beim Event "${e.name}" bereits in der Schicht "${s.vs}" (${s.start} - ${s.ende} Uhr) eingeteilt.`);
           return;
         }
       }
@@ -3677,7 +4146,6 @@ const Events = {
 
     const vollerName = `${vorname} ${nachname}`;
     targetSchicht.eintragungen.push({ uid: userUid, name: vollerName });
-    
     await Store.updateEventField(eventId, { schichten: e.schichten });
     Modal.close("modal-schicht-buchen");
     toast("Erfolgreich in Schicht eingetragen!");
@@ -3688,13 +4156,11 @@ const Events = {
     document.getElementById("buchenSpendeEventId").value = eventId;
     document.getElementById("buchenSpendeListeId").value = listeId;
     document.getElementById("spende-buchen-titel").textContent = `In ${listenTitel} eintragen`;
-    
     const currentUser = window.FB.auth.currentUser;
     document.getElementById("buchenSpendeAnmeldename").value = currentUser ? currentUser.email : "Nicht angemeldet";
     document.getElementById("buchenSpendeVorname").value = "";
     document.getElementById("buchenSpendeNachname").value = "";
     document.getElementById("buchenSpendeWert").value = "";
-
     Modal.open("modal-spende-buchen");
   },
 
@@ -3705,10 +4171,7 @@ const Events = {
     const nachname = document.getElementById("buchenSpendeNachname").value.trim();
     const wert = document.getElementById("buchenSpendeWert").value.trim();
 
-    if (!vorname || !nachname || !wert) {
-      toast("Bitte Vorname, Nachname und das Mitbringsel angeben.");
-      return;
-    }
+    if (!vorname || !nachname || !wert) { toast("Bitte alle Felder ausfüllen."); return; }
 
     const e = Store.getEvent(eventId);
     const liste = (e.spendenListen || []).find(l => l.id === listeId);
@@ -3719,9 +4182,8 @@ const Events = {
 
     liste.eintragungen.push({ uid: userUid, name: vollerName, wert });
     await Store.updateEventField(eventId, { spendenListen: e.spendenListen });
-
     Modal.close("modal-spende-buchen");
-    toast("Erfolgreich in Mitbringliste eingetragen!");
+    toast("Erfolgreich eingetragen!");
     this.openDetail(eventId);
   },
 
@@ -3733,10 +4195,7 @@ const Events = {
     const isVorstandOrAdmin = currentUserProfile.role === 'A' || currentUserProfile.role === 'B';
     const userUid = window.FB.auth.currentUser.uid;
 
-    if (!isVorstandOrAdmin && targetUid !== userUid) {
-      toast("Du kannst nur deine eigenen Einträge löschen.");
-      return;
-    }
+    if (!isVorstandOrAdmin && targetUid !== userUid) { toast("Du kannst nur deine eigenen Einträge löschen."); return; }
 
     liste.eintragungen = liste.eintragungen.filter(en => en.uid !== targetUid);
     await Store.updateEventField(eventId, { spendenListen: e.spendenListen });
@@ -3763,24 +4222,18 @@ const Events = {
     const userUid = window.FB.auth.currentUser.uid;
 
     if (!isVorstandOrAdmin) {
-      if (s.austragen === false) {
-        toast("Das Austragen wurde für diese Schicht deaktiviert.");
-        return;
-      }
-      if (targetUid !== userUid) {
-        toast("Du kannst dich nur selbst austragen.");
-        return;
-      }
+      if (s.austragen === false) { toast("Das Austragen wurde deaktiviert."); return; }
+      if (targetUid !== userUid) { toast("Du kannst dich nur selbst austragen."); return; }
     }
 
     s.eintragungen = s.eintragungen.filter(en => en.uid !== targetUid);
     await Store.updateEventField(eventId, { schichten: e.schichten });
-    toast("Erfolgreich aus Schicht ausgetragen.");
+    toast("Erfolgreich ausgetragen.");
     this.openDetail(eventId);
   },
 
   async removeSchicht(eventId, schichtId) {
-    if (!confirm("Schicht wirklich komplett löschen?")) return;
+    if (!confirm("Schicht wirklich löschen?")) return;
     const e = Store.getEvent(eventId);
     if (!e) return;
     e.schichten = e.schichten.filter(s => s.id !== schichtId);
@@ -3802,8 +4255,7 @@ const Events = {
     if (item) {
       item.lieferantId = lieferantId;
       await Store.updateEventField(eventId, { gastroListe: e.gastroListe });
-      const lief = Store.getLieferant(lieferantId);
-      toast(lief ? `Lieferant auf "${lief.name}" geändert (nur für dieses Event).` : "Lieferant für dieses Event entfernt.");
+      toast("Lieferant geändert.");
     }
   },
 
@@ -3856,8 +4308,8 @@ const Events = {
     document.getElementById("eventItemDone").value = item.erledigt ? "true" : "false";
 
     const persSel = document.getElementById("eventItemPerson");
-    persSel.innerHTML = '<option value="">-- Keine Person zugewiesen --</option>' + Store.data.personen.map(p => `
-      <option value="${p.id}" ${item.personId === p.id ? 'selected' : ''}>${escapeHtml(p.name)} ${p.status === 'inaktiv' ? '(inaktiv)' : ''}</option>
+    persSel.innerHTML = '<option value="">-- Keine Person --</option>' + Store.data.personen.map(p => `
+      <option value="${p.id}" ${item.personId === p.id ? 'selected' : ''}>${escapeHtml(p.name)}</option>
     `).join("");
 
     Modal.open("modal-event-item");
@@ -3936,7 +4388,7 @@ const Events = {
     document.getElementById("eventGastroItemEventId").value = eventId;
     document.getElementById("eventGastroItemId").value = itemId || "";
     const isEdit = !!itemId;
-    document.getElementById("event-gastro-item-modal-title").textContent = isEdit ? "Gastro-Position bearbeiten" : "Neue Gastro-Position hinzufügen";
+    document.getElementById("event-gastro-item-modal-title").textContent = isEdit ? "Gastro-Position bearbeiten" : "Gastro-Position hinzufügen";
 
     const item = isEdit ? e.gastroListe.find(i => i.id === itemId) : { bereich: "Getränke", name: "", menge: 1, einheit: "Stk.", lieferantId: "", personId: "", status: "offen" };
     document.getElementById("eventGastroItemBereich").value = item.bereich || "Getränke";
@@ -3953,8 +4405,8 @@ const Events = {
     `).join("");
 
     const persSel = document.getElementById("eventGastroItemPerson");
-    persSel.innerHTML = '<option value="">-- Keine Person zugewiesen --</option>' + Store.data.personen.map(p => `
-      <option value="${p.id}" ${item.personId === p.id ? 'selected' : ''}>${escapeHtml(p.name)} ${p.status === 'inaktiv' ? '(inaktiv)' : ''}</option>
+    persSel.innerHTML = '<option value="">-- Keine Person --</option>' + Store.data.personen.map(p => `
+      <option value="${p.id}" ${item.personId === p.id ? 'selected' : ''}>${escapeHtml(p.name)}</option>
     `).join("");
 
     Modal.open("modal-event-gastro-item");
@@ -3990,86 +4442,21 @@ const Events = {
     toast("Gastro-Position gespeichert.");
   },
 
-  /* ============================================================
-     E-MAIL BESTELLUNG (MIT DYNAMISCHEM CC & KONTAKT)
-     ============================================================ */
   async sendLieferantenOrderMailClient(eventId, lieferantId) {
     const e = Store.getEvent(eventId);
     const lief = Store.getLieferant(lieferantId);
-    if (!e || !lief) return;
-
-    if (!lief.email) {
-      alert(`Für ${lief.name} ist noch keine E-Mail-Adresse hinterlegt!\nBitte trage diese unter 'Personen, Lieferanten & Benutzer' ein.`);
-      return;
-    }
+    if (!e || !lief || !lief.email) { alert("Lieferant hat keine E-Mail."); return; }
 
     const items = (e.gastroListe || []).filter(g => g.lieferantId === lieferantId);
-    if (items.length === 0) {
-      toast("Keine Artikel für diesen Lieferanten hinterlegt.");
-      return;
-    }
-
-    let verantwName = "Wirtschaftsteam SV Schapbach";
-    let verantwTel = "";
-    let verantwMail = "";
-
-    const firstItemWithPerson = items.find(i => i.personId);
-    if (firstItemWithPerson) {
-      const p = Store.getPerson(firstItemWithPerson.personId);
-      if (p) {
-        verantwName = p.name;
-        if (p.telefon) verantwTel = p.telefon;
-        if (p.email) verantwMail = p.email;
-      }
-    } else {
-      const firstBereichLeader = Object.values(e.bereichVerantwortliche?.gastro || {})[0];
-      if (firstBereichLeader) {
-        const p = Store.getPerson(firstBereichLeader);
-        if (p) {
-          verantwName = p.name;
-          if (p.telefon) verantwTel = p.telefon;
-          if (p.email) verantwMail = p.email;
-        }
-      }
-    }
-
-    if (!verantwMail && currentUserProfile.email) {
-      verantwMail = currentUserProfile.email;
-    }
+    if (items.length === 0) { toast("Keine Artikel."); return; }
 
     let artikelText = "";
-    items.forEach((g, idx) => {
-      artikelText += `${idx + 1}. ${g.menge} ${g.einheit} ${g.name}\n`;
-    });
+    items.forEach((g, idx) => { artikelText += `${idx + 1}. ${g.menge} ${g.einheit} ${g.name}\n`; });
 
     const subject = `Warenbestellung: ${e.name} - SV Schapbach 1926 e.V.`;
-    
-    const standardCc = "Sebastian-Kaluza@gmx.de";
-    const extraCc = e.ccEmails ? e.ccEmails.split(",").map(m => m.trim()).filter(Boolean) : [];
-    const allCc = [...new Set([standardCc, ...extraCc])].join(",");
-    
-    let kontaktZeile = "";
-    if (verantwTel && verantwMail) {
-      kontaktZeile = `telefonisch unter ${verantwTel} oder per E-Mail unter ${verantwMail}`;
-    } else if (verantwTel) {
-      kontaktZeile = `telefonisch unter ${verantwTel}`;
-    } else if (verantwMail) {
-      kontaktZeile = `per E-Mail unter ${verantwMail}`;
-    } else {
-      kontaktZeile = `per Antwort auf diese E-Mail`;
-    }
+    let body = `Guten Tag,\n\nhiermit bestelle ich für den SV Schapbach:\n\n${artikelText}\nMit freundlichen Grüßen,\nSV Schapbach`;
 
-    let body = `Guten Tag,\n\n`;
-    body += `hiermit bestelle ich für den SV Schapbach folgende Produkte:\n\n`;
-    body += `${artikelText}\n`;
-    body += `Bitte bestätigen Sie mir dies kurz per Mail.\n`;
-    body += `Betreffend Lieferung / Abholung kontaktieren Sie mich am besten ${kontaktZeile}.\n\n`;
-    body += `Mit freundlichen Grüßen,\n`;
-    body += `${verantwName}\n`;
-    body += `SV Schapbach 1926 e.V.`;
-
-    const mailtoUrl = `mailto:${encodeURIComponent(lief.email)}?cc=${encodeURIComponent(allCc)}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-
+    const mailtoUrl = `mailto:${encodeURIComponent(lief.email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     items.forEach(g => { g.status = "bestellt"; });
     await Store.updateEventField(eventId, { gastroListe: e.gastroListe });
 
@@ -4080,120 +4467,8 @@ const Events = {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-
-    toast(`E-Mail geöffnet & Status von ${items.length} Positionen auf 'bestellt' gesetzt!`);
-    
-    setTimeout(() => {
-      Events.openDetail(eventId);
-    }, 400);
-  },
-
-  buildLieferantenHtml(e, lief, items) {
-    return `
-      <div style="font-family:sans-serif; color:#222; padding:15px;">
-        <div style="border-bottom: 2px solid #1f5c4d; padding-bottom: 8px; margin-bottom: 12px; display:flex; justify-content:space-between; align-items:flex-start;">
-          <div>
-            <h1 style="margin:0; font-size:20px; color:#143f34;">BESTELLUNG / WARENANFORDERUNG</h1>
-            <div style="font-size:13px; color:#555; margin-top:4px;">
-              Veranstaltung: <strong>${escapeHtml(e.name)}</strong><br>
-              Datum des Events: <strong>${e.datum || '—'}</strong> | Lieferort: <strong>${escapeHtml(e.ort || 'Sportgelände SV Schapbach, Wolftal')}</strong>
-            </div>
-          </div>
-          <div style="text-align:right; font-size:12px;">
-            <strong>SV Schapbach 1926 e.V.</strong><br>
-            Datum: ${new Date().toLocaleDateString('de-DE')}
-          </div>
-        </div>
-
-        <div style="background:#f9f9f9; border:1px solid #ddd; border-radius:6px; padding:10px; margin-bottom:16px; font-size:12.5px;">
-          <strong>Lieferant:</strong> ${escapeHtml(lief.name)}<br>
-          ${lief.kontakt ? `Ansprechpartner: ${escapeHtml(lief.kontakt)} &middot; ` : ''}
-          ${lief.telefon ? `Telefon: ${escapeHtml(lief.telefon)} &middot; ` : ''}
-          ${lief.email ? `E-Mail: ${escapeHtml(lief.email)}` : ''}
-          ${lief.notizen ? `<div style="color:#666; margin-top:4px;">Notizen / Kundennr.: ${escapeHtml(lief.notizen)}</div>` : ''}
-        </div>
-
-        <h2 style="font-size:14px; color:#1f5c4d; margin-bottom:8px; border-bottom:1px solid #ddd; padding-bottom:3px;">
-          Bestellte Positionen (${items.length})
-        </h2>
-        <table style="width:100%; border-collapse:collapse; font-size:13px; margin-bottom:20px;">
-          <thead>
-            <tr style="background:#f0f0f0;">
-              <th style="border:1px solid #ddd; padding:7px; width:40px; text-align:center;">Pos.</th>
-              <th style="border:1px solid #ddd; padding:7px;">Artikelbezeichnung</th>
-              <th style="border:1px solid #ddd; padding:7px; width:140px; text-align:right;">Bestellmenge</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${items.map((g, idx) => `
-              <tr>
-                <td style="border:1px solid #ddd; padding:7px; text-align:center;">${idx + 1}</td>
-                <td style="border:1px solid #ddd; padding:7px;"><strong>${escapeHtml(g.name)}</strong> <span style="font-size:11px; color:#666;">(${escapeHtml(g.bereich)})</span></td>
-                <td style="border:1px solid #ddd; padding:7px; text-align:right; font-size:14px;"><strong>${g.menge} ${escapeHtml(g.einheit)}</strong></td>
-              </tr>
-            `).join("")}
-          </tbody>
-        </table>
-
-        <div style="margin-top:40px; display:flex; justify-content:space-between; font-size:12px; color:#555;">
-          <div style="border-top:1px solid #aaa; width:220px; text-align:center; padding-top:4px;">Besteller / SV Schapbach 1926 e.V.</div>
-          <div style="border-top:1px solid #aaa; width:220px; text-align:center; padding-top:4px;">Bestätigung Lieferant</div>
-        </div>
-      </div>
-    `;
-  },
-
-  exportLieferantenPDF(eventId, lieferantId) {
-    const e = Store.getEvent(eventId);
-    const lief = Store.getLieferant(lieferantId);
-    if (!e || !lief) return;
-
-    const items = (e.gastroListe || []).filter(g => g.lieferantId === lieferantId);
-    const pdfArea = document.getElementById("pdf-render-area");
-
-    pdfArea.innerHTML = this.buildLieferantenHtml(e, lief, items);
-    pdfArea.style.display = "block";
-
-    const opt = {
-      margin: 10,
-      filename: `Bestellung_${lief.name.replace(/[^a-zA-Z0-9_-]/g, '_')}_${e.name.replace(/[^a-zA-Z0-9_-]/g, '_')}.pdf`,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2 },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    };
-
-    html2pdf().set(opt).from(pdfArea).save().then(() => {
-      pdfArea.style.display = "none";
-      toast("Bestellzettel als PDF heruntergeladen!");
-    }).catch(err => {
-      pdfArea.style.display = "none";
-      alert("Fehler beim PDF-Export: " + err.message);
-    });
-  },
-
-  shareLieferantenWhatsApp(eventId, lieferantId) {
-    const e = Store.getEvent(eventId);
-    const lief = Store.getLieferant(lieferantId);
-    if (!e || !lief) return;
-
-    const items = (e.gastroListe || []).filter(g => g.lieferantId === lieferantId);
-    if (items.length === 0) { toast("Keine Artikel für diesen Lieferanten hinterlegt."); return; }
-
-    let msg = `📦 *WARENBESTELLUNG: ${lief.name.toUpperCase()}*\n`;
-    msg += `------------------------------------\n`;
-    msg += `⚽ *Verein:* SV Schapbach 1926 e.V.\n`;
-    msg += `🗓 *Event:* ${e.name} (${e.datum || 'Datum noch offen'})\n`;
-    if (e.ort) msg += `📍 *Lieferort:* ${e.ort}\n`;
-    if (lief.notizen) msg += `📝 *Hinweis/KdNr:* ${lief.notizen}\n`;
-    msg += `\n📋 *Bestellpositionen:*\n`;
-
-    items.forEach(g => {
-      msg += `• *${g.menge} ${g.einheit}* ${g.name}\n`;
-    });
-
-    msg += `\nBitte um kurze Bestätigung der Bestellung. Vielen Dank!`;
-
-    copyToClipboard(msg);
+    toast("E-Mail geöffnet & Status auf 'bestellt' gesetzt!");
+    setTimeout(() => Events.openDetail(eventId), 400);
   },
 
   exportEventPDF(eventId) {
@@ -4201,66 +4476,24 @@ const Events = {
     if (!e) return;
     const k = Store.getKategorie(e.kategorieId);
     const pdfArea = document.getElementById("pdf-render-area");
-
     const tasks = e.checkliste || [];
     const doneTasks = tasks.filter(t => t.erledigt).length;
-    const gastro = e.gastroListe || [];
 
     let html = `
       <div style="font-family:sans-serif; color:#222; padding:10px;">
-        <div style="border-bottom: 2px solid #1f5c4d; padding-bottom: 8px; margin-bottom: 12px;">
-          <h1 style="margin:0; font-size:22px; color:#143f34;">${escapeHtml(e.name)}</h1>
-          <div style="font-size:13px; color:#555; margin-top:4px;">
-            Datum: <strong>${e.datum || '—'}</strong> | Ort: <strong>${escapeHtml(e.ort || '—')}</strong> | Kategorie: <strong>${escapeHtml(k?.name || '—')}</strong>
-          </div>
-        </div>
-
-        <h2 style="font-size:15px; color:#1f5c4d; margin-top:16px; margin-bottom:6px; border-bottom:1px solid #ddd; padding-bottom:3px;">
-          1. Event-Checkliste (${doneTasks}/${tasks.length} erledigt)
-        </h2>
-        <table style="width:100%; border-collapse:collapse; font-size:12px; margin-bottom:14px;">
-          <thead>
-            <tr style="background:#f4f4f4;">
-              <th style="border:1px solid #ddd; padding:5px; width:40px; text-align:center;">Status</th>
-              <th style="border:1px solid #ddd; padding:5px;">Bereich</th>
-              <th style="border:1px solid #ddd; padding:5px;">Aufgabe</th>
-              <th style="border:1px solid #ddd; padding:5px;">Zuständig</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${tasks.map(t => {
-              const person = Store.getPerson(t.personId);
-              return `
-                <tr>
-                  <td style="border:1px solid #ddd; padding:5px; text-align:center;">${t.erledigt ? 'X' : ' '}</td>
-                  <td style="border:1px solid #ddd; padding:5px;">${escapeHtml(t.bereich)}</td>
-                  <td style="border:1px solid #ddd; padding:5px;">${escapeHtml(t.titel)}</td>
-                  <td style="border:1px solid #ddd; padding:5px;">${escapeHtml(person ? person.name : '—')}</td>
-                </tr>
-              `;
-            }).join("")}
-          </tbody>
-        </table>
+        <h1 style="color:#143f34;">${escapeHtml(e.name)}</h1>
+        <p>Zeitraum: ${e.datumStart} bis ${e.datumEnde} | Ort: ${escapeHtml(e.ort || '—')}</p>
+        <h2>Checkliste (${doneTasks}/${tasks.length})</h2>
+        <ul>${tasks.map(t => `<li>[${t.erledigt ? 'X' : ' '}] ${escapeHtml(t.bereich)}: ${escapeHtml(t.titel)}</li>`).join("")}</ul>
       </div>
     `;
-
     pdfArea.innerHTML = html;
     pdfArea.style.display = "block";
 
-    const opt = {
-      margin: 10,
-      filename: `Eventplan_${e.name.replace(/[^a-zA-Z0-9_-]/g, '_')}.pdf`,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2 },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    };
-
+    const opt = { margin: 10, filename: `Event_${e.name}.pdf`, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4' } };
     html2pdf().set(opt).from(pdfArea).save().then(() => {
       pdfArea.style.display = "none";
-      toast("PDF erfolgreich heruntergeladen!");
-    }).catch(err => {
-      pdfArea.style.display = "none";
-      alert("Fehler beim PDF-Export: " + err.message);
+      toast("PDF exportiert!");
     });
   }
 };
@@ -4271,12 +4504,7 @@ const Events = {
 
 const IO = {
   exportJSON() {
-    const payload = {
-      exportiertAm: new Date().toISOString(),
-      appVersion: APP_VERSION,
-      version: 41,
-      ...Store.data
-    };
+    const payload = { exportiertAm: new Date().toISOString(), appVersion: APP_VERSION, ...Store.data };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -4284,7 +4512,7 @@ const IO = {
     a.download = `eventplaner_v${APP_VERSION}_export_${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
     URL.revokeObjectURL(url);
-    toast("Export erfolgreich erstellt.");
+    toast("Export erfolgreich.");
   },
 
   async importJSON(evt) {
@@ -4294,8 +4522,7 @@ const IO = {
     reader.onload = async () => {
       try {
         const parsed = JSON.parse(reader.result);
-        if (!confirm("Import ersetzt bzw. aktualisiert Daten in Firestore. Fortfahren?")) return;
-        
+        if (!confirm("Import überschreibt Daten. Fortfahren?")) return;
         const { db, doc, writeBatch } = window.FB;
         const batch = writeBatch(db);
 
@@ -4304,23 +4531,17 @@ const IO = {
           lieferanten: parsed.lieferanten || [],
           kategorien: parsed.kategorien || [],
           ryder: parsed.ryder || [],
-          gastroRyder: parsed.gastroRyder || []
+          gastroRyder: parsed.gastroRyder || [],
+          materialRyder: parsed.materialRyder || []
         });
 
-        (parsed.personen || []).forEach(p => {
-          const pRef = doc(db, ...PATH_BASE, "personen", p.id);
-          batch.set(pRef, p);
-        });
-
-        (parsed.events || []).forEach(e => {
-          const eRef = doc(db, ...PATH_BASE, "events", e.id);
-          batch.set(eRef, e);
-        });
+        (parsed.personen || []).forEach(p => batch.set(doc(db, ...PATH_BASE, "personen", p.id), p));
+        (parsed.events || []).forEach(e => batch.set(doc(db, ...PATH_BASE, "events", e.id), e));
 
         await batch.commit();
-        toast("Import erfolgreich in Subcollections übertragen.");
+        toast("Import erfolgreich!");
       } catch (err) {
-        alert("Fehler beim Import: " + err.message);
+        alert("Fehler: " + err.message);
       }
       evt.target.value = "";
     };
@@ -4378,9 +4599,7 @@ const Presence = {
     if (this._unsub) this._unsub();
     if (user) {
       const { db, doc, deleteDoc } = window.FB;
-      try {
-        await deleteDoc(doc(db, "presence", user.uid));
-      } catch (e) {}
+      try { await deleteDoc(doc(db, "presence", user.uid)); } catch (e) {}
     }
   }
 };
@@ -4392,9 +4611,7 @@ function togglePresenceList() {
 document.addEventListener("click", (evt) => {
   const wrap = document.querySelector(".presence-wrap");
   const dropdown = document.getElementById("presence-dropdown");
-  if (wrap && dropdown && !wrap.contains(evt.target)) {
-    dropdown.classList.remove("open");
-  }
+  if (wrap && dropdown && !wrap.contains(evt.target)) dropdown.classList.remove("open");
 });
 
 const Auth = {
@@ -4431,15 +4648,13 @@ const Auth = {
   },
 
   switchCurrentRole(role) {
-    if (currentUserProfile.actualRole !== "A") {
-      toast("Keine Berechtigung zum Rollenwechsel.");
-      return;
-    }
+    if (currentUserProfile.actualRole !== "A") { toast("Keine Berechtigung."); return; }
     currentUserProfile.role = role;
     applyRolePermissions(role);
     Events.render();
     Ryder.render();
     GastroRyder.render();
+    MaterialRyder.render();
     Lieferanten.render();
     Personen.render();
     Kategorien.render();
@@ -4447,15 +4662,15 @@ const Auth = {
     if (detailPanel.classList.contains("open") && detailPanel.dataset.eventId) {
       Events.openDetail(detailPanel.dataset.eventId);
     }
-    toast(`Test-Rolle geändert auf: Rolle ${role}`);
+    toast(`Rolle geändert auf: Rolle ${role}`);
   },
 
   loginGoogle() {
     const { auth, signInWithPopup, googleProvider } = window.FB;
     const errEl = document.getElementById("login-error");
     errEl.style.display = "none";
-    signInWithPopup(auth, googleProvider).catch(err => {
-      errEl.textContent = "Google-Anmeldung abgebrochen oder fehlgeschlagen.";
+    signInWithPopup(auth, googleProvider).catch(() => {
+      errEl.textContent = "Google-Anmeldung fehlgeschlagen.";
       errEl.style.display = "block";
     });
   },
@@ -4467,8 +4682,8 @@ const Auth = {
     const errEl = document.getElementById("login-error");
     errEl.style.display = "none";
     if (!email || !pw) return;
-    signInWithEmailAndPassword(auth, email, pw).catch(err => {
-      errEl.textContent = "Anmeldung fehlgeschlagen. E-Mail/Passwort prüfen.";
+    signInWithEmailAndPassword(auth, email, pw).catch(() => {
+      errEl.textContent = "Anmeldung fehlgeschlagen.";
       errEl.style.display = "block";
     });
   },
@@ -4479,21 +4694,16 @@ const Auth = {
     const pw = document.getElementById("login-password").value;
     const errEl = document.getElementById("login-error");
     errEl.style.display = "none";
-    if (!email || !pw) {
-      errEl.textContent = "Bitte E-Mail und Passwort eingeben.";
-      errEl.style.display = "block";
-      return;
-    }
-    if (pw.length < 6) {
-      errEl.textContent = "Das Passwort muss mindestens 6 Zeichen lang sein.";
+    if (!email || !pw || pw.length < 6) {
+      errEl.textContent = "E-Mail und Passwort (min. 6 Zeichen) erforderlich.";
       errEl.style.display = "block";
       return;
     }
     try {
       await createUserWithEmailAndPassword(auth, email, pw);
-      toast("Konto erfolgreich erstellt und angemeldet!");
+      toast("Konto erstellt!");
     } catch (err) {
-      errEl.textContent = "Registrierung fehlgeschlagen: " + err.message;
+      errEl.textContent = "Fehler: " + err.message;
       errEl.style.display = "block";
     }
   },
@@ -4505,14 +4715,7 @@ const Auth = {
     Store.unsubscribeAll();
     clearAllUI();
     appStarted = false;
-    document.getElementById("login-email").value = "";
-    document.getElementById("login-password").value = "";
-    try {
-      await signOut(auth);
-      toast("Erfolgreich abgemeldet.");
-    } catch (err) {
-      console.error("Logout-Fehler:", err);
-    }
+    try { await signOut(auth); toast("Abgemeldet."); } catch (e) {}
   }
 };
 
@@ -4529,7 +4732,6 @@ function startApp() {
     if (user) {
       overlay.classList.remove("open");
       await Auth.initUserProfile(user);
-
       if (!appStarted) {
         appStarted = true;
         Store.init(() => {
@@ -4537,6 +4739,7 @@ function startApp() {
           Events.render();
           Ryder.render();
           GastroRyder.render();
+          MaterialRyder.render();
           Lieferanten.render();
           Personen.render();
           Kategorien.render();
@@ -4551,11 +4754,7 @@ function startApp() {
   });
 }
 
-if (window.FB) {
-  startApp();
-} else {
-  window.addEventListener("firebase-ready", startApp);
-}
+if (window.FB) { startApp(); } else { window.addEventListener("firebase-ready", startApp); }
 </script>
 
 </body>
