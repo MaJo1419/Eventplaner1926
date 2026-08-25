@@ -589,7 +589,7 @@
 <header>
   <div>
     <h1>Eventplaner</h1>
-    <div class="sub">SV Schapbach 1926 e.V. <span class="version-badge" id="app-version-badge">v0.1.067</span></div>
+    <div class="sub">SV Schapbach 1926 e.V. <span class="version-badge" id="app-version-badge">v0.1.068</span></div>
   </div>
   <footer class="toolbar-io" style="display:flex;gap:8px;align-items:center;">
     <select id="user-role-selector" class="role-select-header" style="display:none;" onchange="Auth.switchCurrentRole(this.value)">
@@ -1231,7 +1231,7 @@
    ZENTRALE KONFIGURATION & DATENSCHICHT
    ============================================================ */
 
-const APP_VERSION = "0.1.067";
+const APP_VERSION = "0.1.068";
 let currentUserProfile = { role: "A", actualRole: "A", email: "", name: "" };
 
 function uid(prefix) {
@@ -1270,61 +1270,22 @@ function seedData() {
   const lieferanten = [
     { id: "l_brauerei", name: "Brauerei Alpirsbacher", kontakt: "Herr Meier", telefon: "07834 12345", email: "bestellung@alpirsbacher.de", notizen: "Kunden-Nr: 1926" },
     { id: "l_metzger", name: "Metzgerei Schmieder", kontakt: "Herr Schmieder", telefon: "07839 5678", email: "info@metzgerei-schmieder.de", notizen: "Lieferung bis 10 Uhr" },
-    { id: "l_baecker", name: "Bäckerei Wolber", kontakt: "Herr Wolber", telefon: "07839 9988", email: "bestellung@baeckerei-wolber.de", notizen: "Frische Wecken morgens" },
     { id: "l_verleih", name: "Festbedarf Schwarzwald", kontakt: "Herr Braun", telefon: "07832 9876", email: "verleih@festbedarf.de", notizen: "Zelt- und Möbelverleih" }
   ];
 
   const kategorien = [
     {
-      id: "schaparena_75", name: "SchapArena 75", maxPersonen: "75",
-      verkaufsstellen: [{ id: "jugendtheke", name: "Jugendtheke", personalMin: 1, personalMax: 2 }],
-      aufbau: "Personal Jugendtheke", abbau: "Personal Jugendtheke", notizen: ""
-    },
-    {
-      id: "schaparena_150", name: "SchapArena 150", maxPersonen: "150",
-      verkaufsstellen: [
-        { id: "jugendtheke", name: "Jugendtheke", personalMin: 2, personalMax: 4 },
-        { id: "grillstand_ht", name: "Grillstand Haupttribüne", personalMin: 1, personalMax: 2 }
-      ],
-      aufbau: "Personal Jugendtheke, Personal Grillstand", abbau: "Personal Jugendtheke, Personal Grillstand", notizen: ""
-    },
-    {
       id: "schaparena_300", name: "SchapArena 300", maxPersonen: "300",
       verkaufsstellen: [
         { id: "jugendtheke", name: "Jugendtheke", personalMin: 4, personalMax: 4 },
-        { id: "grillstand_ht", name: "Grillstand Haupttribüne", personalMin: 2, personalMax: 2 },
-        { id: "bollerwagen1", name: "Bollerwagen 1", personalMin: 2, personalMax: 2 }
+        { id: "grillstand_ht", name: "Grillstand Haupttribüne", personalMin: 2, personalMax: 2 }
       ],
       aufbau: "Personal Jugendtheke, Personal Grillstand", abbau: "Personal Jugendtheke, Personal Grillstand", notizen: ""
-    },
-    {
-      id: "schaparena_500", name: "SchapArena 500", maxPersonen: "500",
-      verkaufsstellen: [
-        { id: "jugendtheke", name: "Jugendtheke", personalMin: 4, personalMax: 4 },
-        { id: "getraenkestand_ht", name: "Getränkestand Haupttribüne", personalMin: 4, personalMax: 4 },
-        { id: "grillstand_ht", name: "Grillstand Haupttribüne", personalMin: 3, personalMax: 3 },
-        { id: "bollerwagen1", name: "Bollerwagen 1", personalMin: 2, personalMax: 2 }
-      ],
-      aufbau: "Personal Jugendtheke, Personal Grillstand", abbau: "Personal Jugendtheke, Personal Grillstand", notizen: ""
-    },
-    {
-      id: "schaparena_1000", name: "SchapArena 1000", maxPersonen: "750-1000",
-      verkaufsstellen: [
-        { id: "jugendtheke", name: "Jugendtheke", personalMin: 4, personalMax: 4 },
-        { id: "bierwagen_ht", name: "Bierwagen Haupttribüne", personalMin: 4, personalMax: 4 },
-        { id: "getraenkestand_gg", name: "Getränkestand Gegengerade", personalMin: 4, personalMax: 4 },
-        { id: "grillstand_ht", name: "Grillstand Haupttribüne", personalMin: 3, personalMax: 3 },
-        { id: "grillstand_gg", name: "Grillstand Gegengerade", personalMin: 2, personalMax: 2 },
-        { id: "bollerwagen1", name: "Bollerwagen 1", personalMin: 2, personalMax: 2 }
-      ],
-      aufbau: "Separates Aufbau-Team", abbau: "Separates Abbau-Team", notizen: ""
     }
   ];
 
   const personen = [
-    { id: "p1", name: "Max Mustermann", rolle: "Technik-Leitung", telefon: "0160 1122334", email: "technik@sv-schapbach.de", status: "aktiv" },
-    { id: "p2", name: "Anna Beispiel", rolle: "Getränke & Einkauf", telefon: "0171 4455667", email: "einkauf@sv-schapbach.de", status: "aktiv" },
-    { id: "p3", name: "Peter Muster", rolle: "Grillstand & Essen", telefon: "0151 8899001", email: "kueche@sv-schapbach.de", status: "aktiv" }
+    { id: "p1", name: "Max Mustermann", rolle: "Technik-Leitung", telefon: "0160 1122334", email: "technik@sv-schapbach.de", status: "aktiv" }
   ];
 
   const ryder = [
@@ -1333,20 +1294,7 @@ function seedData() {
       titel: "Technik",
       personId: "",
       punkte: [
-        { id: "rp_1", titel: "Musikanlage (Standard)", kategorien: { schaparena_75: true, schaparena_150: true, schaparena_300: true, schaparena_500: true, schaparena_1000: true } },
-        { id: "rp_2", titel: "Mikrofone testen", kategorien: { schaparena_75: true, schaparena_150: true, schaparena_300: true, schaparena_500: true, schaparena_1000: true } },
-        { id: "rp_3", titel: "Großes Mischpult (Zelt-PA)", kategorien: { schaparena_75: false, schaparena_150: false, schaparena_300: false, schaparena_500: true, schaparena_1000: true } }
-      ]
-    },
-    {
-      id: "b_aufbau",
-      titel: "Aufbau & Logistik",
-      personId: "",
-      punkte: [
-        { id: "rp_4", titel: "Bühne & Pavillons aufstellen", kategorien: { schaparena_75: true, schaparena_150: true, schaparena_300: true, schaparena_500: true, schaparena_1000: true } },
-        { id: "rp_5", titel: "Stromverteiler & Kabelbrücken", kategorien: { schaparena_75: true, schaparena_150: true, schaparena_300: true, schaparena_500: true, schaparena_1000: true } },
-        { id: "rp_6", titel: "Bierwagen aufstellen & anschließen", kategorien: { schaparena_75: false, schaparena_150: false, schaparena_300: false, schaparena_500: false, schaparena_1000: true } },
-        { id: "rp_7", titel: "Flutlicht / Beleuchtung", kategorien: { schaparena_75: false, schaparena_150: true, schaparena_300: true, schaparena_500: true, schaparena_1000: true } }
+        { id: "rp_1", titel: "Musikanlage (Standard)", kategorien: { schaparena_300: true } }
       ]
     }
   ];
@@ -1357,19 +1305,7 @@ function seedData() {
       titel: "Getränke",
       personId: "",
       artikel: [
-        { id: "ga_1", name: "Bier (Fass 50L)", einheit: "Fässer", lieferantId: "l_brauerei", mengen: { schaparena_75: 2, schaparena_150: 4, schaparena_300: 8, schaparena_500: 14, schaparena_1000: 25 } },
-        { id: "ga_2", name: "Cola / Spezi 1L", einheit: "Kästen", lieferantId: "l_brauerei", mengen: { schaparena_75: 4, schaparena_150: 8, schaparena_300: 16, schaparena_500: 25, schaparena_1000: 45 } },
-        { id: "ga_3", name: "Mineralwasser 1L", einheit: "Kästen", lieferantId: "l_brauerei", mengen: { schaparena_75: 3, schaparena_150: 6, schaparena_300: 12, schaparena_500: 20, schaparena_1000: 35 } }
-      ]
-    },
-    {
-      id: "gb_speisen",
-      titel: "Speisen & Grill",
-      personId: "",
-      artikel: [
-        { id: "ga_4", name: "Rote Wurst", einheit: "Stück", lieferantId: "l_metzger", mengen: { schaparena_75: 50, schaparena_150: 120, schaparena_300: 250, schaparena_500: 450, schaparena_1000: 900 } },
-        { id: "ga_5", name: "Currywurst-Sauce", einheit: "Eimer (5kg)", lieferantId: "l_metzger", mengen: { schaparena_75: 0, schaparena_150: 1, schaparena_300: 2, schaparena_500: 4, schaparena_1000: 8 } },
-        { id: "ga_6", name: "Brötchen", einheit: "Stück", lieferantId: "l_baecker", mengen: { schaparena_75: 60, schaparena_150: 140, schaparena_300: 300, schaparena_500: 550, schaparena_1000: 1100 } }
+        { id: "ga_1", name: "Bier (Fass 50L)", einheit: "Fässer", lieferantId: "l_brauerei", mengen: { schaparena_300: 8 } }
       ]
     }
   ];
@@ -1380,17 +1316,7 @@ function seedData() {
       titel: "Möbel & Ausstattung",
       personId: "",
       artikel: [
-        { id: "ma_1", name: "Festplatzgarnitur (Tisch + 2 Bänke)", einheit: "Garnituren", gesamtBestand: 50, lieferantId: "l_verleih", mengen: { schaparena_75: 10, schaparena_150: 20, schaparena_300: 40, schaparena_500: 70, schaparena_1000: 120 } },
-        { id: "ma_2", name: "Stehtisch", einheit: "Stk.", gesamtBestand: 25, lieferantId: "", mengen: { schaparena_75: 5, schaparena_150: 10, schaparena_300: 20, schaparena_500: 35, schaparena_1000: 60 } }
-      ]
-    },
-    {
-      id: "mb_schank",
-      titel: "Schanktechnik & Kühlung",
-      personId: "",
-      artikel: [
-        { id: "ma_3", name: "Zapfanlage (2-Leitig)", einheit: "Stk.", gesamtBestand: 3, lieferantId: "l_brauerei", mengen: { schaparena_75: 1, schaparena_150: 1, schaparena_300: 2, schaparena_500: 3, schaparena_1000: 5 } },
-        { id: "ma_4", name: "Kühlschrank / Kühlanhänger", einheit: "Stk.", gesamtBestand: 2, lieferantId: "l_brauerei", mengen: { schaparena_75: 1, schaparena_150: 1, schaparena_300: 1, schaparena_500: 2, schaparena_1000: 3 } }
+        { id: "ma_1", name: "Festplatzgarnitur", einheit: "Garnituren", gesamtBestand: 50, lieferantId: "l_verleih", mengen: { schaparena_300: 40 } }
       ]
     }
   ];
@@ -2357,7 +2283,7 @@ const MaterialRyder = {
                 </tbody>
               </table>
             </div>
-          ` : '<div class="meta" style="margin-top:8px;">Noch keine Artikel in diesem Bereich.</div>'}
+          ` : '<div class="meta" style="margin-top:8px;">Noch keine Artikel in diesem Bereich. Klicke auf „+ Artikel“.</div>'}
         </div>
       `;
     }).join("");
@@ -2808,7 +2734,7 @@ const Kategorien = {
    EVENTS & SCHICHT-BOARD
    ============================================================ */
 
-let currentEventTab = "schichten";
+let currentEventTab = "dashboard";
 let currentGastroFilterLieferant = "alle";
 
 const Events = {
@@ -3365,6 +3291,9 @@ const Events = {
 
     const gastroOrderedOrDoneCount = gastroItems.filter(g => g.status === 'bestellt' || g.status === 'geliefert').length;
     const gastroPct = gastroItems.length > 0 ? Math.round((gastroOrderedOrDoneCount / gastroItems.length) * 100) : 0;
+
+    const doneMat = materialItems.filter(m => m.status === 'bestellt' || m.status === 'bereit').length;
+    const matPct = materialItems.length > 0 ? Math.round((doneMat / materialItems.length) * 100) : 0;
     
     let totalSchichtSlots = 0;
     let bookedSchichtSlots = 0;
@@ -3378,19 +3307,24 @@ const Events = {
 
     let tabContentHtml = "";
 
-    // TAB: ADMIN-DASHBOARD
+    // TAB: ADMIN-DASHBOARD (ÜBERSICHT) MIT 4 KACHELN UND 4 EIGENSTÄNDIGEN LISTEN DARUNTER
     if (currentEventTab === "dashboard") {
       tabContentHtml = `
         <div class="kpi-grid">
           <div class="kpi-card ${isMemberOnly ? 'admin-only' : ''}" onclick="Events.setTab('checklist')" title="Zur Checkliste wechseln">
-            <div class="kpi-label"><span>Checklisten-Fortschritt</span> <span>&rarr;</span></div>
+            <div class="kpi-label"><span>Checkliste</span> <span>&rarr;</span></div>
             <div class="kpi-val">${taskPct}%</div>
             <div class="meta">${doneTasks}/${tasks.length} erledigt</div>
           </div>
           <div class="kpi-card ${isMemberOnly ? 'admin-only' : ''}" onclick="Events.setTab('gastro')" title="Zur Gastro-Liste wechseln">
-            <div class="kpi-label"><span>Gastro-Bestellungen</span> <span>&rarr;</span></div>
+            <div class="kpi-label"><span>Gastro</span> <span>&rarr;</span></div>
             <div class="kpi-val">${gastroPct}%</div>
-            <div class="meta">${gastroOrderedOrDoneCount}/${gastroItems.length} erledigt</div>
+            <div class="meta">${gastroOrderedOrDoneCount}/${gastroItems.length} bestellt</div>
+          </div>
+          <div class="kpi-card ${isMemberOnly ? 'admin-only' : ''}" onclick="Events.setTab('material')" title="Zum Material wechseln">
+            <div class="kpi-label"><span>Material</span> <span>&rarr;</span></div>
+            <div class="kpi-val">${matPct}%</div>
+            <div class="meta">${doneMat}/${materialItems.length} erledigt</div>
           </div>
           <div class="kpi-card" onclick="Events.setTab('schichten')" title="Zum Schichtplan wechseln">
             <div class="kpi-label"><span>Schichten &amp; Listen</span> <span>&rarr;</span></div>
@@ -3400,47 +3334,61 @@ const Events = {
         </div>
 
         ${!isMemberOnly ? `
-          <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(320px, 1fr));gap:14px;">
+          <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:14px; margin-top:20px;">
+            <!-- 1. Checkliste Liste -->
             <div class="card">
               <div class="card-head">
-                <h3>Dringende offene Aufgaben</h3>
-                <button class="link-btn" onclick="Events.setTab('checklist')">Alle ${tasks.length} anzeigen &rarr;</button>
+                <h3>📋 Checkliste (${doneTasks}/${tasks.length})</h3>
+                <button class="link-btn" onclick="Events.setTab('checklist')">Alle &rarr;</button>
               </div>
-              ${tasks.filter(t => !t.erledigt).length === 0 ? '<div class="meta" style="margin-top:10px;">🎉 Alle Aufgaben erledigt!</div>' : `
-                <div style="margin-top:10px;">
-                  ${tasks.filter(t => !t.erledigt).slice(0, 5).map(t => `
-                    <div style="padding:6px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;font-size:13px;">
-                      <span><strong>${escapeHtml(t.titel)}</strong> <span class="meta">(${escapeHtml(t.bereich)})</span></span>
-                      <span class="pill inactive" style="font-size:10.5px;">${t.personId ? escapeHtml(Store.getPerson(t.personId)?.name || 'Zuständig') : 'Unbesetzt'}</span>
-                    </div>
-                  `).join("")}
+              ${tasks.length === 0 ? '<div class="meta">Keine Aufgaben</div>' : tasks.slice(0, 4).map(t => `
+                <div style="font-size:13px; padding:6px 0; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+                  <span>${t.erledigt ? '✅' : '⏳'} <strong>${escapeHtml(t.titel)}</strong></span>
+                  <span class="meta">${escapeHtml(t.bereich)}</span>
                 </div>
-              `}
+              `).join("")}
             </div>
 
+            <!-- 2. Gastro Liste -->
             <div class="card">
               <div class="card-head">
-                <h3>Gastro-Positionen</h3>
-                <button class="link-btn" onclick="Events.setTab('gastro')">Zur Gastro-Liste &rarr;</button>
+                <h3>🍽️ Gastro (${gastroOrderedOrDoneCount}/${gastroItems.length})</h3>
+                <button class="link-btn" onclick="Events.setTab('gastro')">Alle &rarr;</button>
               </div>
-              ${gastroItems.length === 0 ? '<div class="meta" style="margin-top:10px;">Keine Gastro-Artikel generiert.</div>' : `
-                <div style="margin-top:10px;">
-                  ${gastroItems.slice(0, 5).map(g => {
-                    const pers = Store.getPerson(g.personId);
-                    const lief = Store.getLieferant(g.lieferantId);
-                    const isOrderedOrDone = g.status === 'bestellt' || g.status === 'geliefert';
-                    return `
-                      <div style="padding:6px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;font-size:13px;align-items:center;">
-                        <div>
-                          <span>${escapeHtml(g.name)}: <strong>${g.menge} ${escapeHtml(g.einheit)}</strong></span>
-                          <div class="meta">${pers ? '👤 ' + escapeHtml(pers.name) : 'Unbesetzt'} ${lief ? ' &middot; 🚚 ' + escapeHtml(lief.name) : ''}</div>
-                        </div>
-                        <span class="pill ${isOrderedOrDone ? '' : 'inactive'}" style="font-size:10.5px; ${g.status === 'bestellt' ? 'background:#e3f2e7;color:#276238;font-weight:bold;' : ''}">${g.status}</span>
-                      </div>
-                    `;
-                  }).join("")}
+              ${gastroItems.length === 0 ? '<div class="meta">Keine Positionen</div>' : gastroItems.slice(0, 4).map(g => `
+                <div style="font-size:13px; padding:6px 0; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+                  <span>📦 <strong>${escapeHtml(g.name)}</strong> (${g.menge} ${escapeHtml(g.einheit)})</span>
+                  <span class="pill ${g.status === 'bestellt' || g.status === 'geliefert' ? '' : 'inactive'}" style="font-size:10px;">${g.status}</span>
                 </div>
-              `}
+              `).join("")}
+            </div>
+
+            <!-- 3. Material Liste -->
+            <div class="card">
+              <div class="card-head">
+                <h3>📦 Material (${doneMat}/${materialItems.length})</h3>
+                <button class="link-btn" onclick="Events.setTab('material')">Alle &rarr;</button>
+              </div>
+              ${materialItems.length === 0 ? '<div class="meta">Kein Material</div>' : materialItems.slice(0, 4).map(m => `
+                <div style="font-size:13px; padding:6px 0; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+                  <span>🔨 <strong>${escapeHtml(m.name)}</strong> (${m.menge} ${escapeHtml(m.einheit)})</span>
+                  <span class="pill ${m.status === 'bestellt' || m.status === 'bereit' ? '' : 'inactive'}" style="font-size:10px;">${m.status}</span>
+                </div>
+              `).join("")}
+            </div>
+
+            <!-- 4. Schichten Liste -->
+            <div class="card">
+              <div class="card-head">
+                <h3>👥 Schichten (${bookedSchichtSlots}/${totalSchichtSlots})</h3>
+                <button class="link-btn" onclick="Events.setTab('schichten')">Alle &rarr;</button>
+              </div>
+              ${(e.schichten || []).length === 0 ? '<div class="meta">Keine Schichten</div>' : (e.schichten || []).slice(0, 4).map(s => `
+                <div style="font-size:13px; padding:6px 0; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+                  <span>📌 <strong>${escapeHtml(s.vs)}</strong> (${s.start}-${s.ende})</span>
+                  <span class="meta">${(s.eintragungen || []).length}/${s.max} Pers.</span>
+                </div>
+              `).join("")}
             </div>
           </div>
         ` : `
