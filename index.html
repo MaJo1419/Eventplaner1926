@@ -589,7 +589,7 @@
 <header>
   <div>
     <h1>Eventplaner</h1>
-    <div class="sub">SV Schapbach 1926 e.V. <span class="version-badge" id="app-version-badge">v0.1.069</span></div>
+    <div class="sub">SV Schapbach 1926 e.V. <span class="version-badge" id="app-version-badge">v0.1.073</span></div>
   </div>
   <footer class="toolbar-io" style="display:flex;gap:8px;align-items:center;">
     <select id="user-role-selector" class="role-select-header" style="display:none;" onchange="Auth.switchCurrentRole(this.value)">
@@ -600,26 +600,26 @@
     <span class="role-badge" id="user-role-badge"></span>
 
     <div class="presence-wrap">
-      <button class="btn secondary small" onclick="togglePresenceList()">🟢 <span id="presence-count">0</span> online</button>
+      <button type="button" class="btn secondary small" onclick="togglePresenceList()">🟢 <span id="presence-count">0</span> online</button>
       <div class="presence-dropdown" id="presence-dropdown">
         <div id="presence-list"><div class="presence-item muted">Niemand online</div></div>
       </div>
     </div>
-    <button class="btn secondary small admin-only" onclick="IO.exportJSON()">Export</button>
-    <button class="btn secondary small admin-only" onclick="document.getElementById('importInput').click()">Import</button>
+    <button type="button" class="btn secondary small admin-only" onclick="IO.exportJSON()">Export</button>
+    <button type="button" class="btn secondary small admin-only" onclick="document.getElementById('importInput').click()">Import</button>
     <input type="file" id="importInput" accept="application/json" onchange="IO.importJSON(event)">
-    <button class="btn secondary small" onclick="Auth.logout()">Abmelden</button>
+    <button type="button" class="btn secondary small" onclick="Auth.logout()">Abmelden</button>
   </footer>
 </header>
 
 <nav class="tabs">
-  <button class="tab-btn active" data-view="events">Events</button>
-  <button class="tab-btn" data-view="meine-schichten">📅 Mein Schichtplan</button>
-  <button class="tab-btn admin-only" data-view="ryder">Aufgaben-Ryder (Matrix)</button>
-  <button class="tab-btn admin-only" data-view="gastro">Gastro-Ryder</button>
-  <button class="tab-btn admin-only" data-view="material-ryder">📦 Material-Ryder</button>
-  <button class="tab-btn vorstand-only" data-view="personen">Personen, Lieferanten &amp; Benutzer</button>
-  <button class="tab-btn admin-only" data-view="kategorien">Kategorien</button>
+  <button type="button" class="tab-btn active" data-view="events">Events</button>
+  <button type="button" class="tab-btn" data-view="meine-schichten">📅 Mein Schichtplan</button>
+  <button type="button" class="tab-btn admin-only" data-view="ryder">Aufgaben-Ryder (Matrix)</button>
+  <button type="button" class="tab-btn admin-only" data-view="gastro">Gastro-Ryder</button>
+  <button type="button" class="tab-btn admin-only" data-view="material-ryder">📦 Material-Ryder</button>
+  <button type="button" class="tab-btn vorstand-only" data-view="personen">Personen, Lieferanten &amp; Benutzer</button>
+  <button type="button" class="tab-btn admin-only" data-view="kategorien">Kategorien</button>
 </nav>
 
 <main>
@@ -632,13 +632,13 @@
           <h2>Events</h2>
           <div class="desc">Veranstaltungen mit Standard-Vorauswahl &amp; flexibler Anpassung</div>
         </div>
-        <button class="btn vorstand-only" onclick="Events.openForm()">+ Neues Event</button>
+        <button type="button" class="btn vorstand-only" onclick="Events.openForm()">+ Neues Event</button>
       </div>
       <div id="events-list"></div>
     </div>
 
     <div id="event-detail-panel">
-      <button class="back-link" onclick="Events.closeDetail()">&larr; Zurück zur Eventübersicht</button>
+      <button type="button" class="back-link" onclick="Events.closeDetail()">&larr; Zurück zur Eventübersicht</button>
       <div id="event-detail-content"></div>
     </div>
   </section>
@@ -661,7 +661,7 @@
         <h2>Aufgaben-Ryder: Standard-Matrix nach Event-Typ</h2>
         <div class="desc">Klicke auf AN / AUS, um den Standard-Bedarf für jede Event-Kategorie separat festzulegen. Neue Events übernehmen diese Auswahl automatisch.</div>
       </div>
-      <button class="btn admin-only" onclick="Ryder.openBereichForm()">+ Neuer Bereich</button>
+      <button type="button" class="btn admin-only" onclick="Ryder.openBereichForm()">+ Neuer Bereich</button>
     </div>
     <div id="ryder-list"></div>
   </section>
@@ -673,7 +673,7 @@
         <h2>Gastro-Ryder</h2>
         <div class="desc">Zentraler Sortimentskatalog mit Standardmengen &amp; Standard-Lieferanten</div>
       </div>
-      <button class="btn admin-only" onclick="GastroRyder.openBereichForm()">+ Neuer Bereich</button>
+      <button type="button" class="btn admin-only" onclick="GastroRyder.openBereichForm()">+ Neuer Bereich</button>
     </div>
     <div id="gastro-ryder-list"></div>
   </section>
@@ -685,7 +685,7 @@
         <h2>Material- &amp; Equipment-Ryder</h2>
         <div class="desc">Zentraler Inventar-Pool mit Gesamtbestand, Standard-Bezugsquelle &amp; Kategorien-Mengen</div>
       </div>
-      <button class="btn admin-only" onclick="MaterialRyder.openBereichForm()">+ Neuer Bereich</button>
+      <button type="button" class="btn admin-only" onclick="MaterialRyder.openBereichForm()">+ Neuer Bereich</button>
     </div>
     <div id="material-ryder-list"></div>
   </section>
@@ -700,7 +700,7 @@
           <h2>Lieferanten</h2>
           <div class="desc">Händler für Getränke, Metzgerei, Bäckerei, Leihmaterial etc.</div>
         </div>
-        <button class="btn vorstand-only" onclick="Lieferanten.openForm()">+ Neuer Lieferant</button>
+        <button type="button" class="btn vorstand-only" onclick="Lieferanten.openForm()">+ Neuer Lieferant</button>
       </div>
       <div id="lieferanten-list"></div>
     </div>
@@ -718,7 +718,7 @@
           <h2>Personen &amp; Bereichsleiter</h2>
           <div class="desc">Zuständige Personen für Aufgaben- und Gastro-Bereiche</div>
         </div>
-        <button class="btn vorstand-only" onclick="Personen.openForm()">+ Neue Person</button>
+        <button type="button" class="btn vorstand-only" onclick="Personen.openForm()">+ Neue Person</button>
       </div>
       <div id="personen-list"></div>
     </div>
@@ -732,7 +732,7 @@
         <h2>Kategorien</h2>
         <div class="desc">SchapArena Vorlagen (75, 150, 300, 500, 1000)</div>
       </div>
-      <button class="btn admin-only" onclick="Kategorien.openForm()">+ Neue Kategorie</button>
+      <button type="button" class="btn admin-only" onclick="Kategorien.openForm()">+ Neue Kategorie</button>
     </div>
     <div id="kategorien-list"></div>
   </section>
@@ -770,8 +770,8 @@
     </div>
 
     <div class="modal-actions">
-      <button class="btn secondary" onclick="Modal.close('modal-spende-buchen')">Abbrechen</button>
-      <button class="btn" onclick="Events.confirmBuchenSpende()">Eintragen</button>
+      <button type="button" class="btn secondary" onclick="Modal.close('modal-spende-buchen')">Abbrechen</button>
+      <button type="button" class="btn" onclick="Events.confirmBuchenSpende()">Eintragen</button>
     </div>
   </div>
 </div>
@@ -795,8 +795,8 @@
       </div>
     </div>
     <div class="modal-actions">
-      <button class="btn secondary" onclick="Modal.close('modal-spende-liste')">Abbrechen</button>
-      <button class="btn" onclick="Events.saveSpendenListe()">Speichern</button>
+      <button type="button" class="btn secondary" onclick="Modal.close('modal-spende-liste')">Abbrechen</button>
+      <button type="button" class="btn" onclick="Events.saveSpendenListe()">Speichern</button>
     </div>
   </div>
 </div>
@@ -824,8 +824,8 @@
     </div>
 
     <div class="modal-actions">
-      <button class="btn secondary" onclick="Modal.close('modal-schicht-buchen')">Abbrechen</button>
-      <button class="btn" onclick="Events.confirmBuchen()">Eintragen</button>
+      <button type="button" class="btn secondary" onclick="Modal.close('modal-schicht-buchen')">Abbrechen</button>
+      <button type="button" class="btn" onclick="Events.confirmBuchen()">Eintragen</button>
     </div>
   </div>
 </div>
@@ -867,8 +867,8 @@
       </label>
     </div>
     <div class="modal-actions">
-      <button class="btn secondary" onclick="Modal.close('modal-schicht')">Abbrechen</button>
-      <button class="btn" onclick="Events.saveSchicht()">Speichern</button>
+      <button type="button" class="btn secondary" onclick="Modal.close('modal-schicht')">Abbrechen</button>
+      <button type="button" class="btn" onclick="Events.saveSchicht()">Speichern</button>
     </div>
   </div>
 </div>
@@ -886,8 +886,8 @@
     <div class="field"><label>E-Mail-Adresse (für Bestellungen)</label><input type="email" id="lieferantEmail" placeholder="bestellung@brauerei.de"></div>
     <div class="field"><label>Notizen / Kundennummer</label><textarea id="lieferantNotizen" placeholder="Kundennr., Lieferzeiten etc."></textarea></div>
     <div class="modal-actions">
-      <button class="btn secondary" onclick="Modal.close('modal-lieferant')">Abbrechen</button>
-      <button class="btn" onclick="Lieferanten.save()">Speichern</button>
+      <button type="button" class="btn secondary" onclick="Modal.close('modal-lieferant')">Abbrechen</button>
+      <button type="button" class="btn" onclick="Lieferanten.save()">Speichern</button>
     </div>
   </div>
 </div>
@@ -903,8 +903,8 @@
       <select id="materialBereichPerson"></select>
     </div>
     <div class="modal-actions">
-      <button class="btn secondary" onclick="Modal.close('modal-material-bereich')">Abbrechen</button>
-      <button class="btn" onclick="MaterialRyder.saveBereich()">Speichern</button>
+      <button type="button" class="btn secondary" onclick="Modal.close('modal-material-bereich')">Abbrechen</button>
+      <button type="button" class="btn" onclick="MaterialRyder.saveBereich()">Speichern</button>
     </div>
   </div>
 </div>
@@ -931,8 +931,8 @@
       <div id="materialArtikelMatrix"></div>
     </div>
     <div class="modal-actions">
-      <button class="btn secondary" onclick="Modal.close('modal-material-artikel')">Abbrechen</button>
-      <button class="btn" onclick="MaterialRyder.saveArtikel()">Speichern</button>
+      <button type="button" class="btn secondary" onclick="Modal.close('modal-material-artikel')">Abbrechen</button>
+      <button type="button" class="btn" onclick="MaterialRyder.saveArtikel()">Speichern</button>
     </div>
   </div>
 </div>
@@ -944,26 +944,26 @@
     <input type="hidden" id="eventMaterialItemEventId">
     <input type="hidden" id="eventMaterialItemid">
     <div class="field"><label>Bereich</label><input id="eventMaterialItemBereich" placeholder="z. B. Möbel"></div>
-    <div class="field"><label>Bezeichnung</label><input id="eventMaterialItemName"></div>
+    <div class="field"><label>Artikel</label><input id="eventMaterialItemName"></div>
     <div class="field-row">
-      <div class="field"><label>Benötigte Menge</label><input type="number" step="any" min="0" id="eventMaterialItemMenge"></div>
+      <div class="field"><label>Menge</label><input type="number" step="any" min="0" id="eventMaterialItemMenge"></div>
       <div class="field"><label>Einheit</label><input id="eventMaterialItemEinheit"></div>
     </div>
     <div class="field">
-      <label>Bezugsquelle für dieses Event</label>
+      <label>Lieferant für dieses Event</label>
       <select id="eventMaterialItemLieferant"></select>
     </div>
     <div class="field"><label>Verantwortliche Person</label><select id="eventMaterialItemPerson"></select></div>
     <div class="field"><label>Status</label>
       <select id="eventMaterialItemStatus">
         <option value="offen">Offen</option>
-        <option value="bestellt">Bestellt / Reserviert</option>
-        <option value="bereit">Bereit / Vor Ort</option>
+        <option value="bestellt">Bestellt</option>
+        <option value="bereit">Geliefert / Bereit</option>
       </select>
     </div>
     <div class="modal-actions">
-      <button class="btn secondary" onclick="Modal.close('modal-event-material-item')">Abbrechen</button>
-      <button class="btn" onclick="Events.saveMaterialItem()">Speichern</button>
+      <button type="button" class="btn secondary" onclick="Modal.close('modal-event-material-item')">Abbrechen</button>
+      <button type="button" class="btn" onclick="Events.saveMaterialItem()">Speichern</button>
     </div>
   </div>
 </div>
@@ -979,8 +979,8 @@
       <select id="ryderBereichPerson"></select>
     </div>
     <div class="modal-actions">
-      <button class="btn secondary" onclick="Modal.close('modal-ryder-bereich')">Abbrechen</button>
-      <button class="btn" onclick="Ryder.saveBereich()">Speichern</button>
+      <button type="button" class="btn secondary" onclick="Modal.close('modal-ryder-bereich')">Abbrechen</button>
+      <button type="button" class="btn" onclick="Ryder.saveBereich()">Speichern</button>
     </div>
   </div>
 </div>
@@ -997,8 +997,8 @@
       <div id="ryderPunktKategorienMatrix"></div>
     </div>
     <div class="modal-actions">
-      <button class="btn secondary" onclick="Modal.close('modal-ryder-punkt')">Abbrechen</button>
-      <button class="btn" onclick="Ryder.savePunkt()">Speichern</button>
+      <button type="button" class="btn secondary" onclick="Modal.close('modal-ryder-punkt')">Abbrechen</button>
+      <button type="button" class="btn" onclick="Ryder.savePunkt()">Speichern</button>
     </div>
   </div>
 </div>
@@ -1014,8 +1014,8 @@
       <select id="gastroBereichPerson"></select>
     </div>
     <div class="modal-actions">
-      <button class="btn secondary" onclick="Modal.close('modal-gastro-bereich')">Abbrechen</button>
-      <button class="btn" onclick="GastroRyder.saveBereich()">Speichern</button>
+      <button type="button" class="btn secondary" onclick="Modal.close('modal-gastro-bereich')">Abbrechen</button>
+      <button type="button" class="btn" onclick="GastroRyder.saveBereich()">Speichern</button>
     </div>
   </div>
 </div>
@@ -1039,8 +1039,8 @@
       <div id="gastroArtikelMatrix"></div>
     </div>
     <div class="modal-actions">
-      <button class="btn secondary" onclick="Modal.close('modal-gastro-artikel')">Abbrechen</button>
-      <button class="btn" onclick="GastroRyder.saveArtikel()">Speichern</button>
+      <button type="button" class="btn secondary" onclick="Modal.close('modal-gastro-artikel')">Abbrechen</button>
+      <button type="button" class="btn" onclick="GastroRyder.saveArtikel()">Speichern</button>
     </div>
   </div>
 </div>
@@ -1063,8 +1063,8 @@
       </select>
     </div>
     <div class="modal-actions">
-      <button class="btn secondary" onclick="Modal.close('modal-person')">Abbrechen</button>
-      <button class="btn" onclick="Personen.save()">Speichern</button>
+      <button type="button" class="btn secondary" onclick="Modal.close('modal-person')">Abbrechen</button>
+      <button type="button" class="btn" onclick="Personen.save()">Speichern</button>
     </div>
   </div>
 </div>
@@ -1080,7 +1080,7 @@
     </div>
     <label style="font-size:12.5px;font-weight:500;color:var(--text-muted);">Verkaufsstellen</label>
     <div class="repeat-list" id="verkaufsstellenList"></div>
-    <button class="link-btn" onclick="Kategorien.addVerkaufsstelleRow()">+ Verkaufsstelle hinzufügen</button>
+    <button type="button" class="link-btn" onclick="Kategorien.addVerkaufsstelleRow()">+ Verkaufsstelle hinzufügen</button>
 
     <div class="field-row" style="margin-top:14px;">
       <div class="field"><label>Aufbau-Team</label><input id="kategorieAufbau" placeholder="Personal Jugendtheke, Personal Grillstand"></div>
@@ -1091,8 +1091,8 @@
     <div class="field"><label>Notizen</label><textarea id="kategorieNotizen"></textarea></div>
 
     <div class="modal-actions">
-      <button class="btn secondary" onclick="Modal.close('modal-kategorie')">Abbrechen</button>
-      <button class="btn" onclick="Kategorien.save()">Speichern</button>
+      <button type="button" class="btn secondary" onclick="Modal.close('modal-kategorie')">Abbrechen</button>
+      <button type="button" class="btn" onclick="Kategorien.save()">Speichern</button>
     </div>
   </div>
 </div>
@@ -1135,8 +1135,8 @@
     <div class="field" style="margin-top:10px;"><label>Notizen</label><textarea id="eventNotizen"></textarea></div>
 
     <div class="modal-actions">
-      <button class="btn secondary" onclick="Modal.close('modal-event')">Abbrechen</button>
-      <button class="btn" onclick="Events.save()">Speichern</button>
+      <button type="button" class="btn secondary" onclick="Modal.close('modal-event')">Abbrechen</button>
+      <button type="button" class="btn" onclick="Events.save()">Speichern</button>
     </div>
   </div>
 </div>
@@ -1160,39 +1160,8 @@
       </div>
     </div>
     <div class="modal-actions">
-      <button class="btn secondary" onclick="Modal.close('modal-event-item')">Abbrechen</button>
-      <button class="btn" onclick="Events.saveChecklistItem()">Speichern</button>
-    </div>
-  </div>
-</div>
-
-<!-- Event Gastro Item Edit -->
-<div class="overlay" id="modal-event-gastro-item">
-  <div class="modal">
-    <h3 id="event-gastro-item-modal-title">Gastro-Position bearbeiten</h3>
-    <input type="hidden" id="eventGastroItemEventId">
-    <input type="hidden" id="eventGastroItemId">
-    <div class="field"><label>Bereich</label><input id="eventGastroItemBereich" placeholder="z. B. Getränke"></div>
-    <div class="field"><label>Artikel</label><input id="eventGastroItemName"></div>
-    <div class="field-row">
-      <div class="field"><label>Menge</label><input type="number" step="any" min="0" id="eventGastroItemMenge"></div>
-      <div class="field"><label>Einheit</label><input id="eventGastroItemEinheit"></div>
-    </div>
-    <div class="field">
-      <label>Lieferant für dieses Event</label>
-      <select id="eventGastroItemLieferant"></select>
-    </div>
-    <div class="field"><label>Verantwortliche Person</label><select id="eventGastroItemPerson"></select></div>
-    <div class="field"><label>Status</label>
-      <select id="eventGastroItemStatus">
-        <option value="offen">Offen</option>
-        <option value="bestellt">Bestellt</option>
-        <option value="geliefert">Geliefert / Bereit</option>
-      </select>
-    </div>
-    <div class="modal-actions">
-      <button class="btn secondary" onclick="Modal.close('modal-event-gastro-item')">Abbrechen</button>
-      <button class="btn" onclick="Events.saveGastroItem()">Speichern</button>
+      <button type="button" class="btn secondary" onclick="Modal.close('modal-event-item')">Abbrechen</button>
+      <button type="button" class="btn" onclick="Events.saveChecklistItem()">Speichern</button>
     </div>
   </div>
 </div>
@@ -1204,7 +1173,7 @@
    ZENTRALE KONFIGURATION & DATENSCHICHT
    ============================================================ */
 
-const APP_VERSION = "0.1.069";
+const APP_VERSION = "0.1.073";
 let currentUserProfile = { role: "A", actualRole: "A", email: "", name: "" };
 
 function uid(prefix) {
@@ -1343,6 +1312,15 @@ function seedData() {
         { id: "ga_4", name: "Rote Wurst", einheit: "Stück", lieferantId: "l_metzger", mengen: { schaparena_75: 50, schaparena_150: 120, schaparena_300: 250, schaparena_500: 450, schaparena_1000: 900 } },
         { id: "ga_5", name: "Currywurst-Sauce", einheit: "Eimer (5kg)", lieferantId: "l_metzger", mengen: { schaparena_75: 0, schaparena_150: 1, schaparena_300: 2, schaparena_500: 4, schaparena_1000: 8 } },
         { id: "ga_6", name: "Brötchen", einheit: "Stück", lieferantId: "l_baecker", mengen: { schaparena_75: 60, schaparena_150: 140, schaparena_300: 300, schaparena_500: 550, schaparena_1000: 1100 } }
+      ]
+    },
+    {
+      id: "gb_snacks",
+      titel: "Snacks & Zubehör",
+      personId: "",
+      artikel: [
+        { id: "ga_7", name: "Chips-Tüten", einheit: "Kartons", lieferantId: "", mengen: { schaparena_75: 1, schaparena_150: 2, schaparena_300: 4, schaparena_500: 6, schaparena_1000: 12 } },
+        { id: "ga_8", name: "Servietten", einheit: "Packungen", lieferantId: "", mengen: { schaparena_75: 2, schaparena_150: 4, schaparena_300: 8, schaparena_500: 12, schaparena_1000: 24 } }
       ]
     }
   ];
@@ -1689,7 +1667,7 @@ const MeineSchichten = {
                 <div class="meta">${s.start} - ${s.ende} Uhr</div>
               </div>
               <div style="margin-top:8px;">
-                <button onclick="exportToCalendar('${s.vs.replace(/'/g, "\\'")}', '${ev.eventStart}T${s.start}:00', '${ev.eventStart}T${s.ende}:00')" style="background-color: var(--accent); color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">
+                <button type="button" onclick="exportToCalendar('${s.vs.replace(/'/g, "\\'")}', '${ev.eventStart}T${s.start}:00', '${ev.eventStart}T${s.ende}:00')" style="background-color: var(--accent); color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">
                   📅 In Kalender eintragen
                 </button>
               </div>
@@ -1744,8 +1722,8 @@ const Lieferanten = {
             ${l.notizen ? `<div style="font-size:12px;color:var(--text-muted);margin-top:4px;">${escapeHtml(l.notizen)}</div>` : ''}
           </div>
           <div class="card-actions vorstand-only">
-            <button class="btn secondary small" onclick="Lieferanten.openForm('${l.id}')">Bearbeiten</button>
-            <button class="btn danger small admin-only" onclick="Lieferanten.remove('${l.id}')">Löschen</button>
+            <button type="button" class="btn secondary small" onclick="Lieferanten.openForm('${l.id}')">Bearbeiten</button>
+            <button type="button" class="btn danger small admin-only" onclick="Lieferanten.remove('${l.id}')">Löschen</button>
           </div>
         </div>
       </div>
@@ -1806,7 +1784,7 @@ const Ryder = {
     const list = document.getElementById("ryder-list");
     if (!list) return;
     if (!Store.data.ryder || Store.data.ryder.length === 0) {
-      list.innerHTML = '<div class="empty-state">Noch keine Bereiche im Aufgaben-Ryder definiert. Klicke oben auf „+ Neuer Bereich“.</div>';
+      list.innerHTML = '<div class="empty-state">Noch keine Bereiche im Aufgaben-Ryder definiert. Klicke auf „+ Neuer Bereich“.</div>';
       return;
     }
 
@@ -1825,11 +1803,11 @@ const Ryder = {
               </div>
             </div>
             <div class="card-actions admin-only">
-              <button class="btn secondary small" onclick="Ryder.moveBereich(${bIdx}, -1)" ${bIdx === 0 ? 'disabled' : ''}>▲</button>
-              <button class="btn secondary small" onclick="Ryder.moveBereich(${bIdx}, 1)" ${bIdx === Store.data.ryder.length - 1 ? 'disabled' : ''}>▼</button>
-              <button class="btn secondary small" onclick="Ryder.openBereichForm('${bereich.id}')">Bearbeiten</button>
-              <button class="btn secondary small" onclick="Ryder.openPunktForm('${bereich.id}')">+ Objekt</button>
-              <button class="btn danger small" onclick="Ryder.removeBereich('${bereich.id}')">Löschen</button>
+              <button type="button" class="btn secondary small" onclick="Ryder.moveBereich(${bIdx}, -1)" ${bIdx === 0 ? 'disabled' : ''}>▲</button>
+              <button type="button" class="btn secondary small" onclick="Ryder.moveBereich(${bIdx}, 1)" ${bIdx === Store.data.ryder.length - 1 ? 'disabled' : ''}>▼</button>
+              <button type="button" class="btn secondary small" onclick="Ryder.openBereichForm('${bereich.id}')">Bearbeiten</button>
+              <button type="button" class="btn secondary small" onclick="Ryder.openPunktForm('${bereich.id}')">+ Objekt</button>
+              <button type="button" class="btn danger small" onclick="Ryder.removeBereich('${bereich.id}')">Löschen</button>
             </div>
           </div>
 
@@ -1859,10 +1837,10 @@ const Ryder = {
                       }).join("")}
                       <td class="admin-only">
                         <div style="display:flex;gap:3px;justify-content:center;">
-                          <button class="btn secondary small" onclick="Ryder.movePunkt('${bereich.id}', ${pIdx}, -1)" ${pIdx === 0 ? 'disabled' : ''}>▲</button>
-                          <button class="btn secondary small" onclick="Ryder.movePunkt('${bereich.id}', ${pIdx}, 1)" ${pIdx === bereich.punkte.length - 1 ? 'disabled' : ''}>▼</button>
-                          <button class="btn secondary small" onclick="Ryder.openPunktForm('${bereich.id}', '${p.id}')">✎</button>
-                          <button class="btn danger small" onclick="Ryder.removePunkt('${bereich.id}', '${p.id}')">&times;</button>
+                          <button type="button" class="btn secondary small" onclick="Ryder.movePunkt('${bereich.id}', ${pIdx}, -1)" ${pIdx === 0 ? 'disabled' : ''}>▲</button>
+                          <button type="button" class="btn secondary small" onclick="Ryder.movePunkt('${bereich.id}', ${pIdx}, 1)" ${pIdx === bereich.punkte.length - 1 ? 'disabled' : ''}>▼</button>
+                          <button type="button" class="btn secondary small" onclick="Ryder.openPunktForm('${bereich.id}', '${p.id}')">✎</button>
+                          <button type="button" class="btn danger small" onclick="Ryder.removePunkt('${bereich.id}', '${p.id}')">&times;</button>
                         </div>
                       </td>
                     </tr>
@@ -2050,11 +2028,11 @@ const GastroRyder = {
               </div>
             </div>
             <div class="card-actions admin-only">
-              <button class="btn secondary small" onclick="GastroRyder.moveBereich(${bIdx}, -1)" ${bIdx === 0 ? 'disabled' : ''}>▲</button>
-              <button class="btn secondary small" onclick="GastroRyder.moveBereich(${bIdx}, 1)" ${bIdx === Store.data.gastroRyder.length - 1 ? 'disabled' : ''}>▼</button>
-              <button class="btn secondary small" onclick="GastroRyder.openBereichForm('${bereich.id}')">Bearbeiten</button>
-              <button class="btn secondary small" onclick="GastroRyder.openArtikelForm('${bereich.id}')">+ Artikel</button>
-              <button class="btn danger small" onclick="GastroRyder.removeBereich('${bereich.id}')">Löschen</button>
+              <button type="button" class="btn secondary small" onclick="GastroRyder.moveBereich(${bIdx}, -1)" ${bIdx === 0 ? 'disabled' : ''}>▲</button>
+              <button type="button" class="btn secondary small" onclick="GastroRyder.moveBereich(${bIdx}, 1)" ${bIdx === Store.data.gastroRyder.length - 1 ? 'disabled' : ''}>▼</button>
+              <button type="button" class="btn secondary small" onclick="GastroRyder.openBereichForm('${bereich.id}')">Bearbeiten</button>
+              <button type="button" class="btn secondary small" onclick="GastroRyder.openArtikelForm('${bereich.id}')">+ Artikel</button>
+              <button type="button" class="btn danger small" onclick="GastroRyder.removeBereich('${bereich.id}')">Löschen</button>
             </div>
           </div>
 
@@ -2090,10 +2068,10 @@ const GastroRyder = {
                         }).join("")}
                         <td class="admin-only">
                           <div style="display:flex;gap:3px;justify-content:center;">
-                            <button class="btn secondary small" onclick="GastroRyder.moveArtikel('${bereich.id}', ${aIdx}, -1)" ${aIdx === 0 ? 'disabled' : ''}>▲</button>
-                            <button class="btn secondary small" onclick="GastroRyder.moveArtikel('${bereich.id}', ${aIdx}, 1)" ${aIdx === bereich.artikel.length - 1 ? 'disabled' : ''}>▼</button>
-                            <button class="btn secondary small" onclick="GastroRyder.openArtikelForm('${bereich.id}', '${art.id}')">✎</button>
-                            <button class="btn danger small" onclick="GastroRyder.removeArtikel('${bereich.id}', '${art.id}')">&times;</button>
+                            <button type="button" class="btn secondary small" onclick="GastroRyder.moveArtikel('${bereich.id}', ${aIdx}, -1)" ${aIdx === 0 ? 'disabled' : ''}>▲</button>
+                            <button type="button" class="btn secondary small" onclick="GastroRyder.moveArtikel('${bereich.id}', ${aIdx}, 1)" ${aIdx === bereich.artikel.length - 1 ? 'disabled' : ''}>▼</button>
+                            <button type="button" class="btn secondary small" onclick="GastroRyder.openArtikelForm('${bereich.id}', '${art.id}')">✎</button>
+                            <button type="button" class="btn danger small" onclick="GastroRyder.removeArtikel('${bereich.id}', '${art.id}')">&times;</button>
                           </div>
                         </td>
                       </tr>
@@ -2276,11 +2254,11 @@ const MaterialRyder = {
               </div>
             </div>
             <div class="card-actions admin-only">
-              <button class="btn secondary small" onclick="MaterialRyder.moveBereich(${bIdx}, -1)" ${bIdx === 0 ? 'disabled' : ''}>▲</button>
-              <button class="btn secondary small" onclick="MaterialRyder.moveBereich(${bIdx}, 1)" ${bIdx === Store.data.materialRyder.length - 1 ? 'disabled' : ''}>▼</button>
-              <button class="btn secondary small" onclick="MaterialRyder.openBereichForm('${bereich.id}')">Bearbeiten</button>
-              <button class="btn secondary small" onclick="MaterialRyder.openArtikelForm('${bereich.id}')">+ Artikel</button>
-              <button class="btn danger small" onclick="MaterialRyder.removeBereich('${bereich.id}')">Löschen</button>
+              <button type="button" class="btn secondary small" onclick="MaterialRyder.moveBereich(${bIdx}, -1)" ${bIdx === 0 ? 'disabled' : ''}>▲</button>
+              <button type="button" class="btn secondary small" onclick="MaterialRyder.moveBereich(${bIdx}, 1)" ${bIdx === Store.data.materialRyder.length - 1 ? 'disabled' : ''}>▼</button>
+              <button type="button" class="btn secondary small" onclick="MaterialRyder.openBereichForm('${bereich.id}')">Bearbeiten</button>
+              <button type="button" class="btn secondary small" onclick="MaterialRyder.openArtikelForm('${bereich.id}')">+ Artikel</button>
+              <button type="button" class="btn danger small" onclick="MaterialRyder.removeBereich('${bereich.id}')">Löschen</button>
             </div>
           </div>
 
@@ -2318,10 +2296,10 @@ const MaterialRyder = {
                         }).join("")}
                         <td class="admin-only">
                           <div style="display:flex;gap:3px;justify-content:center;">
-                            <button class="btn secondary small" onclick="MaterialRyder.moveArtikel('${bereich.id}', ${aIdx}, -1)" ${aIdx === 0 ? 'disabled' : ''}>▲</button>
-                            <button class="btn secondary small" onclick="MaterialRyder.moveArtikel('${bereich.id}', ${aIdx}, 1)" ${aIdx === bereich.artikel.length - 1 ? 'disabled' : ''}>▼</button>
-                            <button class="btn secondary small" onclick="MaterialRyder.openArtikelForm('${bereich.id}', '${art.id}')">✎</button>
-                            <button class="btn danger small" onclick="MaterialRyder.removeArtikel('${bereich.id}', '${art.id}')">&times;</button>
+                            <button type="button" class="btn secondary small" onclick="MaterialRyder.moveArtikel('${bereich.id}', ${aIdx}, -1)" ${aIdx === 0 ? 'disabled' : ''}>▲</button>
+                            <button type="button" class="btn secondary small" onclick="MaterialRyder.moveArtikel('${bereich.id}', ${aIdx}, 1)" ${aIdx === bereich.artikel.length - 1 ? 'disabled' : ''}>▼</button>
+                            <button type="button" class="btn secondary small" onclick="MaterialRyder.openArtikelForm('${bereich.id}', '${art.id}')">✎</button>
+                            <button type="button" class="btn danger small" onclick="MaterialRyder.removeArtikel('${bereich.id}', '${art.id}')">&times;</button>
                           </div>
                         </td>
                       </tr>
@@ -2383,7 +2361,7 @@ const MaterialRyder = {
     if (!confirm("Bereich samt Equipment löschen?")) return;
     Store.data.materialRyder = Store.data.materialRyder.filter(x => x.id !== id);
     await Store.persistConfig();
-    toast("Bereich gelöscht.");
+    toast("Material-Bereich gelöscht.");
   },
 
   openArtikelForm(bereichId, artikelId) {
@@ -2503,8 +2481,8 @@ const Personen = {
             </div>
           </div>
           <div class="card-actions vorstand-only">
-            <button class="btn secondary small" onclick="Personen.openForm('${p.id}')">Bearbeiten</button>
-            <button class="btn danger small admin-only" onclick="Personen.remove('${p.id}')">Löschen</button>
+            <button type="button" class="btn secondary small" onclick="Personen.openForm('${p.id}')">Bearbeiten</button>
+            <button type="button" class="btn danger small admin-only" onclick="Personen.remove('${p.id}')">Löschen</button>
           </div>
         </div>
       </div>
@@ -2611,9 +2589,9 @@ const Kategorien = {
             <div class="meta">Max. ${escapeHtml(k.maxPersonen)} Personen &middot; ${k.verkaufsstellen.length} Verkaufsstelle(n)</div>
           </div>
           <div class="card-actions admin-only">
-            <button class="btn secondary small" onclick="Kategorien.openForm('${k.id}')">Bearbeiten</button>
-            <button class="btn secondary small" onclick="Kategorien.duplicate('${k.id}')">Duplizieren</button>
-            <button class="btn danger small" onclick="Kategorien.remove('${k.id}')">Löschen</button>
+            <button type="button" class="btn secondary small" onclick="Kategorien.openForm('${k.id}')">Bearbeiten</button>
+            <button type="button" class="btn secondary small" onclick="Kategorien.duplicate('${k.id}')">Duplizieren</button>
+            <button type="button" class="btn danger small" onclick="Kategorien.remove('${k.id}')">Löschen</button>
           </div>
         </div>
         <table class="subtable">
@@ -2658,7 +2636,7 @@ const Kategorien = {
       <input placeholder="Name der Verkaufsstelle" class="vs-name" value="${escapeHtml(vs.name)}">
       <input type="number" min="0" placeholder="Min" class="vs-min" value="${vs.personalMin}" style="max-width:80px;">
       <input type="number" min="0" placeholder="Max" class="vs-max" value="${vs.personalMax}" style="max-width:80px;">
-      <button class="btn danger small" onclick="this.closest('.repeat-item').remove()">&times;</button>
+      <button type="button" class="btn danger small" onclick="this.closest('.repeat-item').remove()">&times;</button>
     `;
     wrap.appendChild(row);
   },
@@ -2783,6 +2761,7 @@ const Kategorien = {
 
 let currentEventTab = "dashboard";
 let currentGastroFilterLieferant = "alle";
+let currentMaterialFilterLieferant = "alle";
 
 const Events = {
   render() {
@@ -2816,10 +2795,10 @@ const Events = {
           </div>
           <div style="display:flex;align-items:center;gap:6px;" onclick="event.stopPropagation();">
             <span class="status-tag status-${e.status}">${{ geplant: "Geplant", bestaetigt: "Bestätigt", abgeschlossen: "Abgeschlossen" }[e.status]}</span>
-            <button class="btn secondary small vorstand-only" onclick="Events.duplicate('${e.id}')" title="Event klonen">📑 Klonen</button>
-            <button class="btn secondary small vorstand-only" onclick="Events.exportEventPDF('${e.id}')">📄 PDF</button>
-            <button class="btn secondary small vorstand-only" onclick="Events.openForm('${e.id}')">Bearbeiten</button>
-            <button class="btn danger small admin-only" onclick="Events.remove('${e.id}')">Löschen</button>
+            <button type="button" class="btn secondary small vorstand-only" onclick="Events.duplicate('${e.id}')" title="Event klonen">📑 Klonen</button>
+            <button type="button" class="btn secondary small vorstand-only" onclick="Events.exportEventPDF('${e.id}')">📄 PDF</button>
+            <button type="button" class="btn secondary small vorstand-only" onclick="Events.openForm('${e.id}')">Bearbeiten</button>
+            <button type="button" class="btn danger small admin-only" onclick="Events.remove('${e.id}')">Löschen</button>
           </div>
         </div>
       `;
@@ -2981,6 +2960,7 @@ const Events = {
             menge: menge,
             einheit: art.einheit || "Stk.",
             lieferantId: art.lieferantId || "",
+            personId: bereich.personId || "",
             status: "offen"
           });
         }
@@ -3016,7 +2996,7 @@ const Events = {
     let materialListe = existing ? existing.materialListe : null;
     if (!materialListe) materialListe = this.generateMaterialListFromRyder(kategorieId);
 
-    let bereichVerantwortliche = existing ? (existing.bereichVerantwortliche || { checklist: {}, gastro: {} }) : { checklist: {}, gastro: {} };
+    let bereichVerantwortliche = existing ? (existing.bereichVerantwortliche || { checklist: {}, gastro: {}, material: {} }) : { checklist: {}, gastro: {}, material: {} };
     if (!existing) {
       (Store.data.ryder || []).forEach(b => {
         if (b.personId) bereichVerantwortliche.checklist[b.titel] = b.personId;
@@ -3066,7 +3046,7 @@ const Events = {
   async setBereichHauptverantwortlicher(eventId, listType, bereichName, newPersonId) {
     const e = Store.getEvent(eventId);
     if (!e) return;
-    if (!e.bereichVerantwortliche) e.bereichVerantwortliche = { checklist: {}, gastro: {} };
+    if (!e.bereichVerantwortliche) e.bereichVerantwortliche = { checklist: {}, gastro: {}, material: {} };
     if (!e.bereichVerantwortliche[listType]) e.bereichVerantwortliche[listType] = {};
 
     e.bereichVerantwortliche[listType][bereichName] = newPersonId;
@@ -3077,6 +3057,10 @@ const Events = {
       });
     } else if (listType === "gastro" && e.gastroListe) {
       e.gastroListe.forEach(item => {
+        if (item.bereich === bereichName) item.personId = newPersonId;
+      });
+    } else if (listType === "material" && e.materialListe) {
+      e.materialListe.forEach(item => {
         if (item.bereich === bereichName) item.personId = newPersonId;
       });
     }
@@ -3190,6 +3174,14 @@ const Events = {
     };
   },
 
+  closeDetail() {
+    const panel = document.getElementById("event-detail-panel");
+    panel.classList.remove("open");
+    panel.removeAttribute("data-event-id");
+    document.getElementById("event-detail-content").innerHTML = "";
+    document.getElementById("events-list-panel").style.display = "";
+  },
+
   openDetail(id) {
     const e = Store.getEvent(id);
     if (!e) return;
@@ -3198,7 +3190,7 @@ const Events = {
     panel.dataset.eventId = id;
     const content = document.getElementById("event-detail-content");
 
-    if (!e.bereichVerantwortliche) e.bereichVerantwortliche = { checklist: {}, gastro: {} };
+    if (!e.bereichVerantwortliche) e.bereichVerantwortliche = { checklist: {}, gastro: {}, material: {} };
 
     const isMemberOnly = currentUserProfile.role === "C";
     
@@ -3229,8 +3221,8 @@ const Events = {
     const gastroOrderedOrDoneCount = gastroItems.filter(g => g.status === 'bestellt' || g.status === 'geliefert').length;
     const gastroPct = gastroItems.length > 0 ? Math.round((gastroOrderedOrDoneCount / gastroItems.length) * 100) : 0;
 
-    const doneMat = materialItems.filter(m => m.status === 'bestellt' || m.status === 'bereit').length;
-    const matPct = materialItems.length > 0 ? Math.round((doneMat / materialItems.length) * 100) : 0;
+    const materialOrderedOrDoneCount = materialItems.filter(m => m.status === 'bestellt' || m.status === 'bereit').length;
+    const matPct = materialItems.length > 0 ? Math.round((materialOrderedOrDoneCount / materialItems.length) * 100) : 0;
     
     let totalSchichtSlots = 0;
     let bookedSchichtSlots = 0;
@@ -3261,7 +3253,7 @@ const Events = {
           <div class="kpi-card ${isMemberOnly ? 'admin-only' : ''}" onclick="Events.setTab('material')" title="Zum Material wechseln">
             <div class="kpi-label"><span>Material</span> <span>&rarr;</span></div>
             <div class="kpi-val">${matPct}%</div>
-            <div class="meta">${doneMat}/${materialItems.length} erledigt</div>
+            <div class="meta">${materialOrderedOrDoneCount}/${materialItems.length} bestellt</div>
           </div>
           <div class="kpi-card" onclick="Events.setTab('schichten')" title="Zum Schichtplan wechseln">
             <div class="kpi-label"><span>Schichten &amp; Listen</span> <span>&rarr;</span></div>
@@ -3275,7 +3267,7 @@ const Events = {
             <div class="card">
               <div class="card-head">
                 <h3>📋 Aufgaben (${doneTasks}/${tasks.length})</h3>
-                <button class="link-btn" onclick="Events.setTab('checklist')">Alle &rarr;</button>
+                <button type="button" class="link-btn" onclick="Events.setTab('checklist')">Alle &rarr;</button>
               </div>
               ${tasks.length === 0 ? '<div class="meta">Keine Aufgaben</div>' : tasks.slice(0, 4).map(t => `
                 <div style="font-size:13px; padding:6px 0; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
@@ -3288,7 +3280,7 @@ const Events = {
             <div class="card">
               <div class="card-head">
                 <h3>🍽️ Gastro (${gastroOrderedOrDoneCount}/${gastroItems.length})</h3>
-                <button class="link-btn" onclick="Events.setTab('gastro')">Alle &rarr;</button>
+                <button type="button" class="link-btn" onclick="Events.setTab('gastro')">Alle &rarr;</button>
               </div>
               ${gastroItems.length === 0 ? '<div class="meta">Keine Positionen</div>' : gastroItems.slice(0, 4).map(g => `
                 <div style="font-size:13px; padding:6px 0; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
@@ -3300,8 +3292,8 @@ const Events = {
 
             <div class="card">
               <div class="card-head">
-                <h3>📦 Material (${doneMat}/${materialItems.length})</h3>
-                <button class="link-btn" onclick="Events.setTab('material')">Alle &rarr;</button>
+                <h3>📦 Material (${materialOrderedOrDoneCount}/${materialItems.length})</h3>
+                <button type="button" class="link-btn" onclick="Events.setTab('material')">Alle &rarr;</button>
               </div>
               ${materialItems.length === 0 ? '<div class="meta">Kein Material</div>' : materialItems.slice(0, 4).map(m => `
                 <div style="font-size:13px; padding:6px 0; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
@@ -3314,7 +3306,7 @@ const Events = {
             <div class="card">
               <div class="card-head">
                 <h3>👥 Schichten (${bookedSchichtSlots}/${totalSchichtSlots})</h3>
-                <button class="link-btn" onclick="Events.setTab('schichten')">Alle &rarr;</button>
+                <button type="button" class="link-btn" onclick="Events.setTab('schichten')">Alle &rarr;</button>
               </div>
               ${(e.schichten || []).length === 0 ? '<div class="meta">Keine Schichten</div>' : (e.schichten || []).slice(0, 4).map(s => `
                 <div style="font-size:13px; padding:6px 0; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
@@ -3335,7 +3327,7 @@ const Events = {
         `}
       `;
     } 
-    // TAB: AUFGABEN (CHECKLISTE)
+    // TAB: AUFGABEN
     else if (currentEventTab === "checklist" && !isMemberOnly) {
       const groups = {};
       tasks.forEach(item => {
@@ -3351,7 +3343,7 @@ const Events = {
             <div class="desc">Vorausgewählte Standard-Objekte &amp; individuell aktivierte Aufgaben</div>
           </div>
           <div style="display:flex;gap:6px;">
-            <button class="btn secondary small" onclick="Events.openChecklistItemForm('${e.id}')">+ Freie Aufgabe</button>
+            <button type="button" class="btn secondary small" onclick="Events.openChecklistItemForm('${e.id}')">+ Freie Aufgabe</button>
           </div>
         </div>
 
@@ -3405,7 +3397,7 @@ const Events = {
                     ${p ? `<span class="pill" style="font-size:11px;">${escapeHtml(p.name)}</span>` : '<span style="color:#aaa;">Unbesetzt</span>'}
                   </div>
                   <div style="text-align:right;">
-                    <button class="btn danger small" style="padding:2px 6px;" onclick="Events.removeChecklistItem('${e.id}', '${item.id}')">&times;</button>
+                    <button type="button" class="btn danger small" style="padding:2px 6px;" onclick="Events.removeChecklistItem('${e.id}', '${item.id}')">&times;</button>
                   </div>
                 </div>
               `;
@@ -3443,16 +3435,28 @@ const Events = {
           </div>
           <div style="display:flex;gap:6px;flex-wrap:wrap;width:100%;">
             ${currentGastroFilterLieferant !== 'alle' && currentGastroFilterLieferant !== 'ohne' ? `
-              <button class="btn small" style="background:#1f5c4d;color:#fff;flex:1;justify-content:center;" onclick="Events.sendLieferantenOrderMailClient('${e.id}', '${currentGastroFilterLieferant}')">✉️ E-Mail senden</button>
-              <button class="btn secondary small" style="flex:1;justify-content:center;" onclick="Events.exportLieferantenPDF('${e.id}', '${currentGastroFilterLieferant}')">📄 PDF</button>
+              <button type="button" class="btn small" style="background:#1f5c4d;color:#fff;flex:1;justify-content:center;" onclick="Events.sendLieferantenOrderMailClient('${e.id}', '${currentGastroFilterLieferant}')">✉️ E-Mail senden (Gesamt)</button>
+              <button type="button" class="btn secondary small" style="flex:1;justify-content:center;" onclick="Events.exportLieferantenPDF('${e.id}', '${currentGastroFilterLieferant}')">📄 PDF (Gesamt)</button>
             ` : ''}
-            <button class="btn secondary small" style="flex:1;justify-content:center;" onclick="Events.openGastroItemForm('${e.id}')">+ Artikel</button>
+            <button type="button" class="btn secondary small" style="flex:1;justify-content:center;" onclick="Events.openGastroItemForm('${e.id}')">+ Artikel</button>
           </div>
         </div>
 
         ${filteredGastro.length === 0 ? '<div class="empty-state">Keine Gastro-Artikel für diesen Lieferantenfilter vorhanden.</div>' : Object.keys(groups).map(bereichName => {
+          const currentLeader = e.bereichVerantwortliche?.gastro?.[bereichName] || "";
           return `
-            <div class="bereich-header-row"><span class="b-title">🍽️ ${escapeHtml(bereichName)}</span></div>
+            <div class="bereich-header-row">
+              <span class="b-title">🍽️ ${escapeHtml(bereichName)}</span>
+              <div class="b-assign">
+                <span>Hauptverantwortlich:</span>
+                <select onchange="Events.setBereichHauptverantwortlicher('${e.id}', 'gastro', '${escapeHtml(bereichName)}', this.value)">
+                  <option value="">-- Bereichsleiter wählen --</option>
+                  ${Store.data.personen.map(pers => `
+                    <option value="${pers.id}" ${currentLeader === pers.id ? 'selected' : ''}>${escapeHtml(pers.name)}</option>
+                  `).join("")}
+                </select>
+              </div>
+            </div>
             ${groups[bereichName].map(item => {
               const isChecked = item.status === 'bestellt' || item.status === 'geliefert';
               const statusClass = item.status === 'bestellt' ? 'status-bestellt' : (item.status === 'geliefert' ? 'status-geliefert' : '');
@@ -3481,7 +3485,7 @@ const Events = {
                       <option value="geliefert" ${item.status === 'geliefert' ? 'selected' : ''}>Geliefert</option>
                     </select>
                   </div>
-                  <div style="text-align:right;"><button class="btn danger small" style="padding:2px 6px;" onclick="Events.removeGastroItem('${e.id}', '${item.id}')">&times;</button></div>
+                  <div style="text-align:right;"><button type="button" class="btn danger small" style="padding:2px 6px;" onclick="Events.removeGastroItem('${e.id}', '${item.id}')">&times;</button></div>
                 </div>
               `;
             }).join("")}
@@ -3489,10 +3493,15 @@ const Events = {
         }).join("")}
       `;
     } 
-    // TAB: MATERIAL & EQUIPMENT
+    // TAB: MATERIAL & EQUIPMENT (MIT LIEFERANT, ZUSTÄNDIG & FILTER)
     else if (currentEventTab === "material" && !isMemberOnly) {
+      const allLieferanten = Store.data.lieferanten || [];
+      const filteredMaterial = currentMaterialFilterLieferant === "alle" 
+        ? materialItems 
+        : (currentMaterialFilterLieferant === "ohne" ? materialItems.filter(m => !m.lieferantId) : materialItems.filter(m => m.lieferantId === currentMaterialFilterLieferant));
+
       const groups = {};
-      materialItems.forEach(item => {
+      filteredMaterial.forEach(item => {
         const b = item.bereich || "Allgemein";
         if (!groups[b]) groups[b] = [];
         groups[b].push(item);
@@ -3500,40 +3509,80 @@ const Events = {
 
       tabContentHtml = `
         <div class="toolbar" style="margin-top:14px; background:#fff; padding:12px 14px; border:1px solid var(--border); border-radius:8px;">
-          <div>
-            <h3>📦 Material &amp; Equipment-Bedarf</h3>
-            <div class="desc">Live-Abgleich mit dem Vereinslager (${escapeHtml(e.datumStart || '')} bis ${escapeHtml(e.datumEnde || '')})</div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;width:100%;margin-bottom:8px;">
+            <strong>🚚 Filter nach Lieferant:</strong>
+            <select style="font-size:13px;padding:6px 8px;font-weight:500;flex:1;min-width:200px;" onchange="Events.setMaterialLieferantFilter(this.value)">
+              <option value="alle" ${currentMaterialFilterLieferant === 'alle' ? 'selected' : ''}>Alle Lieferanten anzeigen (${materialItems.length})</option>
+              ${allLieferanten.map(l => {
+                const count = materialItems.filter(m => m.lieferantId === l.id).length;
+                return `<option value="${l.id}" ${currentMaterialFilterLieferant === l.id ? 'selected' : ''}>🚚 ${escapeHtml(l.name)} (${count})</option>`;
+              }).join("")}
+              <option value="ohne" ${currentMaterialFilterLieferant === 'ohne' ? 'selected' : ''}>Ohne Lieferant / Eigener Bestand (${materialItems.filter(m => !m.lieferantId).length})</option>
+            </select>
           </div>
-          <button class="btn secondary small" onclick="Events.openMaterialItemForm('${e.id}')">+ Artikel hinzufügen</button>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;width:100%;">
+            ${currentMaterialFilterLieferant !== 'alle' && currentMaterialFilterLieferant !== 'ohne' ? `
+              <button type="button" class="btn small" style="background:#1f5c4d;color:#fff;flex:1;justify-content:center;" onclick="Events.sendLieferantenOrderMailClient('${e.id}', '${currentMaterialFilterLieferant}')">✉️ E-Mail senden (Gesamt)</button>
+              <button type="button" class="btn secondary small" style="flex:1;justify-content:center;" onclick="Events.exportLieferantenPDF('${e.id}', '${currentMaterialFilterLieferant}')">📄 PDF (Gesamt)</button>
+            ` : ''}
+            <button type="button" class="btn secondary small" style="flex:1;justify-content:center;" onclick="Events.openMaterialItemForm('${e.id}')">+ Artikel</button>
+          </div>
         </div>
 
-        ${materialItems.length === 0 ? '<div class="empty-state" style="margin-top:14px;">Keine Material-Positionen hinterlegt.</div>' : Object.keys(groups).map(bereichName => {
+        ${filteredMaterial.length === 0 ? '<div class="empty-state" style="margin-top:14px;">Keine Material-Positionen für diesen Filter vorhanden.</div>' : Object.keys(groups).map(bereichName => {
+          const currentLeader = e.bereichVerantwortliche?.material?.[bereichName] || "";
           return `
-            <div class="bereich-header-row"><span class="b-title">📦 ${escapeHtml(bereichName)}</span></div>
+            <div class="bereich-header-row">
+              <span class="b-title">📦 ${escapeHtml(bereichName)}</span>
+              <div class="b-assign">
+                <span>Hauptverantwortlich:</span>
+                <select onchange="Events.setBereichHauptverantwortlicher('${e.id}', 'material', '${escapeHtml(bereichName)}', this.value)">
+                  <option value="">-- Bereichsleiter wählen --</option>
+                  ${Store.data.personen.map(pers => `
+                    <option value="${pers.id}" ${currentLeader === pers.id ? 'selected' : ''}>${escapeHtml(pers.name)}</option>
+                  `).join("")}
+                </select>
+              </div>
+            </div>
             ${groups[bereichName].map(item => {
               const check = Events.getMaterialAvailability(item.name, item.menge, e.id, e.datumStart, e.datumEnde);
-              const lief = Store.getLieferant(item.lieferantId);
-              
               let stockBadge = '';
               if (check.isExceeded) {
-                stockBadge = `<span class="pill" style="background:var(--danger-bg); color:var(--danger-text); font-weight:700;" title="Bestandsüberschreitung im selben Zeitraum!">⚠️ Nur ${check.free} frei im Lager (Bestand: ${check.total}, anderweitig belegt: ${check.used})</span>`;
+                stockBadge = `<span class="pill" style="background:var(--danger-bg); color:var(--danger-text); font-weight:700;" title="Bestandsüberschreitung!">⚠️ Nur ${check.free} im Lager frei (Bestand: ${check.total}, belegt: ${check.used})</span>`;
               } else {
-                stockBadge = `<span class="pill" style="background:var(--ok-bg); color:var(--ok-text);" title="Verfügbar">🟢 ${check.free} frei im Lager (Bestand: ${check.total})</span>`;
+                stockBadge = `<span class="pill" style="background:var(--ok-bg); color:var(--ok-text);" title="Verfügbar">🟢 ${check.free} im Lager frei (Bestand: ${check.total})</span>`;
               }
 
+              const isChecked = item.status === 'bestellt' || item.status === 'bereit';
+              const statusClass = item.status === 'bestellt' ? 'status-bestellt' : (item.status === 'bereit' ? 'status-geliefert' : '');
+
               return `
-                <div class="card" style="margin-bottom:8px; padding:12px 14px;">
-                  <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
-                    <div>
-                      <strong>${escapeHtml(item.name)}</strong>: <span style="font-size:15px; font-weight:bold; color:var(--accent-dark);">${item.menge} ${escapeHtml(item.einheit)}</span>
-                      <div style="margin-top:4px;">${stockBadge}</div>
-                    </div>
-                    <div style="display:flex; align-items:center; gap:8px;">
-                      <span class="pill inactive">Bezug: ${lief ? '🚚 ' + escapeHtml(lief.name) : 'Eigener Bestand'}</span>
-                      <button class="btn secondary small" onclick="Events.openMaterialItemForm('${e.id}', '${item.id}')">✎</button>
-                      <button class="btn danger small" onclick="Events.removeMaterialItem('${e.id}', '${item.id}')">&times;</button>
-                    </div>
+                <div class="unified-item-row ${isChecked ? 'is-done' : ''}">
+                  <div><input type="checkbox" ${isChecked ? 'checked' : ''} onchange="Events.toggleMaterialDone('${e.id}', '${item.id}', this.checked)"></div>
+                  <div class="item-main-title" onclick="Events.openMaterialItemForm('${e.id}', '${item.id}')" style="cursor:pointer;">
+                    <strong>${escapeHtml(item.name)}</strong> <span class="meta" style="margin-left:6px;font-weight:600;">(${item.menge} ${escapeHtml(item.einheit)})</span>
+                    <div style="margin-top:2px;">${stockBadge}</div>
                   </div>
+                  <div>
+                    <select style="font-size:12px;padding:3px;width:100%;" onchange="Events.changeMaterialItemLieferant('${e.id}', '${item.id}', this.value)">
+                      <option value="">-- Eigener Bestand --</option>
+                      ${allLieferanten.map(l => `<option value="${l.id}" ${item.lieferantId === l.id ? 'selected' : ''}>🚚 ${escapeHtml(l.name)}</option>`).join("")}
+                    </select>
+                  </div>
+                  <div>
+                    <select style="font-size:12px;padding:3px;width:100%;" onchange="Events.assignMaterialPerson('${e.id}', '${item.id}', this.value)">
+                      <option value="">-- Zuständig --</option>
+                      ${Store.data.personen.map(p => `<option value="${p.id}" ${item.personId === p.id ? 'selected' : ''}>${escapeHtml(p.name)}</option>`).join("")}
+                    </select>
+                  </div>
+                  <div>
+                    <select class="status-select-gastro ${statusClass}" onchange="Events.updateMaterialStatus('${e.id}', '${item.id}', this.value)">
+                      <option value="offen" ${item.status === 'offen' ? 'selected' : ''}>Offen</option>
+                      <option value="bestellt" ${item.status === 'bestellt' ? 'selected' : ''}>Bestellt</option>
+                      <option value="bereit" ${item.status === 'bereit' ? 'selected' : ''}>Bereit</option>
+                    </select>
+                  </div>
+                  <div style="text-align:right;"><button type="button" class="btn danger small" style="padding:2px 6px;" onclick="Events.removeMaterialItem('${e.id}', '${item.id}')">&times;</button></div>
                 </div>
               `;
             }).join("")}
@@ -3553,8 +3602,8 @@ const Events = {
           </div>
           ${isVorstandOrAdmin ? `
             <div style="display:flex;gap:6px;flex-wrap:wrap;">
-              <button class="btn small" onclick="Events.openSchichtModal('${e.id}')">+ Schicht anlegen</button>
-              <button class="btn small secondary" onclick="Events.openSpendenListeModal('${e.id}')">+ Mitbringliste anlegen</button>
+              <button type="button" class="btn small" onclick="Events.openSchichtModal('${e.id}')">+ Schicht anlegen</button>
+              <button type="button" class="btn small secondary" onclick="Events.openSpendenListeModal('${e.id}')">+ Mitbringliste anlegen</button>
             </div>
           ` : ''}
         </div>
@@ -3602,36 +3651,36 @@ const Events = {
           <div class="desc">📅 ${datumAnzeige} &middot; ${escapeHtml(k.name)} (max. ${escapeHtml(k.maxPersonen)} Personen) ${e.ort ? "&middot; " + escapeHtml(e.ort) : ""}</div>
         </div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;">
-          <button class="btn small vorstand-only" style="background:#25D366; color:#fff;" onclick="Events.shareWhatsApp('${e.id}')">💬 WhatsApp</button>
-          <button class="btn small vorstand-only" onclick="Events.exportEventPDF('${e.id}')">📄 PDF</button>
-          <button class="btn secondary small vorstand-only" onclick="Events.openForm('${e.id}')">Event bearbeiten</button>
-          <button class="btn secondary small vorstand-only" onclick="window.print()">Drucken</button>
+          <button type="button" class="btn small vorstand-only" style="background:#25D366; color:#fff;" onclick="Events.shareWhatsApp('${e.id}')">💬 WhatsApp</button>
+          <button type="button" class="btn small vorstand-only" onclick="Events.exportEventPDF('${e.id}')">📄 PDF</button>
+          <button type="button" class="btn secondary small vorstand-only" onclick="Events.openForm('${e.id}')">Event bearbeiten</button>
+          <button type="button" class="btn secondary small vorstand-only" onclick="window.print()">Drucken</button>
         </div>
       </div>
 
       <!-- Kachel-Navigation -->
       <div class="event-tiles-nav">
-        <button class="event-tile ${currentEventTab === 'dashboard' ? 'active' : ''} vorstand-only" onclick="Events.setTab('dashboard')">
+        <button type="button" class="event-tile ${currentEventTab === 'dashboard' ? 'active' : ''} vorstand-only" onclick="Events.setTab('dashboard')">
           <div class="tile-title"><span>📊 Übersicht</span></div>
           <div class="tile-sub">KPIs</div>
         </button>
-        <button class="event-tile ${currentEventTab === 'checklist' ? 'active' : ''} vorstand-only" onclick="Events.setTab('checklist')">
+        <button type="button" class="event-tile ${currentEventTab === 'checklist' ? 'active' : ''} vorstand-only" onclick="Events.setTab('checklist')">
           <div class="tile-title"><span>📋 Aufgaben</span></div>
           <div class="tile-sub">${doneTasks}/${tasks.length}</div>
         </button>
-        <button class="event-tile ${currentEventTab === 'gastro' ? 'active' : ''} vorstand-only" onclick="Events.setTab('gastro')">
+        <button type="button" class="event-tile ${currentEventTab === 'gastro' ? 'active' : ''} vorstand-only" onclick="Events.setTab('gastro')">
           <div class="tile-title"><span>🍽️ Gastro</span></div>
           <div class="tile-sub">${gastroItems.length} Pos.</div>
         </button>
-        <button class="event-tile ${currentEventTab === 'material' ? 'active' : ''} vorstand-only" onclick="Events.setTab('material')">
+        <button type="button" class="event-tile ${currentEventTab === 'material' ? 'active' : ''} vorstand-only" onclick="Events.setTab('material')">
           <div class="tile-title"><span>📦 Material</span></div>
           <div class="tile-sub">${materialItems.length} Pos.</div>
         </button>
-        <button class="event-tile ${currentEventTab === 'schichten' ? 'active' : ''}" onclick="Events.setTab('schichten')">
+        <button type="button" class="event-tile ${currentEventTab === 'schichten' ? 'active' : ''}" onclick="Events.setTab('schichten')">
           <div class="tile-title"><span>👥 Schichten</span></div>
           <div class="tile-sub">${(e.schichten || []).length} aktiv</div>
         </button>
-        <button class="event-tile ${currentEventTab === 'orga' ? 'active' : ''} vorstand-only" onclick="Events.setTab('orga')">
+        <button type="button" class="event-tile ${currentEventTab === 'orga' ? 'active' : ''} vorstand-only" onclick="Events.setTab('orga')">
           <div class="tile-title"><span>🏢 Personal</span></div>
           <div class="tile-sub">Stationen</div>
         </button>
@@ -3653,15 +3702,23 @@ const Events = {
     const isEdit = !!itemId;
     document.getElementById("event-material-item-modal-title").textContent = isEdit ? "Material-Position bearbeiten" : "Material hinzufügen";
 
-    const item = isEdit ? (e.materialListe || []).find(m => m.id === itemId) : { bereich: "Möbel", name: "", menge: 1, einheit: "Stk.", lieferantId: "" };
+    const item = isEdit ? (e.materialListe || []).find(m => m.id === itemId) : { bereich: "Möbel", name: "", menge: 1, einheit: "Stk.", lieferantId: "", personId: "", status: "offen" };
     document.getElementById("eventMaterialItemBereich").value = item.bereich || "Möbel";
     document.getElementById("eventMaterialItemName").value = item.name || "";
     document.getElementById("eventMaterialItemMenge").value = item.menge || 1;
     document.getElementById("eventMaterialItemEinheit").value = item.einheit || "Stk.";
+    document.getElementById("eventMaterialItemStatus").value = item.status || "offen";
+
+    const currentLieferantId = item.lieferantId || (isEdit ? "" : this.getDefaultLieferantForMaterial(item.name));
 
     const liefSel = document.getElementById("eventMaterialItemLieferant");
     liefSel.innerHTML = '<option value="">-- Eigener Bestand --</option>' + (Store.data.lieferanten || []).map(l => `
-      <option value="${l.id}" ${item.lieferantId === l.id ? 'selected' : ''}>🚚 ${escapeHtml(l.name)}</option>
+      <option value="${l.id}" ${currentLieferantId === l.id ? 'selected' : ''}>🚚 ${escapeHtml(l.name)}</option>
+    `).join("");
+
+    const persSel = document.getElementById("eventMaterialItemPerson");
+    persSel.innerHTML = '<option value="">-- Keine Person --</option>' + Store.data.personen.map(p => `
+      <option value="${p.id}" ${item.personId === p.id ? 'selected' : ''}>${escapeHtml(p.name)}</option>
     `).join("");
 
     Modal.open("modal-event-material-item");
@@ -3679,11 +3736,13 @@ const Events = {
 
     const itemData = {
       id: itemId,
-      bereich: document.getElementById("eventMaterialItemBereich").value.trim() || "Möbel",
+      bereich: document.getElementById("eventMaterialItemBereich").value.trim() || "Allgemein",
       name,
       menge: Number(document.getElementById("eventMaterialItemMenge").value) || 0,
       einheit: document.getElementById("eventMaterialItemEinheit").value.trim() || "Stk.",
-      lieferantId: document.getElementById("eventMaterialItemLieferant").value
+      lieferantId: document.getElementById("eventMaterialItemLieferant").value,
+      personId: document.getElementById("eventMaterialItemPerson").value,
+      status: document.getElementById("eventMaterialItemStatus").value
     };
 
     const idx = e.materialListe.findIndex(m => m.id === itemId);
@@ -3693,6 +3752,62 @@ const Events = {
     await Store.updateEventField(eventId, { materialListe: e.materialListe });
     Modal.close("modal-event-material-item");
     toast("Material gespeichert.");
+    Events.openDetail(eventId);
+  },
+
+  setGastroLieferantFilter(val) {
+    currentGastroFilterLieferant = val;
+    const currentId = document.getElementById("event-detail-panel").dataset.eventId;
+    if (currentId) this.openDetail(currentId);
+  },
+
+  setMaterialLieferantFilter(val) {
+    currentMaterialFilterLieferant = val;
+    const currentId = document.getElementById("event-detail-panel").dataset.eventId;
+    if (currentId) this.openDetail(currentId);
+  },
+
+  async toggleMaterialDone(eventId, itemId, done) {
+    const e = Store.getEvent(eventId);
+    if (!e || !e.materialListe) return;
+    const item = e.materialListe.find(i => i.id === itemId);
+    if (item) {
+      item.status = done ? "bestellt" : "offen";
+      await Store.updateEventField(eventId, { materialListe: e.materialListe });
+      Events.openDetail(eventId);
+    }
+  },
+
+  async changeMaterialItemLieferant(eventId, itemId, lieferantId) {
+    const e = Store.getEvent(eventId);
+    if (!e || !e.materialListe) return;
+    const item = e.materialListe.find(i => i.id === itemId);
+    if (item) {
+      item.lieferantId = lieferantId;
+      await Store.updateEventField(eventId, { materialListe: e.materialListe });
+      toast("Lieferant geändert.");
+    }
+  },
+
+  async assignMaterialPerson(eventId, itemId, personId) {
+    const e = Store.getEvent(eventId);
+    if (!e || !e.materialListe) return;
+    const item = e.materialListe.find(i => i.id === itemId);
+    if (item) {
+      item.personId = personId;
+      await Store.updateEventField(eventId, { materialListe: e.materialListe });
+    }
+  },
+
+  async updateMaterialStatus(eventId, itemId, status) {
+    const e = Store.getEvent(eventId);
+    if (!e || !e.materialListe) return;
+    const item = e.materialListe.find(i => i.id === itemId);
+    if (item) {
+      item.status = status;
+      await Store.updateEventField(eventId, { materialListe: e.materialListe });
+      Events.openDetail(eventId);
+    }
   },
 
   async removeMaterialItem(eventId, itemId) {
@@ -3701,6 +3816,121 @@ const Events = {
     e.materialListe = e.materialListe.filter(m => m.id !== itemId);
     await Store.updateEventField(eventId, { materialListe: e.materialListe });
     toast("Material gelöscht.");
+  },
+
+  async sendLieferantenOrderMailClient(eventId, lieferantId) {
+    const e = Store.getEvent(eventId);
+    const lief = Store.getLieferant(lieferantId);
+    if (!e || !lief) return;
+
+    if (!lief.email) {
+      alert(`Für ${lief.name} ist keine E-Mail-Adresse hinterlegt!`);
+      return;
+    }
+
+    const gastroItems = (e.gastroListe || []).filter(g => g.lieferantId === lieferantId);
+    const materialItems = (e.materialListe || []).filter(m => m.lieferantId === lieferantId);
+
+    if (gastroItems.length === 0 && materialItems.length === 0) {
+      toast("Keine Artikel oder Materialien für diesen Lieferanten.");
+      return;
+    }
+
+    let verantwName = currentUserProfile.name || "Wirtschaftsteam SV Schapbach";
+    let verantwTel = "";
+    let verantwMail = currentUserProfile.email || "";
+
+    const ownPerson = Store.data.personen.find(p => p.email && currentUserProfile.email && p.email.toLowerCase() === currentUserProfile.email.toLowerCase());
+    if (ownPerson) {
+      if (ownPerson.telefon) verantwTel = ownPerson.telefon;
+      if (!verantwMail && ownPerson.email) verantwMail = ownPerson.email;
+    }
+
+    let text = "";
+    if (gastroItems.length > 0) {
+      text += "--- GASTRO & GETRÄNKE ---\n";
+      gastroItems.forEach((g, idx) => { text += `${idx + 1}. ${g.menge} ${g.einheit} ${g.name}\n`; });
+      text += "\n";
+    }
+    if (materialItems.length > 0) {
+      text += "--- MATERIAL & EQUIPMENT ---\n";
+      materialItems.forEach((m, idx) => { text += `${idx + 1}. ${m.menge} ${m.einheit} ${m.name}\n`; });
+    }
+
+    const subject = `Gesamtbestellung: ${e.name} - SV Schapbach 1926 e.V.`;
+    
+    const standardCc = "Sebastian-Kaluza@gmx.de";
+    const extraCc = e.ccEmails ? e.ccEmails.split(",").map(m => m.trim()).filter(Boolean) : [];
+    const allCc = [...new Set([standardCc, ...extraCc])].join(",");
+
+    let kontaktZeile = "";
+    if (verantwTel && verantwMail) {
+      kontaktZeile = `per E-Mail unter ${verantwMail} oder telefonisch unter ${verantwTel}`;
+    } else if (verantwMail) {
+      kontaktZeile = `per E-Mail unter ${verantwMail}`;
+    } else if (verantwTel) {
+      kontaktZeile = `telefonisch unter ${verantwTel}`;
+    } else {
+      kontaktZeile = `per Antwort auf diese E-Mail`;
+    }
+
+    let body = `Guten Tag,\n\n`;
+    body += `hiermit bestelle ich für das Event "${e.name}" folgende Artikel:\n\n`;
+    body += `${text}\n`;
+    body += `Bitte bestätigen Sie mir dies kurz per Mail.\n`;
+    body += `Betreffend Lieferung / Abholung kontaktieren Sie mich am besten ${kontaktZeile}.\n\n`;
+    body += `Mit freundlichen Grüßen,\n`;
+    body += `${verantwName}\n`;
+    body += `SV Schapbach 1926 e.V.`;
+
+    const mailtoUrl = `mailto:${encodeURIComponent(lief.email)}?cc=${encodeURIComponent(allCc)}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    
+    gastroItems.forEach(g => { g.status = "bestellt"; });
+    materialItems.forEach(m => { m.status = "bestellt"; });
+    await Store.updateEventField(eventId, { gastroListe: e.gastroListe, materialListe: e.materialListe });
+
+    const link = document.createElement("a");
+    link.href = mailtoUrl;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    toast("E-Mail geöffnet & Status auf 'bestellt' gesetzt!");
+    setTimeout(() => Events.openDetail(eventId), 400);
+  },
+
+  exportLieferantenPDF(eventId, lieferantId) {
+    const e = Store.getEvent(eventId);
+    const lief = Store.getLieferant(lieferantId);
+    if (!e || !lief) return;
+
+    const gastroItems = (e.gastroListe || []).filter(g => g.lieferantId === lieferantId);
+    const materialItems = (e.materialListe || []).filter(m => m.lieferantId === lieferantId);
+    const pdfArea = document.getElementById("pdf-render-area");
+
+    pdfArea.innerHTML = `
+      <div style="font-family:sans-serif; color:#222; padding:15px;">
+        <h1 style="color:#143f34; font-size:20px;">GESAMTBESTELLUNG: ${escapeHtml(lief.name)}</h1>
+        <p>Event: <strong>${escapeHtml(e.name)}</strong> (${e.datumStart} bis ${e.datumEnde})</p>
+        ${gastroItems.length > 0 ? `
+          <h3>Gastro & Getränke</h3>
+          <ul>${gastroItems.map(g => `<li>${g.menge} ${g.einheit} ${escapeHtml(g.name)}</li>`).join("")}</ul>
+        ` : ''}
+        ${materialItems.length > 0 ? `
+          <h3>Material & Equipment</h3>
+          <ul>${materialItems.map(m => `<li>${m.menge} ${m.einheit} ${escapeHtml(m.name)}</li>`).join("")}</ul>
+        ` : ''}
+      </div>
+    `;
+    pdfArea.style.display = "block";
+
+    const opt = { margin: 10, filename: `Bestellung_${lief.name}_${e.name}.pdf`, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4' } };
+    html2pdf().set(opt).from(pdfArea).save().then(() => {
+      pdfArea.style.display = "none";
+      toast("PDF exportiert!");
+    });
   },
 
   openSchichtModal(eventId, schichtId = "") {
@@ -3896,11 +4126,11 @@ const Events = {
 
       let actionBtn = "";
       if (userEintrag && (!isExpired || isVorstandOrAdmin)) {
-        actionBtn = `<button class="btn danger small" onclick="Events.austragenSpende('${e.id}', '${l.id}', '${userEintrag.uid}')">Eintrag löschen</button>`;
+        actionBtn = `<button type="button" class="btn danger small" onclick="Events.austragenSpende('${e.id}', '${l.id}', '${userEintrag.uid}')">Eintrag löschen</button>`;
       } else if (isExpired && !isVorstandOrAdmin) {
         actionBtn = `<span class="pill inactive">Anmeldefrist abgelaufen</span>`;
       } else if (!isFull) {
-        actionBtn = `<button class="btn small" onclick="Events.openBuchenSpendeModal('${e.id}', '${l.id}', '${escapeHtml(l.titel)}')">Eintragen</button>`;
+        actionBtn = `<button type="button" class="btn small" onclick="Events.openBuchenSpendeModal('${e.id}', '${l.id}', '${escapeHtml(l.titel)}')">Eintragen</button>`;
       } else {
         actionBtn = `<span class="pill inactive">Liste voll</span>`;
       }
@@ -3919,8 +4149,8 @@ const Events = {
             <div style="display:flex;gap:6px;align-items:center;">
               ${actionBtn}
               ${isVorstandOrAdmin ? `
-                <button class="btn secondary small" onclick="Events.openSpendenListeModal('${e.id}', '${l.id}')">✎</button>
-                <button class="btn danger small" onclick="Events.removeSpendenListe('${e.id}', '${l.id}')">&times;</button>
+                <button type="button" class="btn secondary small" onclick="Events.openSpendenListeModal('${e.id}', '${l.id}')">✎</button>
+                <button type="button" class="btn danger small" onclick="Events.removeSpendenListe('${e.id}', '${l.id}')">&times;</button>
               ` : ''}
             </div>
           </div>
@@ -3941,14 +4171,14 @@ const Events = {
       let actionBtn = "";
       if (isBooked) {
         if (s.austragen !== false || isVorstandOrAdmin) {
-          actionBtn = `<button class="btn danger small" onclick="Events.austragen('${e.id}', '${s.id}', '${userUid}')">Austragen</button>`;
+          actionBtn = `<button type="button" class="btn danger small" onclick="Events.austragen('${e.id}', '${s.id}', '${userUid}')">Austragen</button>`;
         } else {
           actionBtn = `<span class="pill" style="background:#e3f2e7;color:#276238;">Gebucht</span>`;
         }
       } else if (isExpired && !isVorstandOrAdmin) {
         actionBtn = `<span class="pill inactive">Frist abgelaufen</span>`;
       } else if (!isFull) {
-        actionBtn = `<button class="btn small" onclick="Events.openBuchenModal('${e.id}', '${s.id}')">Eintragen</button>`;
+        actionBtn = `<button type="button" class="btn small" onclick="Events.openBuchenModal('${e.id}', '${s.id}')">Eintragen</button>`;
       } else {
         actionBtn = `<span class="pill inactive">Voll</span>`;
       }
@@ -3966,8 +4196,8 @@ const Events = {
             <div style="display:flex;gap:6px;align-items:center;">
               ${actionBtn}
               ${isVorstandOrAdmin ? `
-                <button class="btn secondary small" onclick="Events.openSchichtModal('${e.id}', '${s.id}')">✎</button>
-                <button class="btn danger small" onclick="Events.removeSchicht('${e.id}', '${s.id}')">&times;</button>
+                <button type="button" class="btn secondary small" onclick="Events.openSchichtModal('${e.id}', '${s.id}')">✎</button>
+                <button type="button" class="btn danger small" onclick="Events.removeSchicht('${e.id}', '${s.id}')">&times;</button>
               ` : ''}
             </div>
           </div>
@@ -4122,265 +4352,10 @@ const Events = {
     this.openDetail(eventId);
   },
 
-  setGastroLieferantFilter(val) {
-    currentGastroFilterLieferant = val;
-    const currentId = document.getElementById("event-detail-panel").dataset.eventId;
-    if (currentId) this.openDetail(currentId);
-  },
-
-  async changeGastroItemLieferant(eventId, itemId, lieferantId) {
-    const e = Store.getEvent(eventId);
-    if (!e || !e.gastroListe) return;
-    const item = e.gastroListe.find(i => i.id === itemId);
-    if (item) {
-      item.lieferantId = lieferantId;
-      await Store.updateEventField(eventId, { gastroListe: e.gastroListe });
-      toast("Lieferant geändert.");
-    }
-  },
-
-  closeDetail() {
-    document.getElementById("event-detail-panel").classList.remove("open");
-    document.getElementById("events-list-panel").style.display = "";
-    this.render();
-  },
-
-  async toggleChecklistDone(eventId, itemId, done) {
-    const e = Store.getEvent(eventId);
-    if (!e || !e.checkliste) return;
-    const item = e.checkliste.find(i => i.id === itemId);
-    if (item) {
-      item.erledigt = done;
-      if (done && !item.datum) item.datum = new Date().toISOString().slice(0, 10);
-      await Store.updateEventField(eventId, { checkliste: e.checkliste });
-    }
-  },
-
-  async assignPerson(eventId, itemId, personId) {
-    const e = Store.getEvent(eventId);
-    if (!e || !e.checkliste) return;
-    const item = e.checkliste.find(i => i.id === itemId);
-    if (item) {
-      item.personId = personId;
-      await Store.updateEventField(eventId, { checkliste: e.checkliste });
-    }
-  },
-
-  async removeChecklistItem(eventId, itemId) {
-    const e = Store.getEvent(eventId);
-    if (!e || !e.checkliste) return;
-    e.checkliste = e.checkliste.filter(i => i.id !== itemId);
-    await Store.updateEventField(eventId, { checkliste: e.checkliste });
-  },
-
-  openChecklistItemForm(eventId, itemId) {
-    const e = Store.getEvent(eventId);
-    if (!e) return;
-    document.getElementById("eventItemEventId").value = eventId;
-    document.getElementById("eventItemId").value = itemId || "";
-    const isEdit = !!itemId;
-    document.getElementById("event-item-modal-title").textContent = isEdit ? "Aufgabenpunkt bearbeiten" : "Freie Aufgabe hinzufügen";
-
-    const item = isEdit ? e.checkliste.find(i => i.id === itemId) : { bereich: "Allgemein", titel: "", personId: "", datum: "", erledigt: false };
-    document.getElementById("eventItemBereich").value = item.bereich || "Allgemein";
-    document.getElementById("eventItemTitel").value = item.titel || "";
-    document.getElementById("eventItemDatum").value = item.datum || "";
-    document.getElementById("eventItemDone").value = item.erledigt ? "true" : "false";
-
-    const persSel = document.getElementById("eventItemPerson");
-    persSel.innerHTML = '<option value="">-- Keine Person --</option>' + Store.data.personen.map(p => `
-      <option value="${p.id}" ${item.personId === p.id ? 'selected' : ''}>${escapeHtml(p.name)}</option>
-    `).join("");
-
-    Modal.open("modal-event-item");
-  },
-
-  async saveChecklistItem() {
-    const eventId = document.getElementById("eventItemEventId").value;
-    const itemId = document.getElementById("eventItemId").value || uid("item");
-    const e = Store.getEvent(eventId);
-    if (!e) return;
-    if (!e.checkliste) e.checkliste = [];
-
-    const titel = document.getElementById("eventItemTitel").value.trim();
-    if (!titel) { toast("Bitte eine Bezeichnung eingeben."); return; }
-
-    const itemData = {
-      id: itemId,
-      bereich: document.getElementById("eventItemBereich").value.trim() || "Allgemein",
-      titel,
-      personId: document.getElementById("eventItemPerson").value,
-      datum: document.getElementById("eventItemDatum").value,
-      erledigt: document.getElementById("eventItemDone").value === "true"
-    };
-
-    const idx = e.checkliste.findIndex(i => i.id === itemId);
-    if (idx >= 0) e.checkliste[idx] = itemData;
-    else e.checkliste.push(itemData);
-
-    await Store.updateEventField(eventId, { checkliste: e.checkliste });
-    Modal.close("modal-event-item");
-    toast("Aufgabe gespeichert.");
-  },
-
-  async toggleGastroDone(eventId, itemId, done) {
-    const e = Store.getEvent(eventId);
-    if (!e || !e.gastroListe) return;
-    const item = e.gastroListe.find(i => i.id === itemId);
-    if (item) {
-      item.status = done ? "bestellt" : "offen";
-      await Store.updateEventField(eventId, { gastroListe: e.gastroListe });
-      Events.openDetail(eventId);
-    }
-  },
-
-  async assignGastroPerson(eventId, itemId, personId) {
-    const e = Store.getEvent(eventId);
-    if (!e || !e.gastroListe) return;
-    const item = e.gastroListe.find(i => i.id === itemId);
-    if (item) {
-      item.personId = personId;
-      await Store.updateEventField(eventId, { gastroListe: e.gastroListe });
-    }
-  },
-
-  async updateGastroStatus(eventId, itemId, status) {
-    const e = Store.getEvent(eventId);
-    if (!e || !e.gastroListe) return;
-    const item = e.gastroListe.find(i => i.id === itemId);
-    if (item) {
-      item.status = status;
-      await Store.updateEventField(eventId, { gastroListe: e.gastroListe });
-      Events.openDetail(eventId);
-    }
-  },
-
-  async removeGastroItem(eventId, itemId) {
-    const e = Store.getEvent(eventId);
-    if (!e || !e.gastroListe) return;
-    e.gastroListe = e.gastroListe.filter(i => i.id !== itemId);
-    await Store.updateEventField(eventId, { gastroListe: e.gastroListe });
-  },
-
-  openGastroItemForm(eventId, itemId) {
-    const e = Store.getEvent(eventId);
-    if (!e) return;
-    document.getElementById("eventGastroItemEventId").value = eventId;
-    document.getElementById("eventGastroItemId").value = itemId || "";
-    const isEdit = !!itemId;
-    document.getElementById("event-gastro-item-modal-title").textContent = isEdit ? "Gastro-Position bearbeiten" : "Gastro-Position hinzufügen";
-
-    const item = isEdit ? e.gastroListe.find(i => i.id === itemId) : { bereich: "Getränke", name: "", menge: 1, einheit: "Stk.", lieferantId: "", personId: "", status: "offen" };
-    document.getElementById("eventGastroItemBereich").value = item.bereich || "Getränke";
-    document.getElementById("eventGastroItemName").value = item.name || "";
-    document.getElementById("eventGastroItemMenge").value = item.menge || "";
-    document.getElementById("eventGastroItemEinheit").value = item.einheit || "";
-    document.getElementById("eventGastroItemStatus").value = item.status || "offen";
-
-    const currentLieferantId = item.lieferantId || (isEdit ? "" : this.getDefaultLieferantForArtikel(item.name));
-
-    const liefSel = document.getElementById("eventGastroItemLieferant");
-    liefSel.innerHTML = '<option value="">-- Kein Lieferant --</option>' + (Store.data.lieferanten || []).map(l => `
-      <option value="${l.id}" ${currentLieferantId === l.id ? 'selected' : ''}>🚚 ${escapeHtml(l.name)}</option>
-    `).join("");
-
-    const persSel = document.getElementById("eventGastroItemPerson");
-    persSel.innerHTML = '<option value="">-- Keine Person --</option>' + Store.data.personen.map(p => `
-      <option value="${p.id}" ${item.personId === p.id ? 'selected' : ''}>${escapeHtml(p.name)}</option>
-    `).join("");
-
-    Modal.open("modal-event-gastro-item");
-  },
-
-  async saveGastroItem() {
-    const eventId = document.getElementById("eventGastroItemEventId").value;
-    const itemId = document.getElementById("eventGastroItemId").value || uid("gitem");
-    const e = Store.getEvent(eventId);
-    if (!e) return;
-    if (!e.gastroListe) e.gastroListe = [];
-
-    const name = document.getElementById("eventGastroItemName").value.trim();
-    if (!name) { toast("Bitte eine Bezeichnung eingeben."); return; }
-
-    const itemData = {
-      id: itemId,
-      bereich: document.getElementById("eventGastroItemBereich").value.trim() || "Allgemein",
-      name,
-      menge: Number(document.getElementById("eventGastroItemMenge").value) || 0,
-      einheit: document.getElementById("eventGastroItemEinheit").value.trim(),
-      lieferantId: document.getElementById("eventGastroItemLieferant").value,
-      personId: document.getElementById("eventGastroItemPerson").value,
-      status: document.getElementById("eventGastroItemStatus").value
-    };
-
-    const idx = e.gastroListe.findIndex(i => i.id === itemId);
-    if (idx >= 0) e.gastroListe[idx] = itemData;
-    else e.gastroListe.push(itemData);
-
-    await Store.updateEventField(eventId, { gastroListe: e.gastroListe });
-    Modal.close("modal-event-gastro-item");
-    toast("Gastro-Position gespeichert.");
-  },
-
-  async sendLieferantenOrderMailClient(eventId, lieferantId) {
-    const e = Store.getEvent(eventId);
-    const lief = Store.getLieferant(lieferantId);
-    if (!e || !lief || !lief.email) { alert("Lieferant hat keine E-Mail."); return; }
-
-    const items = (e.gastroListe || []).filter(g => g.lieferantId === lieferantId);
-    if (items.length === 0) { toast("Keine Artikel."); return; }
-
-    let artikelText = "";
-    items.forEach((g, idx) => { artikelText += `${idx + 1}. ${g.menge} ${g.einheit} ${g.name}\n`; });
-
-    const subject = `Warenbestellung: ${e.name} - SV Schapbach 1926 e.V.`;
-    let body = `Guten Tag,\n\nhiermit bestelle ich für den SV Schapbach:\n\n${artikelText}\nMit freundlichen Grüßen,\nSV Schapbach`;
-
-    const mailtoUrl = `mailto:${encodeURIComponent(lief.email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    items.forEach(g => { g.status = "bestellt"; });
-    await Store.updateEventField(eventId, { gastroListe: e.gastroListe });
-
-    const link = document.createElement("a");
-    link.href = mailtoUrl;
-    link.target = "_blank";
-    link.rel = "noopener noreferrer";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    toast("E-Mail geöffnet & Status auf 'bestellt' gesetzt!");
-    setTimeout(() => Events.openDetail(eventId), 400);
-  },
-
-  exportEventPDF(eventId) {
-    const e = Store.getEvent(eventId);
-    if (!e) return;
-    const k = Store.getKategorie(e.kategorieId);
-    const pdfArea = document.getElementById("pdf-render-area");
-    const tasks = e.checkliste || [];
-    const doneTasks = tasks.filter(t => t.erledigt).length;
-
-    let html = `
-      <div style="font-family:sans-serif; color:#222; padding:10px;">
-        <h1 style="color:#143f34;">${escapeHtml(e.name)}</h1>
-        <p>Zeitraum: ${e.datumStart} bis ${e.datumEnde} | Ort: ${escapeHtml(e.ort || '—')}</p>
-        <h2>Aufgaben (${doneTasks}/${tasks.length})</h2>
-        <ul>${tasks.map(t => `<li>[${t.erledigt ? 'X' : ' '}] ${escapeHtml(t.bereich)}: ${escapeHtml(t.titel)}</li>`).join("")}</ul>
-      </div>
-    `;
-    pdfArea.innerHTML = html;
-    pdfArea.style.display = "block";
-
-    const opt = { margin: 10, filename: `Event_${e.name}.pdf`, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4' } };
-    html2pdf().set(opt).from(pdfArea).save().then(() => {
-      pdfArea.style.display = "none";
-      toast("PDF exportiert!");
-    });
-  }
+  /* ============================================================
+     JSON EXPORT / IMPORT
+     ============================================================ */
 };
-
-/* ============================================================
-   JSON EXPORT / IMPORT
-   ============================================================ */
 
 const IO = {
   exportJSON() {
