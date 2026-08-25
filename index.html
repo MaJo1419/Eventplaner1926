@@ -589,7 +589,7 @@
 <header>
   <div>
     <h1>Eventplaner</h1>
-    <div class="sub">SV Schapbach 1926 e.V. <span class="version-badge" id="app-version-badge">v0.1.068</span></div>
+    <div class="sub">SV Schapbach 1926 e.V. <span class="version-badge" id="app-version-badge">v0.1.069</span></div>
   </div>
   <footer class="toolbar-io" style="display:flex;gap:8px;align-items:center;">
     <select id="user-role-selector" class="role-select-header" style="display:none;" onchange="Auth.switchCurrentRole(this.value)">
@@ -615,7 +615,7 @@
 <nav class="tabs">
   <button class="tab-btn active" data-view="events">Events</button>
   <button class="tab-btn" data-view="meine-schichten">📅 Mein Schichtplan</button>
-  <button class="tab-btn admin-only" data-view="ryder">Checklisten-Ryder (Matrix)</button>
+  <button class="tab-btn admin-only" data-view="ryder">Aufgaben-Ryder (Matrix)</button>
   <button class="tab-btn admin-only" data-view="gastro">Gastro-Ryder</button>
   <button class="tab-btn admin-only" data-view="material-ryder">📦 Material-Ryder</button>
   <button class="tab-btn vorstand-only" data-view="personen">Personen, Lieferanten &amp; Benutzer</button>
@@ -654,11 +654,11 @@
     <div id="meine-schichten-list"></div>
   </section>
 
-  <!-- CHECKLISTEN-RYDER (ZENTRALE ADMIN MATRIX) -->
+  <!-- AUFGABEN-RYDER (ZENTRALE ADMIN MATRIX) -->
   <section class="view" id="view-ryder">
     <div class="toolbar">
       <div>
-        <h2>Checklisten-Ryder: Standard-Matrix nach Event-Typ</h2>
+        <h2>Aufgaben-Ryder: Standard-Matrix nach Event-Typ</h2>
         <div class="desc">Klicke auf AN / AUS, um den Standard-Bedarf für jede Event-Kategorie separat festzulegen. Neue Events übernehmen diese Auswahl automatisch.</div>
       </div>
       <button class="btn admin-only" onclick="Ryder.openBereichForm()">+ Neuer Bereich</button>
@@ -716,7 +716,7 @@
       <div class="toolbar">
         <div>
           <h2>Personen &amp; Bereichsleiter</h2>
-          <div class="desc">Zuständige Personen für Checklisten- und Gastro-Bereiche</div>
+          <div class="desc">Zuständige Personen für Aufgaben- und Gastro-Bereiche</div>
         </div>
         <button class="btn vorstand-only" onclick="Personen.openForm()">+ Neue Person</button>
       </div>
@@ -968,10 +968,10 @@
   </div>
 </div>
 
-<!-- Checklisten-Ryder Bereich -->
+<!-- Aufgaben-Ryder Bereich -->
 <div class="overlay" id="modal-ryder-bereich">
   <div class="modal">
-    <h3 id="ryder-bereich-modal-title">Checklisten-Bereich</h3>
+    <h3 id="ryder-bereich-modal-title">Aufgaben-Bereich</h3>
     <input type="hidden" id="ryderBereichId">
     <div class="field"><label>Bereichs-Titel</label><input id="ryderBereichTitel" placeholder="z. B. Technik, Aufbau, Stationen..."></div>
     <div class="field">
@@ -985,10 +985,10 @@
   </div>
 </div>
 
-<!-- Checklisten-Ryder Punkt -->
+<!-- Aufgaben-Ryder Punkt -->
 <div class="overlay" id="modal-ryder-punkt">
   <div class="modal">
-    <h3 id="ryder-punkt-modal-title">Checklisten-Objekt</h3>
+    <h3 id="ryder-punkt-modal-title">Aufgaben-Objekt</h3>
     <input type="hidden" id="ryderPunktBereichId">
     <input type="hidden" id="ryderPunktId">
     <div class="field"><label>Aufgabe / Objekt-Bezeichnung</label><input id="ryderPunktTitel" placeholder="z. B. Musikanlage, Bierwagen, Mischpult"></div>
@@ -999,33 +999,6 @@
     <div class="modal-actions">
       <button class="btn secondary" onclick="Modal.close('modal-ryder-punkt')">Abbrechen</button>
       <button class="btn" onclick="Ryder.savePunkt()">Speichern</button>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL: EVENT-CHECKLISTEN MATRIX-VERWALTUNG -->
-<div class="overlay" id="modal-event-objekte-matrix">
-  <div class="modal" style="max-width: 780px;">
-    <h3 id="matrix-modal-title">Objekte für dieses Event verwalten</h3>
-    <p class="meta" style="margin-top:-8px; margin-bottom:14px;">
-      Hier siehst du alle Objekte aus dem Ryder. Hake an, was bei diesem konkreten Event gebraucht wird.
-    </p>
-    <input type="hidden" id="matrixEventId">
-    <div style="max-height: 420px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px;">
-      <table class="matrix-table" style="margin: 0;">
-        <thead>
-          <tr style="background:#f4f4f4;">
-            <th style="width: 50px; text-align: center;">Aktiv</th>
-            <th>Bereich &amp; Objekt</th>
-            <th style="width: 140px; text-align: center;">Standard-Status</th>
-            <th style="width: 200px; text-align: center;">Standard-Einstellung</th>
-          </tr>
-        </thead>
-        <tbody id="matrixEventTableBody"></tbody>
-      </table>
-    </div>
-    <div class="modal-actions">
-      <button class="btn" onclick="Events.closeMatrixModal()">Fertig &amp; Übernehmen</button>
     </div>
   </div>
 </div>
@@ -1168,10 +1141,10 @@
   </div>
 </div>
 
-<!-- Event Checklist Item Edit -->
+<!-- Event Aufgabenpunkt Edit -->
 <div class="overlay" id="modal-event-item">
   <div class="modal">
-    <h3 id="event-item-modal-title">Checklistenpunkt bearbeiten</h3>
+    <h3 id="event-item-modal-title">Aufgabenpunkt bearbeiten</h3>
     <input type="hidden" id="eventItemEventId">
     <input type="hidden" id="eventItemId">
     <div class="field"><label>Bereich</label><input id="eventItemBereich" placeholder="z. B. Technik"></div>
@@ -1231,7 +1204,7 @@
    ZENTRALE KONFIGURATION & DATENSCHICHT
    ============================================================ */
 
-const APP_VERSION = "0.1.068";
+const APP_VERSION = "0.1.069";
 let currentUserProfile = { role: "A", actualRole: "A", email: "", name: "" };
 
 function uid(prefix) {
@@ -1270,22 +1243,61 @@ function seedData() {
   const lieferanten = [
     { id: "l_brauerei", name: "Brauerei Alpirsbacher", kontakt: "Herr Meier", telefon: "07834 12345", email: "bestellung@alpirsbacher.de", notizen: "Kunden-Nr: 1926" },
     { id: "l_metzger", name: "Metzgerei Schmieder", kontakt: "Herr Schmieder", telefon: "07839 5678", email: "info@metzgerei-schmieder.de", notizen: "Lieferung bis 10 Uhr" },
+    { id: "l_baecker", name: "Bäckerei Wolber", kontakt: "Herr Wolber", telefon: "07839 9988", email: "bestellung@baeckerei-wolber.de", notizen: "Frische Wecken morgens" },
     { id: "l_verleih", name: "Festbedarf Schwarzwald", kontakt: "Herr Braun", telefon: "07832 9876", email: "verleih@festbedarf.de", notizen: "Zelt- und Möbelverleih" }
   ];
 
   const kategorien = [
     {
+      id: "schaparena_75", name: "SchapArena 75", maxPersonen: "75",
+      verkaufsstellen: [{ id: "jugendtheke", name: "Jugendtheke", personalMin: 1, personalMax: 2 }],
+      aufbau: "Personal Jugendtheke", abbau: "Personal Jugendtheke", notizen: ""
+    },
+    {
+      id: "schaparena_150", name: "SchapArena 150", maxPersonen: "150",
+      verkaufsstellen: [
+        { id: "jugendtheke", name: "Jugendtheke", personalMin: 2, personalMax: 4 },
+        { id: "grillstand_ht", name: "Grillstand Haupttribüne", personalMin: 1, personalMax: 2 }
+      ],
+      aufbau: "Personal Jugendtheke, Personal Grillstand", abbau: "Personal Jugendtheke, Personal Grillstand", notizen: ""
+    },
+    {
       id: "schaparena_300", name: "SchapArena 300", maxPersonen: "300",
       verkaufsstellen: [
         { id: "jugendtheke", name: "Jugendtheke", personalMin: 4, personalMax: 4 },
-        { id: "grillstand_ht", name: "Grillstand Haupttribüne", personalMin: 2, personalMax: 2 }
+        { id: "grillstand_ht", name: "Grillstand Haupttribüne", personalMin: 2, personalMax: 2 },
+        { id: "bollerwagen1", name: "Bollerwagen 1", personalMin: 2, personalMax: 2 }
       ],
       aufbau: "Personal Jugendtheke, Personal Grillstand", abbau: "Personal Jugendtheke, Personal Grillstand", notizen: ""
+    },
+    {
+      id: "schaparena_500", name: "SchapArena 500", maxPersonen: "500",
+      verkaufsstellen: [
+        { id: "jugendtheke", name: "Jugendtheke", personalMin: 4, personalMax: 4 },
+        { id: "getraenkestand_ht", name: "Getränkestand Haupttribüne", personalMin: 4, personalMax: 4 },
+        { id: "grillstand_ht", name: "Grillstand Haupttribüne", personalMin: 3, personalMax: 3 },
+        { id: "bollerwagen1", name: "Bollerwagen 1", personalMin: 2, personalMax: 2 }
+      ],
+      aufbau: "Personal Jugendtheke, Personal Grillstand", abbau: "Personal Jugendtheke, Personal Grillstand", notizen: ""
+    },
+    {
+      id: "schaparena_1000", name: "SchapArena 1000", maxPersonen: "750-1000",
+      verkaufsstellen: [
+        { id: "jugendtheke", name: "Jugendtheke", personalMin: 4, personalMax: 4 },
+        { id: "bierwagen_ht", name: "Bierwagen Haupttribüne", personalMin: 4, personalMax: 4 },
+        { id: "getraenkestand_gg", name: "Getränkestand Gegengerade", personalMin: 4, personalMax: 4 },
+        { id: "grillstand_ht", name: "Grillstand Haupttribüne", personalMin: 3, personalMax: 3 },
+        { id: "grillstand_gg", name: "Grillstand Gegengerade", personalMin: 2, personalMax: 2 },
+        { id: "bollerwagen1", name: "Bollerwagen 1", personalMin: 2, personalMax: 2 }
+      ],
+      aufbau: "Separates Aufbau-Team", abbau: "Separates Abbau-Team", notizen: ""
     }
   ];
 
   const personen = [
-    { id: "p1", name: "Max Mustermann", rolle: "Technik-Leitung", telefon: "0160 1122334", email: "technik@sv-schapbach.de", status: "aktiv" }
+    { id: "p1", name: "Max Mustermann", rolle: "Technik-Leitung", telefon: "0160 1122334", email: "technik@sv-schapbach.de", status: "aktiv" },
+    { id: "p2", name: "Anna Beispiel", rolle: "Getränke & Einkauf", telefon: "0171 4455667", email: "einkauf@sv-schapbach.de", status: "aktiv" },
+    { id: "p3", name: "Peter Muster", rolle: "Grillstand & Essen", telefon: "0151 8899001", email: "kueche@sv-schapbach.de", status: "aktiv" }
   ];
 
   const ryder = [
@@ -1294,7 +1306,20 @@ function seedData() {
       titel: "Technik",
       personId: "",
       punkte: [
-        { id: "rp_1", titel: "Musikanlage (Standard)", kategorien: { schaparena_300: true } }
+        { id: "rp_1", titel: "Musikanlage (Standard)", kategorien: { schaparena_75: true, schaparena_150: true, schaparena_300: true, schaparena_500: true, schaparena_1000: true } },
+        { id: "rp_2", titel: "Mikrofone testen", kategorien: { schaparena_75: true, schaparena_150: true, schaparena_300: true, schaparena_500: true, schaparena_1000: true } },
+        { id: "rp_3", titel: "Großes Mischpult (Zelt-PA)", kategorien: { schaparena_75: false, schaparena_150: false, schaparena_300: false, schaparena_500: true, schaparena_1000: true } }
+      ]
+    },
+    {
+      id: "b_aufbau",
+      titel: "Aufbau & Logistik",
+      personId: "",
+      punkte: [
+        { id: "rp_4", titel: "Bühne & Pavillons aufstellen", kategorien: { schaparena_75: true, schaparena_150: true, schaparena_300: true, schaparena_500: true, schaparena_1000: true } },
+        { id: "rp_5", titel: "Stromverteiler & Kabelbrücken", kategorien: { schaparena_75: true, schaparena_150: true, schaparena_300: true, schaparena_500: true, schaparena_1000: true } },
+        { id: "rp_6", titel: "Bierwagen aufstellen & anschließen", kategorien: { schaparena_75: false, schaparena_150: false, schaparena_300: false, schaparena_500: false, schaparena_1000: true } },
+        { id: "rp_7", titel: "Flutlicht / Beleuchtung", kategorien: { schaparena_75: false, schaparena_150: true, schaparena_300: true, schaparena_500: true, schaparena_1000: true } }
       ]
     }
   ];
@@ -1305,7 +1330,19 @@ function seedData() {
       titel: "Getränke",
       personId: "",
       artikel: [
-        { id: "ga_1", name: "Bier (Fass 50L)", einheit: "Fässer", lieferantId: "l_brauerei", mengen: { schaparena_300: 8 } }
+        { id: "ga_1", name: "Bier (Fass 50L)", einheit: "Fässer", lieferantId: "l_brauerei", mengen: { schaparena_75: 2, schaparena_150: 4, schaparena_300: 8, schaparena_500: 14, schaparena_1000: 25 } },
+        { id: "ga_2", name: "Cola / Spezi 1L", einheit: "Kästen", lieferantId: "l_brauerei", mengen: { schaparena_75: 4, schaparena_150: 8, schaparena_300: 16, schaparena_500: 25, schaparena_1000: 45 } },
+        { id: "ga_3", name: "Mineralwasser 1L", einheit: "Kästen", lieferantId: "l_brauerei", mengen: { schaparena_75: 3, schaparena_150: 6, schaparena_300: 12, schaparena_500: 20, schaparena_1000: 35 } }
+      ]
+    },
+    {
+      id: "gb_speisen",
+      titel: "Speisen & Grill",
+      personId: "",
+      artikel: [
+        { id: "ga_4", name: "Rote Wurst", einheit: "Stück", lieferantId: "l_metzger", mengen: { schaparena_75: 50, schaparena_150: 120, schaparena_300: 250, schaparena_500: 450, schaparena_1000: 900 } },
+        { id: "ga_5", name: "Currywurst-Sauce", einheit: "Eimer (5kg)", lieferantId: "l_metzger", mengen: { schaparena_75: 0, schaparena_150: 1, schaparena_300: 2, schaparena_500: 4, schaparena_1000: 8 } },
+        { id: "ga_6", name: "Brötchen", einheit: "Stück", lieferantId: "l_baecker", mengen: { schaparena_75: 60, schaparena_150: 140, schaparena_300: 300, schaparena_500: 550, schaparena_1000: 1100 } }
       ]
     }
   ];
@@ -1316,7 +1353,17 @@ function seedData() {
       titel: "Möbel & Ausstattung",
       personId: "",
       artikel: [
-        { id: "ma_1", name: "Festplatzgarnitur", einheit: "Garnituren", gesamtBestand: 50, lieferantId: "l_verleih", mengen: { schaparena_300: 40 } }
+        { id: "ma_1", name: "Festplatzgarnitur (Tisch + 2 Bänke)", einheit: "Garnituren", gesamtBestand: 50, lieferantId: "l_verleih", mengen: { schaparena_75: 10, schaparena_150: 20, schaparena_300: 40, schaparena_500: 70, schaparena_1000: 120 } },
+        { id: "ma_2", name: "Stehtisch", einheit: "Stk.", gesamtBestand: 25, lieferantId: "", mengen: { schaparena_75: 5, schaparena_150: 10, schaparena_300: 20, schaparena_500: 35, schaparena_1000: 60 } }
+      ]
+    },
+    {
+      id: "mb_schank",
+      titel: "Schanktechnik & Kühlung",
+      personId: "",
+      artikel: [
+        { id: "ma_3", name: "Zapfanlage (2-Leitig)", einheit: "Stk.", gesamtBestand: 3, lieferantId: "l_brauerei", mengen: { schaparena_75: 1, schaparena_150: 1, schaparena_300: 2, schaparena_500: 3, schaparena_1000: 5 } },
+        { id: "ma_4", name: "Kühlschrank / Kühlanhänger", einheit: "Stk.", gesamtBestand: 2, lieferantId: "l_brauerei", mengen: { schaparena_75: 1, schaparena_150: 1, schaparena_300: 1, schaparena_500: 2, schaparena_1000: 3 } }
       ]
     }
   ];
@@ -1751,7 +1798,7 @@ const Lieferanten = {
 };
 
 /* ============================================================
-   CHECKLISTEN-RYDER (ZENTRALE ADMIN MATRIX)
+   AUFGABEN-RYDER (ZENTRALE ADMIN MATRIX)
    ============================================================ */
 
 const Ryder = {
@@ -1759,7 +1806,7 @@ const Ryder = {
     const list = document.getElementById("ryder-list");
     if (!list) return;
     if (!Store.data.ryder || Store.data.ryder.length === 0) {
-      list.innerHTML = '<div class="empty-state">Noch keine Bereiche im Checklisten-Ryder definiert. Klicke oben auf „+ Neuer Bereich“.</div>';
+      list.innerHTML = '<div class="empty-state">Noch keine Bereiche im Aufgaben-Ryder definiert. Klicke oben auf „+ Neuer Bereich“.</div>';
       return;
     }
 
@@ -1773,7 +1820,7 @@ const Ryder = {
             <div>
               <h3>📁 ${escapeHtml(bereich.titel)}</h3>
               <div class="meta">
-                ${bereich.punkte.length} Checklisten-Objekte &middot;
+                ${bereich.punkte.length} Aufgaben-Objekte &middot;
                 Standard-Hauptverantwortlich: <strong>${pers ? escapeHtml(pers.name) : 'Keine'}</strong>
               </div>
             </div>
@@ -1883,7 +1930,7 @@ const Ryder = {
     document.getElementById("ryderPunktBereichId").value = bereichId;
     document.getElementById("ryderPunktId").value = punktId || "";
     const isEdit = !!punktId;
-    document.getElementById("ryder-punkt-modal-title").textContent = isEdit ? "Objekt bearbeiten" : "Neues Checklisten-Objekt";
+    document.getElementById("ryder-punkt-modal-title").textContent = isEdit ? "Objekt bearbeiten" : "Neues Aufgaben-Objekt";
     
     const bereich = Store.data.ryder.find(b => b.id === bereichId);
     const p = isEdit ? (bereich ? bereich.punkte.find(x => x.id === punktId) : null) : { titel: "", kategorien: {} };
@@ -3038,107 +3085,6 @@ const Events = {
     toast(`Hauptverantwortlicher für "${bereichName}" gesetzt.`);
   },
 
-  openMatrixModal(eventId) {
-    const e = Store.getEvent(eventId);
-    if (!e) return;
-    const kat = Store.getKategorie(e.kategorieId);
-
-    document.getElementById("matrixEventId").value = eventId;
-    document.getElementById("matrix-modal-title").textContent = `Objekte für ${escapeHtml(e.name)} (${escapeHtml(kat?.name || '')})`;
-
-    const tbody = document.getElementById("matrixEventTableBody");
-    const activeTitles = new Set((e.checkliste || []).map(item => item.titel.toLowerCase()));
-
-    let html = "";
-    (Store.data.ryder || []).forEach(bereich => {
-      html += `
-        <tr style="background:#eaf2ee; font-weight:bold;">
-          <td colspan="4" style="text-align:left; padding:6px 8px; color:var(--accent-dark);">📁 ${escapeHtml(bereich.titel)}</td>
-        </tr>
-      `;
-      (bereich.punkte || []).forEach(p => {
-        const isActiveInEvent = activeTitles.has(p.titel.toLowerCase());
-        const isStandardForKat = !!p.kategorien?.[e.kategorieId];
-
-        html += `
-          <tr>
-            <td style="text-align:center;">
-              <input type="checkbox" style="width:17px; height:17px; cursor:pointer;" 
-                ${isActiveInEvent ? 'checked' : ''} 
-                onchange="Events.toggleEventObject('${eventId}', '${escapeHtml(bereich.titel)}', '${escapeHtml(p.titel)}', this.checked)">
-            </td>
-            <td><strong>${escapeHtml(p.titel)}</strong></td>
-            <td style="text-align:center;">
-              <span class="pill ${isStandardForKat ? '' : 'inactive'}" style="font-size:11px;">
-                ${isStandardForKat ? 'Standard: AN' : 'Standard: AUS'}
-              </span>
-            </td>
-            <td style="text-align:center;">
-              <button class="btn secondary small admin-only" style="font-size:11px; padding:3px 6px;" 
-                onclick="Events.toggleStandardFromEventModal('${eventId}', '${bereich.id}', '${p.id}')">
-                ${isStandardForKat ? '❌ Nicht mehr Standard' : '⭐ Als Standard merken'}
-              </button>
-            </td>
-          </tr>
-        `;
-      });
-    });
-
-    tbody.innerHTML = html || '<tr><td colspan="4" class="meta">Keine Vorlagen im Ryder vorhanden.</td></tr>';
-    Modal.open("modal-event-objekte-matrix");
-    applyRolePermissions(currentUserProfile.role);
-  },
-
-  async toggleEventObject(eventId, bereichName, titel, isChecked) {
-    const e = Store.getEvent(eventId);
-    if (!e) return;
-    if (!e.checkliste) e.checkliste = [];
-
-    if (isChecked) {
-      if (!e.checkliste.some(i => i.titel.toLowerCase() === titel.toLowerCase())) {
-        const defaultPerson = e.bereichVerantwortliche?.checklist?.[bereichName] || "";
-        e.checkliste.push({
-          id: uid("item"),
-          bereich: bereichName,
-          titel: titel,
-          erledigt: false,
-          personId: defaultPerson,
-          datum: ""
-        });
-      }
-    } else {
-      e.checkliste = e.checkliste.filter(i => i.titel.toLowerCase() !== titel.toLowerCase());
-    }
-
-    await Store.saveEvent(e);
-    toast(isChecked ? `"${titel}" aktiviert.` : `"${titel}" abgewählt.`);
-  },
-
-  async toggleStandardFromEventModal(eventId, bereichId, punktId) {
-    if (currentUserProfile.role !== "A") {
-      toast("Nur Administratoren (Rolle A) dürfen Standard-Vorlagen definieren.");
-      return;
-    }
-    const e = Store.getEvent(eventId);
-    if (!e) return;
-    const b = Store.data.ryder.find(x => x.id === bereichId);
-    if (!b) return;
-    const p = b.punkte.find(x => x.id === punktId);
-    if (!p) return;
-
-    if (!p.kategorien) p.kategorien = {};
-    p.kategorien[e.kategorieId] = !p.kategorien[e.kategorieId];
-    await Store.persistConfig();
-
-    this.openMatrixModal(eventId);
-    const katName = Store.getKategorie(e.kategorieId)?.name;
-    toast(`Standard geändert: "${p.titel}" für ${katName} ist jetzt ${p.kategorien[e.kategorieId] ? 'Standard (AN)' : 'Standard (AUS)'}.`);
-  },
-
-  closeMatrixModal() {
-    Modal.close("modal-event-objekte-matrix");
-  },
-
   shareWhatsApp(eventId) {
     const e = Store.getEvent(eventId);
     if (!e) return;
@@ -3169,13 +3115,13 @@ const Events = {
     msg += `🏷 Kategorie: ${k ? k.name : '—'}\n\n`;
 
     msg += `📊 *Aktueller Stand:*\n`;
-    msg += `📋 Checkliste: ${doneTasks}/${tasks.length} erledigt (${taskPct}%)\n`;
+    msg += `📋 Aufgaben: ${doneTasks}/${tasks.length} erledigt (${taskPct}%)\n`;
     msg += `🍽 Gastro-Bedarf: ${doneGastro}/${gastro.length} bestellt/bereitgestellt\n`;
     msg += `👥 Personal: ${gesamtIst}/${gesamtSollMin} Helfer eingeteilt\n\n`;
 
     const openTasks = tasks.filter(t => !t.erledigt);
     if (openTasks.length > 0) {
-      msg += `⚠️ *Dringende offene Punkte:*\n`;
+      msg += `⚠️ *Dringende offene Aufgaben:*\n`;
       openTasks.slice(0, 3).forEach(t => {
         const pers = Store.getPerson(t.personId);
         msg += `• ${t.titel} (${pers ? pers.name : 'Unbesetzt'})\n`;
@@ -3205,22 +3151,14 @@ const Events = {
     return "";
   },
 
-  // LIVE-BERECHNUNG DER MATERIALVERFÜGBARKEIT IM ZEITRAUM
   getMaterialAvailability(matName, requiredQty, currentEventId, startStr, endStr) {
-    let matchedItem = null;
     let totalStock = 0;
-
     for (const b of Store.data.materialRyder || []) {
       const found = (b.artikel || []).find(a => a.name.toLowerCase() === matName.toLowerCase());
       if (found) {
-        matchedItem = found;
         totalStock = found.gesamtBestand ?? 0;
         break;
       }
-    }
-
-    if (!matchedItem) {
-      return { status: 'ok', text: 'Kein Lagerartikel', free: '—' };
     }
 
     const s1 = startStr || '9999-99-99';
@@ -3232,7 +3170,6 @@ const Events = {
       const evStart = ev.datumStart || ev.datum || '9999-99-99';
       const evEnde = ev.datumEnde || ev.datum || evStart;
 
-      // Überschneidungs-Check: (StartA <= EndeB) und (EndeA >= StartB)
       if (s1 <= evEnde && e1 >= evStart) {
         (ev.materialListe || []).forEach(m => {
           if (m.name.toLowerCase() === matName.toLowerCase()) {
@@ -3307,12 +3244,12 @@ const Events = {
 
     let tabContentHtml = "";
 
-    // TAB: ADMIN-DASHBOARD (ÜBERSICHT) MIT 4 KACHELN UND 4 EIGENSTÄNDIGEN LISTEN DARUNTER
+    // TAB: ADMIN-DASHBOARD (ÜBERSICHT)
     if (currentEventTab === "dashboard") {
       tabContentHtml = `
         <div class="kpi-grid">
-          <div class="kpi-card ${isMemberOnly ? 'admin-only' : ''}" onclick="Events.setTab('checklist')" title="Zur Checkliste wechseln">
-            <div class="kpi-label"><span>Checkliste</span> <span>&rarr;</span></div>
+          <div class="kpi-card ${isMemberOnly ? 'admin-only' : ''}" onclick="Events.setTab('checklist')" title="Zu Aufgaben wechseln">
+            <div class="kpi-label"><span>Aufgaben</span> <span>&rarr;</span></div>
             <div class="kpi-val">${taskPct}%</div>
             <div class="meta">${doneTasks}/${tasks.length} erledigt</div>
           </div>
@@ -3334,11 +3271,10 @@ const Events = {
         </div>
 
         ${!isMemberOnly ? `
-          <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:14px; margin-top:20px;">
-            <!-- 1. Checkliste Liste -->
+          <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:14px;">
             <div class="card">
               <div class="card-head">
-                <h3>📋 Checkliste (${doneTasks}/${tasks.length})</h3>
+                <h3>📋 Aufgaben (${doneTasks}/${tasks.length})</h3>
                 <button class="link-btn" onclick="Events.setTab('checklist')">Alle &rarr;</button>
               </div>
               ${tasks.length === 0 ? '<div class="meta">Keine Aufgaben</div>' : tasks.slice(0, 4).map(t => `
@@ -3349,7 +3285,6 @@ const Events = {
               `).join("")}
             </div>
 
-            <!-- 2. Gastro Liste -->
             <div class="card">
               <div class="card-head">
                 <h3>🍽️ Gastro (${gastroOrderedOrDoneCount}/${gastroItems.length})</h3>
@@ -3363,7 +3298,6 @@ const Events = {
               `).join("")}
             </div>
 
-            <!-- 3. Material Liste -->
             <div class="card">
               <div class="card-head">
                 <h3>📦 Material (${doneMat}/${materialItems.length})</h3>
@@ -3377,7 +3311,6 @@ const Events = {
               `).join("")}
             </div>
 
-            <!-- 4. Schichten Liste -->
             <div class="card">
               <div class="card-head">
                 <h3>👥 Schichten (${bookedSchichtSlots}/${totalSchichtSlots})</h3>
@@ -3402,7 +3335,7 @@ const Events = {
         `}
       `;
     } 
-    // TAB: CHECKLISTE
+    // TAB: AUFGABEN (CHECKLISTE)
     else if (currentEventTab === "checklist" && !isMemberOnly) {
       const groups = {};
       tasks.forEach(item => {
@@ -3414,11 +3347,10 @@ const Events = {
       tabContentHtml = `
         <div class="toolbar" style="margin-top:14px;">
           <div>
-            <h3>Event-Checkliste (${escapeHtml(k.name)})</h3>
+            <h3>Event-Aufgaben (${escapeHtml(k.name)})</h3>
             <div class="desc">Vorausgewählte Standard-Objekte &amp; individuell aktivierte Aufgaben</div>
           </div>
           <div style="display:flex;gap:6px;">
-            <button class="btn small" onclick="Events.openMatrixModal('${e.id}')">⚡ Objekte für dieses Event verwalten</button>
             <button class="btn secondary small" onclick="Events.openChecklistItemForm('${e.id}')">+ Freie Aufgabe</button>
           </div>
         </div>
@@ -3433,7 +3365,7 @@ const Events = {
           </div>
         </div>
 
-        ${tasks.length === 0 ? '<div class="empty-state">Keine Checklistenpunkte hinterlegt. Klicke auf „Objekte für dieses Event verwalten“.</div>' : Object.keys(groups).map(bereichName => {
+        ${tasks.length === 0 ? '<div class="empty-state">Keine Aufgabenpunkte hinterlegt.</div>' : Object.keys(groups).map(bereichName => {
           const currentLeader = e.bereichVerantwortliche?.checklist?.[bereichName] || "";
 
           return `
@@ -3557,7 +3489,7 @@ const Events = {
         }).join("")}
       `;
     } 
-    // TAB: MATERIAL & EQUIPMENT (MIT LIVE-BESTANDSPRÜFUNG NACH ZEITRAUM)
+    // TAB: MATERIAL & EQUIPMENT
     else if (currentEventTab === "material" && !isMemberOnly) {
       const groups = {};
       materialItems.forEach(item => {
@@ -3684,7 +3616,7 @@ const Events = {
           <div class="tile-sub">KPIs</div>
         </button>
         <button class="event-tile ${currentEventTab === 'checklist' ? 'active' : ''} vorstand-only" onclick="Events.setTab('checklist')">
-          <div class="tile-title"><span>📋 Checkliste</span></div>
+          <div class="tile-title"><span>📋 Aufgaben</span></div>
           <div class="tile-sub">${doneTasks}/${tasks.length}</div>
         </button>
         <button class="event-tile ${currentEventTab === 'gastro' ? 'active' : ''} vorstand-only" onclick="Events.setTab('gastro')">
@@ -4247,7 +4179,7 @@ const Events = {
     document.getElementById("eventItemEventId").value = eventId;
     document.getElementById("eventItemId").value = itemId || "";
     const isEdit = !!itemId;
-    document.getElementById("event-item-modal-title").textContent = isEdit ? "Aufgabe bearbeiten" : "Freie Aufgabe hinzufügen";
+    document.getElementById("event-item-modal-title").textContent = isEdit ? "Aufgabenpunkt bearbeiten" : "Freie Aufgabe hinzufügen";
 
     const item = isEdit ? e.checkliste.find(i => i.id === itemId) : { bereich: "Allgemein", titel: "", personId: "", datum: "", erledigt: false };
     document.getElementById("eventItemBereich").value = item.bereich || "Allgemein";
@@ -4431,7 +4363,7 @@ const Events = {
       <div style="font-family:sans-serif; color:#222; padding:10px;">
         <h1 style="color:#143f34;">${escapeHtml(e.name)}</h1>
         <p>Zeitraum: ${e.datumStart} bis ${e.datumEnde} | Ort: ${escapeHtml(e.ort || '—')}</p>
-        <h2>Checkliste (${doneTasks}/${tasks.length})</h2>
+        <h2>Aufgaben (${doneTasks}/${tasks.length})</h2>
         <ul>${tasks.map(t => `<li>[${t.erledigt ? 'X' : ' '}] ${escapeHtml(t.bereich)}: ${escapeHtml(t.titel)}</li>`).join("")}</ul>
       </div>
     `;
