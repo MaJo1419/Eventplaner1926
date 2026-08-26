@@ -134,7 +134,7 @@
     color: var(--accent-dark);
     border-bottom: 2px solid var(--accent);
   }
-  main { max-width: 1240px; margin: 0 auto; padding: 24px; }
+  main { max-width: 1800px; width: 96%; margin: 0 auto; padding: 24px; }
   .view { display: none; }
   .view.active { display: block; }
   .toolbar {
@@ -226,6 +226,17 @@
   }
   .subtable td { padding: 7px 8px; border-bottom: 1px solid var(--border); vertical-align: middle; }
   .subtable tr:last-child td { border-bottom: none; }
+  .we-input {
+    padding: 4px 6px;
+    font-size: 12.5px;
+    border: 1px solid var(--border-strong);
+    border-radius: 6px;
+    text-align: center;
+  }
+  .we-input:focus { outline: none; border-color: var(--accent); }
+  .we-cell { display: inline-flex; flex-direction: column; gap: 3px; align-items: flex-start; }
+  .we-row { display: flex; align-items: center; gap: 5px; white-space: nowrap; }
+  .we-label { font-size: 10.5px; color: var(--text-muted); width: 48px; text-align: right; flex-shrink: 0; }
   .empty-state {
     text-align: center;
     padding: 40px 20px;
@@ -1173,7 +1184,7 @@
    ZENTRALE KONFIGURATION & DATENSCHICHT
    ============================================================ */
 
-const APP_VERSION = "0.1.073";
+const APP_VERSION = "0.1.077";
 let currentUserProfile = { role: "A", actualRole: "A", email: "", name: "" };
 
 function uid(prefix) {
@@ -1501,6 +1512,55 @@ function toast(msg) {
 
 function escapeHtml(str) {
   return String(str ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+// ---- Wareneingang & Verbrauch: Helper ----
+function getEventDateRange(start, end) {
+  if (!start) return [];
+  const endDate = end || start;
+  const dates = [];
+  let cur = new Date(start + "T00:00:00");
+  const last = new Date(endDate + "T00:00:00");
+  if (isNaN(cur) || isNaN(last) || cur > last) return start ? [start] : [];
+  while (cur <= last) {
+    dates.push(cur.toISOString().slice(0, 10));
+    cur.setDate(cur.getDate() + 1);
+  }
+  return dates;
+}
+
+function isKistenEinheit(einheit) {
+  return /k[iäa]st/i.test(einheit || "");
+}
+
+function formatDatumKurz(iso) {
+  if (!iso) return "";
+  const [y, m, d] = iso.split("-");
+  return `${d}.${m}.`;
+}
+
+function berechneGastroVerbrauch(item, dates) {
+  const proTag = [];
+  let vorMenge = item.geliefert?.menge ?? null;
+  let vorEinzeln = item.geliefert?.einzeln ?? null;
+  dates.forEach(datum => {
+    const rest = item.restbestandProTag?.[datum] || {};
+    const restMenge = rest.menge ?? null;
+    const restEinzeln = rest.einzeln ?? null;
+    const verbrauchMenge = (vorMenge !== null && restMenge !== null) ? (vorMenge - restMenge) : null;
+    const verbrauchEinzeln = (vorEinzeln !== null && restEinzeln !== null) ? (vorEinzeln - restEinzeln) : null;
+    proTag.push({ datum, restMenge, restEinzeln, verbrauchMenge, verbrauchEinzeln });
+    vorMenge = restMenge !== null ? restMenge : vorMenge;
+    vorEinzeln = restEinzeln !== null ? restEinzeln : vorEinzeln;
+  });
+  const letzterTagMitRest = [...proTag].reverse().find(t => t.restMenge !== null || t.restEinzeln !== null);
+  const gesamt = {
+    menge: (item.geliefert?.menge != null && letzterTagMitRest && letzterTagMitRest.restMenge !== null)
+      ? item.geliefert.menge - letzterTagMitRest.restMenge : null,
+    einzeln: (item.geliefert?.einzeln != null && letzterTagMitRest && letzterTagMitRest.restEinzeln !== null)
+      ? item.geliefert.einzeln - letzterTagMitRest.restEinzeln : null
+  };
+  return { proTag, gesamt };
 }
 
 function copyToClipboard(text) {
@@ -3194,7 +3254,7 @@ const Events = {
 
     const isMemberOnly = currentUserProfile.role === "C";
     
-    if (isMemberOnly && (currentEventTab === 'dashboard' || currentEventTab === 'orga' || currentEventTab === 'checklist' || currentEventTab === 'gastro' || currentEventTab === 'material')) {
+    if (isMemberOnly && (currentEventTab === 'dashboard' || currentEventTab === 'orga' || currentEventTab === 'checklist' || currentEventTab === 'gastro' || currentEventTab === 'material' || currentEventTab === 'wareneingang')) {
       currentEventTab = 'schichten';
     }
 
@@ -3493,6 +3553,97 @@ const Events = {
         }).join("")}
       `;
     } 
+    // TAB: WARENEINGANG & VERBRAUCH (GASTRO)
+    else if (currentEventTab === "wareneingang" && !isMemberOnly) {
+      const eventDates = getEventDateRange(e.datumStart, e.datumEnde);
+      const groupsWE = {};
+      gastroItems.forEach(item => {
+        const b = item.bereich || "Allgemein";
+        if (!groupsWE[b]) groupsWE[b] = [];
+        groupsWE[b].push(item);
+      });
+
+      const weNumInput = (value, onchange, width) => `
+        <input type="number" step="any" class="we-input" style="width:${width || 60}px;" value="${value ?? ""}" placeholder="–" onchange="${onchange}">
+      `;
+
+      const weEditCell = (mengeVal, mengeOnchange, einzelnVal, einzelnOnchange, kisten) => {
+        if (!kisten) return weNumInput(mengeVal, mengeOnchange);
+        return `
+          <div class="we-cell">
+            <div class="we-row"><span class="we-label">Kisten</span>${weNumInput(mengeVal, mengeOnchange, 52)}</div>
+            <div class="we-row"><span class="we-label">Flaschen</span>${weNumInput(einzelnVal, einzelnOnchange, 52)}</div>
+          </div>
+        `;
+      };
+
+      const weReadCell = (mengeVal, einzelnVal, kisten) => {
+        if (!kisten) return mengeVal !== null ? mengeVal : '–';
+        return `
+          <div class="we-cell">
+            <div class="we-row"><span class="we-label">Kisten</span>${mengeVal !== null ? mengeVal : '–'}</div>
+            <div class="we-row"><span class="we-label">Flaschen</span>${einzelnVal !== null ? einzelnVal : '–'}</div>
+          </div>
+        `;
+      };
+
+      tabContentHtml = `
+        <div class="toolbar" style="margin-top:14px;background:#fff;padding:12px 14px;border:1px solid var(--border);border-radius:8px;">
+          <div class="desc">Theoretische Menge aus der Gastro-Liste, Bestätigung der Lieferung und täglicher Bestand zur Ermittlung des Verbrauchs. ${eventDates.length > 1 ? `Zeitraum: ${eventDates.length} Tage.` : ""}</div>
+        </div>
+        ${eventDates.length === 0 ? '<div class="empty-state">Bitte zuerst ein Startdatum für das Event hinterlegen.</div>' : ''}
+        ${gastroItems.length === 0 ? '<div class="empty-state">Keine Gastro-Artikel für dieses Event vorhanden.</div>' : Object.keys(groupsWE).map(bereichName => `
+          <div class="bereich-header-row">
+            <span class="b-title">🍽️ ${escapeHtml(bereichName)}</span>
+          </div>
+          <div style="overflow-x:auto;">
+            <table class="subtable matrix-table" style="white-space:nowrap;">
+              <thead>
+                <tr>
+                  <th style="min-width:160px;">Artikel</th>
+                  <th>Theoret. Menge</th>
+                  <th>Geliefert</th>
+                  ${eventDates.map(d => `<th>Bestand ${formatDatumKurz(d)}</th><th>Verbrauch ${formatDatumKurz(d)}</th>`).join("")}
+                  ${eventDates.length > 1 ? '<th>Verbrauch gesamt</th>' : ''}
+                </tr>
+              </thead>
+              <tbody>
+                ${groupsWE[bereichName].map(item => {
+                  const kisten = isKistenEinheit(item.einheit);
+                  const { proTag, gesamt } = berechneGastroVerbrauch(item, eventDates);
+                  return `
+                    <tr>
+                      <td><strong>${escapeHtml(item.name)}</strong><div class="meta">${escapeHtml(item.einheit || "")}</div></td>
+                      <td>${item.menge} ${escapeHtml(item.einheit || "")}</td>
+                      <td>
+                        ${weEditCell(
+                          item.geliefert?.menge, `Events.updateGastroGeliefert('${e.id}','${item.id}','menge',this.value)`,
+                          item.geliefert?.einzeln, `Events.updateGastroGeliefert('${e.id}','${item.id}','einzeln',this.value)`,
+                          kisten
+                        )}
+                      </td>
+                      ${proTag.map(t => `
+                        <td>
+                          ${weEditCell(
+                            t.restMenge, `Events.updateGastroRestbestand('${e.id}','${item.id}','${t.datum}','menge',this.value)`,
+                            t.restEinzeln, `Events.updateGastroRestbestand('${e.id}','${item.id}','${t.datum}','einzeln',this.value)`,
+                            kisten
+                          )}
+                        </td>
+                        <td class="meta">${weReadCell(t.verbrauchMenge, t.verbrauchEinzeln, kisten)}</td>
+                      `).join("")}
+                      ${eventDates.length > 1 ? `
+                        <td><strong>${weReadCell(gesamt.menge, gesamt.einzeln, kisten)}</strong></td>
+                      ` : ''}
+                    </tr>
+                  `;
+                }).join("")}
+              </tbody>
+            </table>
+          </div>
+        `).join("")}
+      `;
+    }
     // TAB: MATERIAL & EQUIPMENT (MIT LIEFERANT, ZUSTÄNDIG & FILTER)
     else if (currentEventTab === "material" && !isMemberOnly) {
       const allLieferanten = Store.data.lieferanten || [];
@@ -3676,6 +3827,10 @@ const Events = {
           <div class="tile-title"><span>📦 Material</span></div>
           <div class="tile-sub">${materialItems.length} Pos.</div>
         </button>
+        <button type="button" class="event-tile ${currentEventTab === 'wareneingang' ? 'active' : ''} vorstand-only" onclick="Events.setTab('wareneingang')">
+          <div class="tile-title"><span>🧾 Wareneingang</span></div>
+          <div class="tile-sub">Verbrauch</div>
+        </button>
         <button type="button" class="event-tile ${currentEventTab === 'schichten' ? 'active' : ''}" onclick="Events.setTab('schichten')">
           <div class="tile-title"><span>👥 Schichten</span></div>
           <div class="tile-sub">${(e.schichten || []).length} aktiv</div>
@@ -3759,6 +3914,27 @@ const Events = {
     currentGastroFilterLieferant = val;
     const currentId = document.getElementById("event-detail-panel").dataset.eventId;
     if (currentId) this.openDetail(currentId);
+  },
+
+  async updateGastroGeliefert(eventId, itemId, field, value) {
+    const e = Store.getEvent(eventId);
+    if (!e || !e.gastroListe) return;
+    const item = e.gastroListe.find(i => i.id === itemId);
+    if (!item) return;
+    if (!item.geliefert) item.geliefert = { menge: null, einzeln: null };
+    item.geliefert[field] = value === "" ? null : Number(value);
+    await Store.updateEventField(eventId, { gastroListe: e.gastroListe });
+  },
+
+  async updateGastroRestbestand(eventId, itemId, datum, field, value) {
+    const e = Store.getEvent(eventId);
+    if (!e || !e.gastroListe) return;
+    const item = e.gastroListe.find(i => i.id === itemId);
+    if (!item) return;
+    if (!item.restbestandProTag) item.restbestandProTag = {};
+    if (!item.restbestandProTag[datum]) item.restbestandProTag[datum] = { menge: null, einzeln: null };
+    item.restbestandProTag[datum][field] = value === "" ? null : Number(value);
+    await Store.updateEventField(eventId, { gastroListe: e.gastroListe });
   },
 
   setMaterialLieferantFilter(val) {
