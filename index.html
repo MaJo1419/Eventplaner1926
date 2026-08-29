@@ -531,10 +531,13 @@
   }
   .toast.show { opacity: 1; }
   input[type=file] { display: none; }
+  #pdf-render-area { display: none; }
   @media print {
     header, nav.tabs, .toolbar, .back-link, .card-actions, footer.toolbar-io, .event-tiles-nav, .no-print { display: none !important; }
     body { background: #fff; }
     main { max-width: 100%; padding: 0; }
+    body.printing-report > *:not(#pdf-render-area) { display: none !important; }
+    body.printing-report #pdf-render-area { display: block !important; }
   }
 
   @media screen and (max-width: 768px) {
@@ -976,8 +979,16 @@
     <h3 id="event-material-item-modal-title">Material-Position bearbeiten</h3>
     <input type="hidden" id="eventMaterialItemEventId">
     <input type="hidden" id="eventMaterialItemid">
-    <div class="field"><label>Bereich</label><input id="eventMaterialItemBereich" placeholder="z. B. Möbel"></div>
-    <div class="field"><label>Artikel</label><input id="eventMaterialItemName"></div>
+    <div class="field">
+      <label>Bereich</label>
+      <select id="eventMaterialItemBereichSelect" onchange="Events.onComboSelectChange('eventMaterialItemBereich', this.value)" style="margin-bottom:6px;"></select>
+      <input id="eventMaterialItemBereich" placeholder="z. B. Möbel">
+    </div>
+    <div class="field">
+      <label>Artikel</label>
+      <select id="eventMaterialItemNameSelect" onchange="Events.onComboSelectChange('eventMaterialItemName', this.value)" style="margin-bottom:6px;"></select>
+      <input id="eventMaterialItemName">
+    </div>
     <div class="field-row">
       <div class="field"><label>Menge</label><input type="number" step="any" min="0" id="eventMaterialItemMenge"></div>
       <div class="field"><label>Einheit</label><input id="eventMaterialItemEinheit"></div>
@@ -1008,8 +1019,16 @@
     <h3 id="event-gastro-item-modal-title">Gastro-Position bearbeiten</h3>
     <input type="hidden" id="eventGastroItemEventId">
     <input type="hidden" id="eventGastroItemId">
-    <div class="field"><label>Bereich</label><input id="eventGastroItemBereich" placeholder="z. B. Getränke"></div>
-    <div class="field"><label>Artikel</label><input id="eventGastroItemName" placeholder="z. B. Sondergetränk"></div>
+    <div class="field">
+      <label>Bereich</label>
+      <select id="eventGastroItemBereichSelect" onchange="Events.onComboSelectChange('eventGastroItemBereich', this.value)" style="margin-bottom:6px;"></select>
+      <input id="eventGastroItemBereich" placeholder="z. B. Getränke">
+    </div>
+    <div class="field">
+      <label>Artikel</label>
+      <select id="eventGastroItemNameSelect" onchange="Events.onComboSelectChange('eventGastroItemName', this.value)" style="margin-bottom:6px;"></select>
+      <input id="eventGastroItemName" placeholder="z. B. Sondergetränk">
+    </div>
     <div class="field-row">
       <div class="field"><label>Menge</label><input type="number" step="any" min="0" id="eventGastroItemMenge"></div>
       <div class="field"><label>Einheit</label><input id="eventGastroItemEinheit" placeholder="z. B. Kästen, Stk."></div>
@@ -1220,8 +1239,16 @@
     <h3 id="event-item-modal-title">Aufgabenpunkt bearbeiten</h3>
     <input type="hidden" id="eventItemEventId">
     <input type="hidden" id="eventItemId">
-    <div class="field"><label>Bereich</label><input id="eventItemBereich" placeholder="z. B. Technik"></div>
-    <div class="field"><label>Aufgabe / Objekt</label><input id="eventItemTitel"></div>
+    <div class="field">
+      <label>Bereich</label>
+      <select id="eventItemBereichSelect" onchange="Events.onComboSelectChange('eventItemBereich', this.value)" style="margin-bottom:6px;"></select>
+      <input id="eventItemBereich" placeholder="z. B. Technik">
+    </div>
+    <div class="field">
+      <label>Aufgabe / Objekt</label>
+      <select id="eventItemTitelSelect" onchange="Events.onComboSelectChange('eventItemTitel', this.value)" style="margin-bottom:6px;"></select>
+      <input id="eventItemTitel">
+    </div>
     <div class="field"><label>Verantwortliche Person</label><select id="eventItemPerson"></select></div>
     <div class="field-row">
       <div class="field"><label>Fällig / Erledigt am</label><input type="date" id="eventItemDatum"></div>
@@ -1247,7 +1274,7 @@
    ZENTRALE KONFIGURATION & DATENSCHICHT
    ============================================================ */
 
-const APP_VERSION = "0.1.084";
+const APP_VERSION = "0.1.088";
 let currentUserProfile = { role: "A", actualRole: "A", email: "", name: "" };
 
 function uid(prefix) {
@@ -3043,7 +3070,7 @@ const Events = {
           <div style="display:flex;align-items:center;gap:6px;" onclick="event.stopPropagation();">
             <span class="status-tag status-${e.status}">${{ geplant: "Geplant", bestaetigt: "Bestätigt", abgeschlossen: "Abgeschlossen" }[e.status]}</span>
             <button type="button" class="btn secondary small vorstand-only" onclick="Events.duplicate('${e.id}')" title="Event klonen">📑 Klonen</button>
-            <button type="button" class="btn secondary small vorstand-only" onclick="Events.exportEventPDF('${e.id}')">📄 PDF</button>
+            <button type="button" class="btn secondary small vorstand-only" onclick="Events.exportEventPDF('${e.id}', 'dashboard')">📄 PDF</button>
             <button type="button" class="btn secondary small vorstand-only" onclick="Events.openForm('${e.id}')">Bearbeiten</button>
             <button type="button" class="btn danger small admin-only" onclick="Events.remove('${e.id}')">Löschen</button>
           </div>
@@ -3319,51 +3346,293 @@ const Events = {
   },
 
   shareWhatsApp(eventId) {
+    const report = this.buildEventReport(eventId, currentEventTab);
+    copyToClipboard(report.text);
+    toast("In die Zwischenablage kopiert – jetzt in WhatsApp einfügen!");
+  },
+
+  exportEventPDF(eventId, tab) {
+    const report = this.buildEventReport(eventId, tab || currentEventTab);
+    const pdfArea = document.getElementById("pdf-render-area");
+    pdfArea.innerHTML = report.html;
+    pdfArea.style.display = "block";
+
+    const opt = { margin: 10, filename: `${report.title.replace(/[^\w\-]+/g, "_")}.pdf`, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4' } };
+    html2pdf().set(opt).from(pdfArea).save().then(() => {
+      pdfArea.style.display = "none";
+      pdfArea.innerHTML = "";
+      toast("PDF exportiert!");
+    });
+  },
+
+  printEventView(eventId) {
+    const report = this.buildEventReport(eventId, currentEventTab);
+    const pdfArea = document.getElementById("pdf-render-area");
+    pdfArea.innerHTML = report.html;
+    document.body.classList.add("printing-report");
+
+    const cleanup = () => {
+      document.body.classList.remove("printing-report");
+      pdfArea.innerHTML = "";
+      pdfArea.style.display = "none";
+      window.removeEventListener("afterprint", cleanup);
+    };
+    window.addEventListener("afterprint", cleanup);
+    setTimeout(() => window.print(), 50);
+  },
+
+  // ---- Report-Baukasten: baut je nach aktivem Tab die passenden Abschnitte ----
+  buildEventReport(eventId, tab) {
     const e = Store.getEvent(eventId);
-    if (!e) return;
-    const k = Store.getKategorie(e.kategorieId);
+    const k = e ? Store.getKategorie(e.kategorieId) : null;
+    if (!e || !k) return { title: "", html: "<p>Event nicht gefunden.</p>", text: "Event nicht gefunden." };
 
-    const tasks = e.checkliste || [];
-    const doneTasks = tasks.filter(t => t.erledigt).length;
-    const taskPct = tasks.length > 0 ? Math.round((doneTasks / tasks.length) * 100) : 0;
+    const blocks = {
+      aufgaben: this.reportBlockAufgaben(e),
+      gastro: this.reportBlockGastro(e),
+      wareneingang: this.reportBlockWareneingang(e),
+      material: this.reportBlockMaterial(e),
+      schichten: this.reportBlockSchichten(e),
+      personal: this.reportBlockPersonal(e, k)
+    };
 
-    const gastro = e.gastroListe || [];
-    const doneGastro = gastro.filter(g => g.status === 'geliefert' || g.status === 'bestellt').length;
+    const tabMap = {
+      dashboard: ['aufgaben', 'gastro', 'wareneingang', 'material', 'schichten', 'personal'],
+      checklist: ['aufgaben'],
+      gastro: ['gastro'],
+      material: ['material'],
+      wareneingang: ['wareneingang'],
+      schichten: ['schichten'],
+      orga: ['personal']
+    };
+    const titelMap = { dashboard: "Übersicht", checklist: "Aufgaben", gastro: "Gastro", material: "Material", wareneingang: "Wareneingang", schichten: "Schichten", orga: "Personal" };
+    const keys = tabMap[tab] || tabMap.dashboard;
+    const abschnittTitel = titelMap[tab] || "Übersicht";
 
-    let gesamtSollMin = 0;
-    let gesamtIst = 0;
-    if (k && k.verkaufsstellen) {
-      k.verkaufsstellen.forEach(vs => {
-        gesamtSollMin += vs.personalMin || 0;
-        gesamtIst += Number(e.personalIst?.[vs.id]) || 0;
-      });
-    }
+    const meta = this.reportBlockMeta(e, k, abschnittTitel);
 
+    const html = `
+      <div style="font-family:sans-serif;color:#222;padding:15px;">
+        ${meta.html}
+        ${keys.map(key => blocks[key].html).join("")}
+      </div>
+    `;
+    const text = `${meta.text}\n${keys.map(key => blocks[key].text).join("\n")}`;
+
+    return { title: `${e.name}_${abschnittTitel}`, html, text };
+  },
+
+  reportBlockMeta(e, k, abschnittTitel) {
     const datumAnzeige = e.datumStart === e.datumEnde || !e.datumEnde ? (e.datumStart || 'Noch offen') : `${e.datumStart} bis ${e.datumEnde}`;
+    const html = `
+      <h1 style="color:#143f34;font-size:20px;margin-bottom:2px;">${escapeHtml(e.name)}</h1>
+      <div style="font-size:12px;color:#888;margin-bottom:2px;">${escapeHtml(abschnittTitel)}</div>
+      <div style="font-size:13px;color:#555;margin-bottom:14px;border-bottom:1px solid #ddd;padding-bottom:10px;">
+        🗓 ${escapeHtml(datumAnzeige)}${e.ort ? ` &middot; 📍 ${escapeHtml(e.ort)}` : ""} &middot; 🏷 ${escapeHtml(k.name)}
+      </div>
+    `;
+    const text = `📅 *${e.name.toUpperCase()}* – ${abschnittTitel}\n🗓 ${datumAnzeige}${e.ort ? ` · 📍 ${e.ort}` : ""} · 🏷 ${k.name}\n------------------------------------`;
+    return { html, text };
+  },
 
-    let msg = `📅 *EVENT-UPDATE: ${e.name.toUpperCase()}*\n`;
-    msg += `------------------------------------\n`;
-    msg += `🗓 Zeitraum: ${datumAnzeige}\n`;
-    if (e.ort) msg += `📍 Ort: ${e.ort}\n`;
-    msg += `🏷 Kategorie: ${k ? k.name : '—'}\n\n`;
+  reportBlockAufgaben(e) {
+    const items = e.checkliste || [];
+    const done = items.filter(i => i.erledigt).length;
+    const groups = {};
+    items.forEach(i => { const b = i.bereich || "Allgemein"; if (!groups[b]) groups[b] = []; groups[b].push(i); });
 
-    msg += `📊 *Aktueller Stand:*\n`;
-    msg += `📋 Aufgaben: ${doneTasks}/${tasks.length} erledigt (${taskPct}%)\n`;
-    msg += `🍽 Gastro-Bedarf: ${doneGastro}/${gastro.length} bestellt/bereitgestellt\n`;
-    msg += `👥 Personal: ${gesamtIst}/${gesamtSollMin} Helfer eingeteilt\n\n`;
-
-    const openTasks = tasks.filter(t => !t.erledigt);
-    if (openTasks.length > 0) {
-      msg += `⚠️ *Dringende offene Aufgaben:*\n`;
-      openTasks.slice(0, 3).forEach(t => {
-        const pers = Store.getPerson(t.personId);
-        msg += `• ${t.titel} (${pers ? pers.name : 'Unbesetzt'})\n`;
+    let html = `<h3 style="margin-top:18px;color:#143f34;">📋 Aufgaben (${done}/${items.length} erledigt)</h3>`;
+    if (items.length === 0) html += `<p style="color:#888;">Keine Aufgaben erfasst.</p>`;
+    Object.keys(groups).forEach(b => {
+      html += `<div style="font-weight:600;margin-top:8px;">${escapeHtml(b)}</div><ul style="margin:4px 0 0 18px;padding:0;">`;
+      groups[b].forEach(i => {
+        const pers = Store.getPerson(i.personId);
+        html += `<li>${i.erledigt ? '✅' : '⬜'} ${escapeHtml(i.titel)}${pers ? ` — ${escapeHtml(pers.name)}` : ""}${i.datum ? ` (fällig ${escapeHtml(i.datum)})` : ""}${i.notiz ? `<br><span style="font-size:11px;color:#777;">📝 ${escapeHtml(i.notiz)}</span>` : ""}</li>`;
       });
-      if (openTasks.length > 3) msg += `• ... und ${openTasks.length - 3} weitere\n`;
-      msg += `\n`;
+      html += `</ul>`;
+    });
+
+    let text = `📋 *AUFGABEN* (${done}/${items.length} erledigt)`;
+    Object.keys(groups).forEach(b => {
+      text += `\n\n*${b}:*`;
+      groups[b].forEach(i => {
+        const pers = Store.getPerson(i.personId);
+        text += `\n${i.erledigt ? '✅' : '⬜'} ${i.titel}${pers ? ` (${pers.name})` : ""}${i.datum ? ` – fällig ${i.datum}` : ""}`;
+        if (i.notiz) text += `\n   📝 ${i.notiz}`;
+      });
+    });
+    if (items.length === 0) text += "\nKeine Aufgaben erfasst.";
+
+    return { html, text };
+  },
+
+  reportBlockGastro(e) {
+    const items = e.gastroListe || [];
+    const groups = {};
+    items.forEach(i => { const b = i.bereich || "Allgemein"; if (!groups[b]) groups[b] = []; groups[b].push(i); });
+    const statusLabel = s => s === 'geliefert' ? 'Geliefert' : s === 'bestellt' ? 'Bestellt' : 'Offen';
+
+    let html = `<h3 style="margin-top:18px;color:#143f34;">🍽 Gastro</h3>`;
+    if (items.length === 0) html += `<p style="color:#888;">Keine Gastro-Artikel erfasst.</p>`;
+    Object.keys(groups).forEach(b => {
+      html += `<div style="font-weight:600;margin-top:8px;">${escapeHtml(b)}</div>
+        <table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:4px;">
+          <tr style="border-bottom:1px solid #ccc;"><th style="text-align:left;padding:3px;">Artikel</th><th style="text-align:left;padding:3px;">Menge</th><th style="text-align:left;padding:3px;">Lieferant</th><th style="text-align:left;padding:3px;">Status</th></tr>
+          ${groups[b].map(i => {
+            const lief = Store.getLieferant(i.lieferantId);
+            return `<tr style="border-bottom:1px solid #eee;"><td style="padding:3px;">${escapeHtml(i.name)}</td><td style="padding:3px;">${i.menge} ${escapeHtml(i.einheit)}</td><td style="padding:3px;">${lief ? escapeHtml(lief.name) : "Eigener Bestand"}</td><td style="padding:3px;">${statusLabel(i.status)}</td></tr>`;
+          }).join("")}
+        </table>`;
+    });
+
+    let text = `🍽 *GASTRO*`;
+    Object.keys(groups).forEach(b => {
+      text += `\n\n*${b}:*`;
+      groups[b].forEach(i => {
+        const lief = Store.getLieferant(i.lieferantId);
+        text += `\n• ${i.menge} ${i.einheit} ${i.name} — ${statusLabel(i.status)}${lief ? ` (${lief.name})` : ""}`;
+      });
+    });
+    if (items.length === 0) text += "\nKeine Gastro-Artikel erfasst.";
+
+    return { html, text };
+  },
+
+  reportBlockMaterial(e) {
+    const items = e.materialListe || [];
+    const groups = {};
+    items.forEach(i => { const b = i.bereich || "Allgemein"; if (!groups[b]) groups[b] = []; groups[b].push(i); });
+    const statusLabel = s => s === 'bereit' ? 'Geliefert / Bereit' : s === 'bestellt' ? 'Bestellt' : 'Offen';
+
+    let html = `<h3 style="margin-top:18px;color:#143f34;">📦 Material</h3>`;
+    if (items.length === 0) html += `<p style="color:#888;">Keine Material-Positionen erfasst.</p>`;
+    Object.keys(groups).forEach(b => {
+      html += `<div style="font-weight:600;margin-top:8px;">${escapeHtml(b)}</div>
+        <table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:4px;">
+          <tr style="border-bottom:1px solid #ccc;"><th style="text-align:left;padding:3px;">Artikel</th><th style="text-align:left;padding:3px;">Menge</th><th style="text-align:left;padding:3px;">Lieferant</th><th style="text-align:left;padding:3px;">Status</th></tr>
+          ${groups[b].map(i => {
+            const lief = Store.getLieferant(i.lieferantId);
+            return `<tr style="border-bottom:1px solid #eee;"><td style="padding:3px;">${escapeHtml(i.name)}${i.notiz ? `<br><span style="font-size:10.5px;color:#888;">📝 ${escapeHtml(i.notiz)}</span>` : ""}</td><td style="padding:3px;">${i.menge} ${escapeHtml(i.einheit)}</td><td style="padding:3px;">${lief ? escapeHtml(lief.name) : "Eigener Bestand"}</td><td style="padding:3px;">${statusLabel(i.status)}</td></tr>`;
+          }).join("")}
+        </table>`;
+    });
+
+    let text = `📦 *MATERIAL*`;
+    Object.keys(groups).forEach(b => {
+      text += `\n\n*${b}:*`;
+      groups[b].forEach(i => {
+        const lief = Store.getLieferant(i.lieferantId);
+        text += `\n• ${i.menge} ${i.einheit} ${i.name} — ${statusLabel(i.status)}${lief ? ` (${lief.name})` : ""}`;
+        if (i.notiz) text += `\n   📝 ${i.notiz}`;
+      });
+    });
+    if (items.length === 0) text += "\nKeine Material-Positionen erfasst.";
+
+    return { html, text };
+  },
+
+  reportBlockWareneingang(e) {
+    const items = e.gastroListe || [];
+    const dates = getEventDateRange(e.datumStart, e.datumEnde);
+
+    let html = `<h3 style="margin-top:18px;color:#143f34;">🧾 Wareneingang &amp; Verbrauch</h3>`;
+    let text = `🧾 *WARENEINGANG & VERBRAUCH*`;
+
+    if (items.length === 0 || dates.length === 0) {
+      html += `<p style="color:#888;">Keine Daten vorhanden.</p>`;
+      text += `\nKeine Daten vorhanden.`;
+      return { html, text };
     }
 
-    copyToClipboard(msg);
+    const fmt = (m, ein, gebinde, label) => gebinde ? `${m ?? '–'} / ${ein ?? '–'} ${label}` : `${m ?? '–'}`;
+
+    html += `<table style="width:100%;border-collapse:collapse;font-size:11px;margin-top:6px;">
+      <tr style="border-bottom:1px solid #ccc;"><th style="text-align:left;padding:3px;">Artikel</th><th style="text-align:left;padding:3px;">Geliefert</th><th style="text-align:left;padding:3px;">Bestand (${formatDatumKurz(dates[dates.length - 1])})</th><th style="text-align:left;padding:3px;">Verbrauch gesamt</th></tr>
+      ${items.map(item => {
+        const gebinde = !!(item.stueckProGebinde && item.stueckProGebinde > 0);
+        const label = item.einzelEinheitName || "Einzeln";
+        const { proTag, gesamt } = berechneGastroVerbrauch(item, dates);
+        const letzter = proTag[proTag.length - 1];
+        return `<tr style="border-bottom:1px solid #eee;"><td style="padding:3px;">${escapeHtml(item.name)}</td><td style="padding:3px;">${fmt(item.geliefert?.menge, item.geliefert?.einzeln, gebinde, label)}</td><td style="padding:3px;">${fmt(letzter?.restMenge, letzter?.restEinzeln, gebinde, label)}</td><td style="padding:3px;"><strong>${fmt(gesamt.menge, gesamt.einzeln, gebinde, label)}</strong></td></tr>`;
+      }).join("")}
+    </table>`;
+
+    items.forEach(item => {
+      const gebinde = !!(item.stueckProGebinde && item.stueckProGebinde > 0);
+      const label = item.einzelEinheitName || "Einzeln";
+      const { gesamt } = berechneGastroVerbrauch(item, dates);
+      text += `\n• ${item.name}: Geliefert ${fmt(item.geliefert?.menge, item.geliefert?.einzeln, gebinde, label)}, Verbrauch gesamt ${fmt(gesamt.menge, gesamt.einzeln, gebinde, label)}`;
+    });
+
+    return { html, text };
+  },
+
+  reportBlockSchichten(e) {
+    const schichten = e.schichten || [];
+    const spenden = e.spendenListen || [];
+
+    let html = `<h3 style="margin-top:18px;color:#143f34;">👥 Schichten</h3>`;
+    let text = `👥 *SCHICHTEN*`;
+
+    if (schichten.length === 0 && spenden.length === 0) {
+      html += `<p style="color:#888;">Keine Schichten oder Mitbringlisten angelegt.</p>`;
+      text += `\nKeine Schichten oder Mitbringlisten angelegt.`;
+      return { html, text };
+    }
+
+    if (schichten.length > 0) {
+      html += `<ul style="margin:6px 0 0 18px;padding:0;">`;
+      schichten.forEach(s => {
+        const namen = (s.eintragungen || []).map(en => escapeHtml(en.name)).join(", ") || "Noch niemand eingetragen";
+        html += `<li><strong>${escapeHtml(s.vs)}</strong> (${escapeHtml(s.start)}–${escapeHtml(s.ende)} Uhr, ${s.eintragungen.length}/${s.max} Pers.): ${namen}</li>`;
+        text += `\n📌 ${s.vs} (${s.start}–${s.ende} Uhr, ${s.eintragungen.length}/${s.max} Pers.): ${(s.eintragungen || []).map(en => en.name).join(", ") || "Noch niemand eingetragen"}`;
+      });
+      html += `</ul>`;
+    }
+
+    if (spenden.length > 0) {
+      html += `<div style="font-weight:600;margin-top:10px;">🍰 Mitbringlisten</div><ul style="margin:4px 0 0 18px;padding:0;">`;
+      spenden.forEach(l => {
+        const namen = (l.eintragungen || []).map(en => `${escapeHtml(en.name)} (${escapeHtml(en.wert)})`).join(", ") || "Noch niemand eingetragen";
+        html += `<li><strong>${escapeHtml(l.titel)}</strong>: ${namen}</li>`;
+        text += `\n🍰 ${l.titel}: ${(l.eintragungen || []).map(en => `${en.name} (${en.wert})`).join(", ") || "Noch niemand eingetragen"}`;
+      });
+      html += `</ul>`;
+    }
+
+    return { html, text };
+  },
+
+  reportBlockPersonal(e, k) {
+    const stellen = k.verkaufsstellen || [];
+    let html = `<h3 style="margin-top:18px;color:#143f34;">🏢 Personal je Verkaufsstelle</h3>`;
+    let text = `🏢 *PERSONAL JE VERKAUFSSTELLE*`;
+
+    if (stellen.length === 0) {
+      html += `<p style="color:#888;">Keine Verkaufsstellen hinterlegt.</p>`;
+      text += `\nKeine Verkaufsstellen hinterlegt.`;
+      return { html, text };
+    }
+
+    html += `<table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:6px;">
+      <tr style="border-bottom:1px solid #ccc;"><th style="text-align:left;padding:3px;">Verkaufsstelle</th><th style="text-align:left;padding:3px;">Soll</th><th style="text-align:left;padding:3px;">Ist</th></tr>
+      ${stellen.map(vs => {
+        const ist = e.personalIst?.[vs.id];
+        return `<tr style="border-bottom:1px solid #eee;"><td style="padding:3px;">${escapeHtml(vs.name)}</td><td style="padding:3px;">${vs.personalMin}${vs.personalMax !== vs.personalMin ? "–" + vs.personalMax : ""} Pers.</td><td style="padding:3px;">${ist !== undefined ? ist + " Pers." : "kein Ist erfasst"}</td></tr>`;
+      }).join("")}
+    </table>`;
+
+    stellen.forEach(vs => {
+      const ist = e.personalIst?.[vs.id];
+      text += `\n• ${vs.name}: Soll ${vs.personalMin}${vs.personalMax !== vs.personalMin ? "–" + vs.personalMax : ""}, Ist ${ist !== undefined ? ist : "–"}`;
+    });
+
+    if (k.aufbau || k.abbau) {
+      html += `<div style="margin-top:10px;font-size:12.5px;"><strong>Aufbau-Team:</strong> ${escapeHtml(k.aufbau || "—")}<br><strong>Abbau-Team:</strong> ${escapeHtml(k.abbau || "—")}</div>`;
+      text += `\n\n🔧 Aufbau-Team: ${k.aufbau || "—"}\n🔧 Abbau-Team: ${k.abbau || "—"}`;
+    }
+
+    return { html, text };
   },
 
   getDefaultLieferantForArtikel(name) {
@@ -3997,7 +4266,7 @@ const Events = {
           <button type="button" class="btn small vorstand-only" style="background:#25D366; color:#fff;" onclick="Events.shareWhatsApp('${e.id}')">💬 WhatsApp</button>
           <button type="button" class="btn small vorstand-only" onclick="Events.exportEventPDF('${e.id}')">📄 PDF</button>
           <button type="button" class="btn secondary small vorstand-only" onclick="Events.openForm('${e.id}')">Event bearbeiten</button>
-          <button type="button" class="btn secondary small vorstand-only" onclick="window.print()">Drucken</button>
+          <button type="button" class="btn secondary small vorstand-only" onclick="Events.printEventView('${e.id}')">Drucken</button>
         </div>
       </div>
 
@@ -4051,7 +4320,11 @@ const Events = {
 
     const item = isEdit ? (e.materialListe || []).find(m => m.id === itemId) : { bereich: "Möbel", name: "", menge: 1, einheit: "Stk.", lieferantId: "", personId: "", status: "offen" };
     document.getElementById("eventMaterialItemBereich").value = item.bereich || "Möbel";
+    this.fillComboSelect("eventMaterialItemBereichSelect", [...(Store.data.materialRyder || []).map(b => b.titel), ...(e.materialListe || []).map(m => m.bereich)], item.bereich, "+ Neuer Bereich");
     document.getElementById("eventMaterialItemName").value = item.name || "";
+    this.fillComboSelect("eventMaterialItemNameSelect",
+      [...(Store.data.materialRyder || []).flatMap(b => (b.artikel || []).map(a => a.name)), ...(e.materialListe || []).map(m => m.name)],
+      item.name, "+ Neuer Artikel");
     document.getElementById("eventMaterialItemMenge").value = item.menge || 1;
     document.getElementById("eventMaterialItemEinheit").value = item.einheit || "Stk.";
     document.getElementById("eventMaterialItemStatus").value = item.status || "offen";
@@ -4108,6 +4381,27 @@ const Events = {
     currentGastroFilterLieferant = val;
     const currentId = document.getElementById("event-detail-panel").dataset.eventId;
     if (currentId) this.openDetail(currentId);
+  },
+
+  fillComboSelect(selectId, values, currentValue, neuLabel) {
+    const sel = document.getElementById(selectId);
+    if (!sel) return;
+    const vorhandene = [...new Set((values || []).filter(Boolean))].sort((a, b) => a.localeCompare(b, "de"));
+    const istNeu = !currentValue || !vorhandene.includes(currentValue);
+    sel.innerHTML =
+      vorhandene.map(v => `<option value="${escapeHtml(v)}" ${(!istNeu && v === currentValue) ? "selected" : ""}>${escapeHtml(v)}</option>`).join("") +
+      `<option value="__new__" ${istNeu ? "selected" : ""}>${escapeHtml(neuLabel || "+ Neu")}</option>`;
+  },
+
+  onComboSelectChange(inputId, value) {
+    const inp = document.getElementById(inputId);
+    if (!inp) return;
+    if (value === "__new__") {
+      inp.value = "";
+      inp.focus();
+    } else if (value) {
+      inp.value = value;
+    }
   },
 
   async updateGastroGeliefert(eventId, itemId, field, value) {
@@ -4208,7 +4502,11 @@ const Events = {
     if (isEdit && !item) return;
 
     document.getElementById("eventItemBereich").value = item.bereich || "Allgemein";
+    this.fillComboSelect("eventItemBereichSelect", [...(Store.data.ryder || []).map(b => b.titel), ...(e.checkliste || []).map(c => c.bereich)], item.bereich, "+ Neuer Bereich");
     document.getElementById("eventItemTitel").value = item.titel || "";
+    this.fillComboSelect("eventItemTitelSelect",
+      [...(Store.data.ryder || []).flatMap(b => (b.punkte || []).map(p => p.titel)), ...(e.checkliste || []).map(c => c.titel)],
+      item.titel, "+ Neue Aufgabe");
     document.getElementById("eventItemDatum").value = item.datum || "";
     document.getElementById("eventItemDone").value = item.erledigt ? "true" : "false";
     document.getElementById("eventItemNotiz").value = item.notiz || "";
@@ -4291,7 +4589,11 @@ const Events = {
     if (isEdit && !item) return;
 
     document.getElementById("eventGastroItemBereich").value = item.bereich || "Allgemein";
+    this.fillComboSelect("eventGastroItemBereichSelect", [...(Store.data.gastroRyder || []).map(b => b.titel), ...(e.gastroListe || []).map(g => g.bereich)], item.bereich, "+ Neuer Bereich");
     document.getElementById("eventGastroItemName").value = item.name || "";
+    this.fillComboSelect("eventGastroItemNameSelect",
+      [...(Store.data.gastroRyder || []).flatMap(b => (b.artikel || []).map(a => a.name)), ...(e.gastroListe || []).map(g => g.name)],
+      item.name, "+ Neuer Artikel");
     document.getElementById("eventGastroItemMenge").value = item.menge ?? 1;
     document.getElementById("eventGastroItemEinheit").value = item.einheit || "";
     document.getElementById("eventGastroItemStueckProGebinde").value = item.stueckProGebinde ?? "";
