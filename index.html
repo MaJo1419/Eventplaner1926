@@ -819,6 +819,10 @@
     <input type="hidden" id="spendeEventId">
     <input type="hidden" id="spendeListeId">
     <div class="field"><label>Listen-Titel</label><input id="spendeTitel" placeholder="z. B. Kuchenliste 🍰, Spieleliste 🎲"></div>
+    <div class="field">
+      <label>Tag (optional)</label>
+      <select id="spendeDatumSelect"></select>
+    </div>
     <div class="field"><label>Info-Text / Beschreibung (optional)</label><textarea id="spendeInfo" placeholder="z. B. Bitte am Event-Tag bis 13 Uhr am Stand abgeben. Danke!"></textarea></div>
     <div class="field-row">
       <div class="field">
@@ -873,6 +877,10 @@
     <input type="hidden" id="schichtEventId">
     <input type="hidden" id="schichtId">
     
+    <div class="field">
+      <label>Tag</label>
+      <select id="schichtDatumSelect"></select>
+    </div>
     <div class="field">
       <label>Verkaufsstelle / Stand</label>
       <select id="schichtVsSelect" onchange="Events.onSchichtVsSelectChange()"></select>
@@ -1274,7 +1282,7 @@
    ZENTRALE KONFIGURATION & DATENSCHICHT
    ============================================================ */
 
-const APP_VERSION = "0.1.088";
+const APP_VERSION = "0.1.089";
 let currentUserProfile = { role: "A", actualRole: "A", email: "", name: "" };
 
 function uid(prefix) {
@@ -3466,6 +3474,30 @@ const Events = {
     return { html, text };
   },
 
+  // Baut eine sauber formatierte Tabelle: bordiert, farbiger Kopf, gepolsterte Zellen.
+  reportTable(headers, rowsHtml) {
+    return `
+      <table style="width:100%;border-collapse:collapse;font-size:12px;margin:6px 0 4px;border:1px solid #d8ddd9;">
+        <thead>
+          <tr style="background:#eef4ef;">
+            ${headers.map(h => `<th style="text-align:left;padding:7px 9px;border-bottom:1px solid #d8ddd9;color:#143f34;font-size:11.5px;text-transform:uppercase;letter-spacing:.02em;">${h}</th>`).join("")}
+          </tr>
+        </thead>
+        <tbody>${rowsHtml}</tbody>
+      </table>
+    `;
+  },
+
+  // Umrahmt einen Bereichs-Abschnitt als leichte Karte, damit sich Gruppen optisch trennen.
+  reportSectionCard(titel, innerHtml) {
+    return `
+      <div style="margin:10px 0 14px;padding:10px 12px 12px;border:1px solid #e2e6e3;border-radius:8px;background:#fbfbfa;">
+        <div style="font-weight:700;color:#143f34;font-size:13px;margin-bottom:2px;">${titel}</div>
+        ${innerHtml}
+      </div>
+    `;
+  },
+
   reportBlockGastro(e) {
     const items = e.gastroListe || [];
     const groups = {};
@@ -3475,14 +3507,16 @@ const Events = {
     let html = `<h3 style="margin-top:18px;color:#143f34;">🍽 Gastro</h3>`;
     if (items.length === 0) html += `<p style="color:#888;">Keine Gastro-Artikel erfasst.</p>`;
     Object.keys(groups).forEach(b => {
-      html += `<div style="font-weight:600;margin-top:8px;">${escapeHtml(b)}</div>
-        <table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:4px;">
-          <tr style="border-bottom:1px solid #ccc;"><th style="text-align:left;padding:3px;">Artikel</th><th style="text-align:left;padding:3px;">Menge</th><th style="text-align:left;padding:3px;">Lieferant</th><th style="text-align:left;padding:3px;">Status</th></tr>
-          ${groups[b].map(i => {
-            const lief = Store.getLieferant(i.lieferantId);
-            return `<tr style="border-bottom:1px solid #eee;"><td style="padding:3px;">${escapeHtml(i.name)}</td><td style="padding:3px;">${i.menge} ${escapeHtml(i.einheit)}</td><td style="padding:3px;">${lief ? escapeHtml(lief.name) : "Eigener Bestand"}</td><td style="padding:3px;">${statusLabel(i.status)}</td></tr>`;
-          }).join("")}
-        </table>`;
+      const rows = groups[b].map(i => {
+        const lief = Store.getLieferant(i.lieferantId);
+        return `<tr style="border-bottom:1px solid #eee;">
+          <td style="padding:6px 9px;">${escapeHtml(i.name)}</td>
+          <td style="padding:6px 9px;white-space:nowrap;">${i.menge} ${escapeHtml(i.einheit)}</td>
+          <td style="padding:6px 9px;">${lief ? escapeHtml(lief.name) : "Eigener Bestand"}</td>
+          <td style="padding:6px 9px;">${statusLabel(i.status)}</td>
+        </tr>`;
+      }).join("");
+      html += this.reportSectionCard(escapeHtml(b), this.reportTable(["Artikel", "Menge", "Lieferant", "Status"], rows));
     });
 
     let text = `🍽 *GASTRO*`;
@@ -3507,14 +3541,16 @@ const Events = {
     let html = `<h3 style="margin-top:18px;color:#143f34;">📦 Material</h3>`;
     if (items.length === 0) html += `<p style="color:#888;">Keine Material-Positionen erfasst.</p>`;
     Object.keys(groups).forEach(b => {
-      html += `<div style="font-weight:600;margin-top:8px;">${escapeHtml(b)}</div>
-        <table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:4px;">
-          <tr style="border-bottom:1px solid #ccc;"><th style="text-align:left;padding:3px;">Artikel</th><th style="text-align:left;padding:3px;">Menge</th><th style="text-align:left;padding:3px;">Lieferant</th><th style="text-align:left;padding:3px;">Status</th></tr>
-          ${groups[b].map(i => {
-            const lief = Store.getLieferant(i.lieferantId);
-            return `<tr style="border-bottom:1px solid #eee;"><td style="padding:3px;">${escapeHtml(i.name)}${i.notiz ? `<br><span style="font-size:10.5px;color:#888;">📝 ${escapeHtml(i.notiz)}</span>` : ""}</td><td style="padding:3px;">${i.menge} ${escapeHtml(i.einheit)}</td><td style="padding:3px;">${lief ? escapeHtml(lief.name) : "Eigener Bestand"}</td><td style="padding:3px;">${statusLabel(i.status)}</td></tr>`;
-          }).join("")}
-        </table>`;
+      const rows = groups[b].map(i => {
+        const lief = Store.getLieferant(i.lieferantId);
+        return `<tr style="border-bottom:1px solid #eee;">
+          <td style="padding:6px 9px;">${escapeHtml(i.name)}${i.notiz ? `<br><span style="font-size:10.5px;color:#888;">📝 ${escapeHtml(i.notiz)}</span>` : ""}</td>
+          <td style="padding:6px 9px;white-space:nowrap;">${i.menge} ${escapeHtml(i.einheit)}</td>
+          <td style="padding:6px 9px;">${lief ? escapeHtml(lief.name) : "Eigener Bestand"}</td>
+          <td style="padding:6px 9px;">${statusLabel(i.status)}</td>
+        </tr>`;
+      }).join("");
+      html += this.reportSectionCard(escapeHtml(b), this.reportTable(["Artikel", "Menge", "Lieferant", "Status"], rows));
     });
 
     let text = `📦 *MATERIAL*`;
@@ -3546,16 +3582,19 @@ const Events = {
 
     const fmt = (m, ein, gebinde, label) => gebinde ? `${m ?? '–'} / ${ein ?? '–'} ${label}` : `${m ?? '–'}`;
 
-    html += `<table style="width:100%;border-collapse:collapse;font-size:11px;margin-top:6px;">
-      <tr style="border-bottom:1px solid #ccc;"><th style="text-align:left;padding:3px;">Artikel</th><th style="text-align:left;padding:3px;">Geliefert</th><th style="text-align:left;padding:3px;">Bestand (${formatDatumKurz(dates[dates.length - 1])})</th><th style="text-align:left;padding:3px;">Verbrauch gesamt</th></tr>
-      ${items.map(item => {
-        const gebinde = !!(item.stueckProGebinde && item.stueckProGebinde > 0);
-        const label = item.einzelEinheitName || "Einzeln";
-        const { proTag, gesamt } = berechneGastroVerbrauch(item, dates);
-        const letzter = proTag[proTag.length - 1];
-        return `<tr style="border-bottom:1px solid #eee;"><td style="padding:3px;">${escapeHtml(item.name)}</td><td style="padding:3px;">${fmt(item.geliefert?.menge, item.geliefert?.einzeln, gebinde, label)}</td><td style="padding:3px;">${fmt(letzter?.restMenge, letzter?.restEinzeln, gebinde, label)}</td><td style="padding:3px;"><strong>${fmt(gesamt.menge, gesamt.einzeln, gebinde, label)}</strong></td></tr>`;
-      }).join("")}
-    </table>`;
+    const rows = items.map(item => {
+      const gebinde = !!(item.stueckProGebinde && item.stueckProGebinde > 0);
+      const label = item.einzelEinheitName || "Einzeln";
+      const { proTag, gesamt } = berechneGastroVerbrauch(item, dates);
+      const letzter = proTag[proTag.length - 1];
+      return `<tr style="border-bottom:1px solid #eee;">
+        <td style="padding:6px 9px;">${escapeHtml(item.name)}</td>
+        <td style="padding:6px 9px;white-space:nowrap;">${fmt(item.geliefert?.menge, item.geliefert?.einzeln, gebinde, label)}</td>
+        <td style="padding:6px 9px;white-space:nowrap;">${fmt(letzter?.restMenge, letzter?.restEinzeln, gebinde, label)}</td>
+        <td style="padding:6px 9px;white-space:nowrap;"><strong>${fmt(gesamt.menge, gesamt.einzeln, gebinde, label)}</strong></td>
+      </tr>`;
+    }).join("");
+    html += this.reportTable(["Artikel", "Geliefert", `Bestand (${formatDatumKurz(dates[dates.length - 1])})`, "Verbrauch gesamt"], rows);
 
     items.forEach(item => {
       const gebinde = !!(item.stueckProGebinde && item.stueckProGebinde > 0);
@@ -3580,19 +3619,49 @@ const Events = {
       return { html, text };
     }
 
-    if (schichten.length > 0) {
-      html += `<ul style="margin:6px 0 0 18px;padding:0;">`;
-      schichten.forEach(s => {
-        const namen = (s.eintragungen || []).map(en => escapeHtml(en.name)).join(", ") || "Noch niemand eingetragen";
-        html += `<li><strong>${escapeHtml(s.vs)}</strong> (${escapeHtml(s.start)}–${escapeHtml(s.ende)} Uhr, ${s.eintragungen.length}/${s.max} Pers.): ${namen}</li>`;
-        text += `\n📌 ${s.vs} (${s.start}–${s.ende} Uhr, ${s.eintragungen.length}/${s.max} Pers.): ${(s.eintragungen || []).map(en => en.name).join(", ") || "Noch niemand eingetragen"}`;
-      });
-      html += `</ul>`;
-    }
+    const alleTage = new Set(getEventDateRange(e.datumStart, e.datumEnde));
+    schichten.forEach(s => alleTage.add(s.datum || e.datumStart));
+    spenden.forEach(l => { if (l.datum) alleTage.add(l.datum); });
+    const sortierteTage = [...alleTage].filter(Boolean).sort();
 
-    if (spenden.length > 0) {
-      html += `<div style="font-weight:600;margin-top:10px;">🍰 Mitbringlisten</div><ul style="margin:4px 0 0 18px;padding:0;">`;
-      spenden.forEach(l => {
+    sortierteTage.forEach(tag => {
+      const tagesSchichten = schichten
+        .filter(s => (s.datum || e.datumStart) === tag)
+        .sort((a, b) => (a.start || "").localeCompare(b.start || ""));
+      const tagesSpenden = spenden.filter(l => l.datum === tag);
+      if (tagesSchichten.length === 0 && tagesSpenden.length === 0) return;
+
+      const wd = WOCHENTAGE_KURZ[new Date(tag + "T00:00:00").getDay()];
+      const tagLabel = `${wd}, ${formatDatumKurz(tag)}${tag.slice(0, 4)}`;
+      html += `<div style="font-weight:700;margin-top:12px;color:#143f34;">📅 ${escapeHtml(tagLabel)}</div>`;
+      text += `\n\n📅 *${tagLabel}*`;
+
+      if (tagesSchichten.length > 0) {
+        html += `<ul style="margin:4px 0 0 18px;padding:0;">`;
+        tagesSchichten.forEach(s => {
+          const namen = (s.eintragungen || []).map(en => escapeHtml(en.name)).join(", ") || "Noch niemand eingetragen";
+          html += `<li><strong>${escapeHtml(s.start)}–${escapeHtml(s.ende)} Uhr ${escapeHtml(s.vs)}</strong> (${s.eintragungen.length}/${s.max} Pers.): ${namen}</li>`;
+          text += `\n📌 ${s.start}–${s.ende} Uhr ${s.vs} (${s.eintragungen.length}/${s.max} Pers.): ${(s.eintragungen || []).map(en => en.name).join(", ") || "Noch niemand eingetragen"}`;
+        });
+        html += `</ul>`;
+      }
+
+      if (tagesSpenden.length > 0) {
+        html += `<div style="font-weight:600;margin-top:6px;">🍰 Mitbringlisten</div><ul style="margin:4px 0 0 18px;padding:0;">`;
+        tagesSpenden.forEach(l => {
+          const namen = (l.eintragungen || []).map(en => `${escapeHtml(en.name)} (${escapeHtml(en.wert)})`).join(", ") || "Noch niemand eingetragen";
+          html += `<li><strong>${escapeHtml(l.titel)}</strong>: ${namen}</li>`;
+          text += `\n🍰 ${l.titel}: ${(l.eintragungen || []).map(en => `${en.name} (${en.wert})`).join(", ") || "Noch niemand eingetragen"}`;
+        });
+        html += `</ul>`;
+      }
+    });
+
+    const spendenOhneTag = spenden.filter(l => !l.datum);
+    if (spendenOhneTag.length > 0) {
+      html += `<div style="font-weight:700;margin-top:12px;color:#143f34;">🍰 Mitbringlisten ohne festen Tag</div><ul style="margin:4px 0 0 18px;padding:0;">`;
+      text += `\n\n🍰 *Mitbringlisten ohne festen Tag*`;
+      spendenOhneTag.forEach(l => {
         const namen = (l.eintragungen || []).map(en => `${escapeHtml(en.name)} (${escapeHtml(en.wert)})`).join(", ") || "Noch niemand eingetragen";
         html += `<li><strong>${escapeHtml(l.titel)}</strong>: ${namen}</li>`;
         text += `\n🍰 ${l.titel}: ${(l.eintragungen || []).map(en => `${en.name} (${en.wert})`).join(", ") || "Noch niemand eingetragen"}`;
@@ -3614,13 +3683,15 @@ const Events = {
       return { html, text };
     }
 
-    html += `<table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:6px;">
-      <tr style="border-bottom:1px solid #ccc;"><th style="text-align:left;padding:3px;">Verkaufsstelle</th><th style="text-align:left;padding:3px;">Soll</th><th style="text-align:left;padding:3px;">Ist</th></tr>
-      ${stellen.map(vs => {
-        const ist = e.personalIst?.[vs.id];
-        return `<tr style="border-bottom:1px solid #eee;"><td style="padding:3px;">${escapeHtml(vs.name)}</td><td style="padding:3px;">${vs.personalMin}${vs.personalMax !== vs.personalMin ? "–" + vs.personalMax : ""} Pers.</td><td style="padding:3px;">${ist !== undefined ? ist + " Pers." : "kein Ist erfasst"}</td></tr>`;
-      }).join("")}
-    </table>`;
+    const rows = stellen.map(vs => {
+      const ist = e.personalIst?.[vs.id];
+      return `<tr style="border-bottom:1px solid #eee;">
+        <td style="padding:6px 9px;">${escapeHtml(vs.name)}</td>
+        <td style="padding:6px 9px;white-space:nowrap;">${vs.personalMin}${vs.personalMax !== vs.personalMin ? "–" + vs.personalMax : ""} Pers.</td>
+        <td style="padding:6px 9px;white-space:nowrap;">${ist !== undefined ? ist + " Pers." : "kein Ist erfasst"}</td>
+      </tr>`;
+    }).join("");
+    html += this.reportTable(["Verkaufsstelle", "Soll", "Ist"], rows);
 
     stellen.forEach(vs => {
       const ist = e.personalIst?.[vs.id];
@@ -4824,7 +4895,14 @@ const Events = {
     const kat = e ? Store.getKategorie(e.kategorieId) : null;
     const vsSelect = document.getElementById("schichtVsSelect");
     const customVsWrap = document.getElementById("schichtCustomVsWrap");
-    
+
+    const eventDates = getEventDateRange(e?.datumStart, e?.datumEnde);
+    const datumSelect = document.getElementById("schichtDatumSelect");
+    datumSelect.innerHTML = eventDates.map(d => {
+      const wd = WOCHENTAGE_KURZ[new Date(d + "T00:00:00").getDay()];
+      return `<option value="${d}">${wd}, ${formatDatumKurz(d)}${d.slice(0, 4)}</option>`;
+    }).join("");
+
     let optionsHtml = "";
     if (kat && kat.verkaufsstellen) {
       kat.verkaufsstellen.forEach(vs => {
@@ -4853,6 +4931,7 @@ const Events = {
         document.getElementById("schichtMax").value = s.max || 2;
         document.getElementById("schichtDeadline").value = s.deadline || "";
         document.getElementById("schichtAustragen").checked = s.austragen !== false;
+        datumSelect.value = s.datum || eventDates[0] || "";
         Modal.open("modal-schicht");
         return;
       }
@@ -4867,6 +4946,7 @@ const Events = {
     document.getElementById("schichtMax").value = kat && kat.verkaufsstellen?.[0]?.personalMax || 2;
     document.getElementById("schichtDeadline").value = "";
     document.getElementById("schichtAustragen").checked = true;
+    datumSelect.value = eventDates[0] || "";
     Modal.open("modal-schicht");
   },
 
@@ -4901,6 +4981,7 @@ const Events = {
     const schicht = {
       id: schichtId,
       vs,
+      datum: document.getElementById("schichtDatumSelect").value || e.datumStart || "",
       start: document.getElementById("schichtStart").value,
       ende: document.getElementById("schichtEnde").value,
       max: Number(document.getElementById("schichtMax").value) || 1,
@@ -4928,6 +5009,13 @@ const Events = {
     document.getElementById("spendeListeId").value = listeId;
 
     const e = Store.getEvent(eventId);
+    const eventDates = getEventDateRange(e?.datumStart, e?.datumEnde);
+    const datumSelect = document.getElementById("spendeDatumSelect");
+    datumSelect.innerHTML = `<option value="">Kein bestimmter Tag</option>` + eventDates.map(d => {
+      const wd = WOCHENTAGE_KURZ[new Date(d + "T00:00:00").getDay()];
+      return `<option value="${d}">${wd}, ${formatDatumKurz(d)}${d.slice(0, 4)}</option>`;
+    }).join("");
+
     if (listeId && e && e.spendenListen) {
       const l = e.spendenListen.find(x => x.id === listeId);
       if (l) {
@@ -4936,6 +5024,7 @@ const Events = {
         document.getElementById("spendeInfo").value = l.info || "";
         document.getElementById("spendeMax").value = l.max || "";
         document.getElementById("spendeDeadline").value = l.deadline || "";
+        datumSelect.value = l.datum || "";
         Modal.open("modal-spende-liste");
         return;
       }
@@ -4946,6 +5035,7 @@ const Events = {
     document.getElementById("spendeInfo").value = "";
     document.getElementById("spendeMax").value = "";
     document.getElementById("spendeDeadline").value = "";
+    datumSelect.value = "";
     Modal.open("modal-spende-liste");
   },
 
@@ -4966,6 +5056,7 @@ const Events = {
       info: document.getElementById("spendeInfo").value.trim(),
       max: maxVal ? Number(maxVal) : null,
       deadline: document.getElementById("spendeDeadline").value || "",
+      datum: document.getElementById("spendeDatumSelect").value || "",
       eintragungen: []
     };
 
@@ -5000,9 +5091,7 @@ const Events = {
     const isVorstandOrAdmin = currentUserProfile.role === 'A' || currentUserProfile.role === 'B';
     const heute = new Date().toISOString().slice(0, 10);
 
-    let html = "";
-
-    spendenListen.forEach(l => {
+    const renderSpendenCard = (l) => {
       const isFull = l.max ? l.eintragungen.length >= l.max : false;
       const isExpired = l.deadline && heute > l.deadline;
       const userEintrag = (l.eintragungen || []).find(en => en.uid === userUid);
@@ -5018,7 +5107,7 @@ const Events = {
         actionBtn = `<span class="pill inactive">Liste voll</span>`;
       }
 
-      html += `
+      return `
         <div class="card" style="border-left: 4px solid #8a5a12; background:#fdfdfc;">
           <div class="card-head">
             <div>
@@ -5044,13 +5133,13 @@ const Events = {
           </div>
         </div>
       `;
-    });
+    };
 
-    schichten.forEach(s => {
+    const renderSchichtCard = (s) => {
       const isFull = s.eintragungen.length >= s.max;
       const isExpired = s.deadline && heute > s.deadline;
       const isBooked = s.eintragungen.some(en => en.uid === userUid);
-      
+
       let actionBtn = "";
       if (isBooked) {
         if (s.austragen !== false || isVorstandOrAdmin) {
@@ -5066,7 +5155,7 @@ const Events = {
         actionBtn = `<span class="pill inactive">Voll</span>`;
       }
 
-      html += `
+      return `
         <div class="card" style="border-left: 4px solid ${isFull ? 'var(--accent)' : 'var(--border-strong)'};">
           <div class="card-head">
             <div>
@@ -5091,7 +5180,35 @@ const Events = {
           </div>
         </div>
       `;
+    };
+
+    // Tage sammeln: offizieller Event-Zeitraum + eventuell abweichende Tage aus vorhandenen Schichten/Listen
+    const alleTage = new Set(getEventDateRange(e.datumStart, e.datumEnde));
+    schichten.forEach(s => alleTage.add(s.datum || e.datumStart));
+    spendenListen.forEach(l => { if (l.datum) alleTage.add(l.datum); });
+    const sortierteTage = [...alleTage].filter(Boolean).sort();
+
+    let html = "";
+    sortierteTage.forEach(tag => {
+      // Schichten bleiben ihrem Starttag zugeordnet, auch wenn sie über Mitternacht hinausgehen
+      const tagesSchichten = schichten
+        .filter(s => (s.datum || e.datumStart) === tag)
+        .sort((a, b) => (a.start || "").localeCompare(b.start || ""));
+      const tagesSpenden = spendenListen.filter(l => l.datum === tag);
+
+      if (tagesSchichten.length === 0 && tagesSpenden.length === 0) return;
+
+      const wd = WOCHENTAGE_KURZ[new Date(tag + "T00:00:00").getDay()];
+      html += `<div class="section-title" style="margin-top:20px;">📅 ${wd}, ${formatDatumKurz(tag)}${tag.slice(0, 4)}</div>`;
+      tagesSchichten.forEach(s => { html += renderSchichtCard(s); });
+      tagesSpenden.forEach(l => { html += renderSpendenCard(l); });
     });
+
+    const spendenOhneTag = spendenListen.filter(l => !l.datum);
+    if (spendenOhneTag.length > 0) {
+      html += `<div class="section-title" style="margin-top:20px;">🍰 Mitbringlisten ohne festen Tag</div>`;
+      spendenOhneTag.forEach(l => { html += renderSpendenCard(l); });
+    }
 
     container.innerHTML = html;
   },
