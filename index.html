@@ -242,6 +242,27 @@
   .mk-yellow { background: #fdf0c4 !important; color: #8a6400; font-weight: 600; }
   .mk-red { background: #fbd8d8 !important; color: #9c1c1c; font-weight: 600; }
   .mk-gray { background: #f0f0f0 !important; color: var(--text-muted); }
+  .collapsible-section { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+  .collapsible-section > summary {
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--accent-dark, #143f34);
+    list-style: revert;
+    padding: 2px 0;
+  }
+  .collapsible-section[open] > summary { margin-bottom: 10px; }
+  .search-input {
+    width: 100%;
+    max-width: 360px;
+    padding: 8px 12px;
+    margin: 6px 0 12px;
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    font-size: 13px;
+    display: block;
+  }
+  .search-input:focus { outline: none; border-color: var(--accent); }
   .empty-state {
     text-align: center;
     padding: 40px 20px;
@@ -638,7 +659,7 @@
   <button type="button" class="tab-btn admin-only" data-view="gastro">🍽 Gastro-Ryder</button>
   <button type="button" class="tab-btn admin-only" data-view="material-ryder">📦 Material-Ryder</button>
   <button type="button" class="tab-btn vorstand-only" data-view="material-kalender">📅 Material-Kalender</button>
-  <button type="button" class="tab-btn vorstand-only" data-view="personen">👥 Personen, Lieferanten &amp; Benutzer</button>
+  <button type="button" class="tab-btn vorstand-only" data-view="personen">👥 Benutzer, Personen &amp; Lieferanten</button>
   <button type="button" class="tab-btn admin-only" data-view="kategorien">Kategorien</button>
 </nav>
 
@@ -728,36 +749,35 @@
 
   <!-- PERSONEN, LIEFERANTEN & BENUTZERROLLEN -->
   <section class="view" id="view-personen">
-    
-    <!-- Lieferanten-Verwaltung -->
-    <div style="margin-bottom:28px;">
-      <div class="toolbar">
-        <div>
-          <h2>Lieferanten</h2>
-          <div class="desc">Händler für Getränke, Metzgerei, Bäckerei, Leihmaterial etc.</div>
-        </div>
-        <button type="button" class="btn vorstand-only" onclick="Lieferanten.openForm()">+ Neuer Lieferant</button>
-      </div>
-      <div id="lieferanten-list"></div>
-    </div>
 
     <!-- Benutzerverwaltung (Nur für Admins) -->
-    <div id="admin-user-management" class="admin-only" style="margin-bottom:28px;">
-      <h3 style="font-size:15px; margin-bottom:8px; color:var(--accent-dark);">🛡️ Angemeldete Benutzer &amp; Rollen (RBAC)</h3>
+    <details class="collapsible-section admin-only" open style="margin-bottom:20px;">
+      <summary>🛡️ Angemeldete Benutzer &amp; Rollen (RBAC)</summary>
+      <input type="search" class="search-input" placeholder="Benutzer suchen (Name, E-Mail)…" oninput="Personen.filterUsers(this.value)">
       <div id="users-role-table-wrap"></div>
-    </div>
+    </details>
 
     <!-- Personen / Helfer -->
-    <div>
-      <div class="toolbar">
-        <div>
-          <h2>Personen &amp; Bereichsleiter</h2>
-          <div class="desc">Zuständige Personen für Aufgaben- und Gastro-Bereiche</div>
-        </div>
+    <details class="collapsible-section vorstand-only" open style="margin-bottom:20px;">
+      <summary>Personen &amp; Bereichsleiter</summary>
+      <div class="toolbar" style="margin-top:2px;">
+        <div class="desc">Zuständige Personen für Aufgaben- und Gastro-Bereiche</div>
         <button type="button" class="btn vorstand-only" onclick="Personen.openForm()">+ Neue Person</button>
       </div>
+      <input type="search" class="search-input" placeholder="Person suchen (Name, Rolle, Kontakt)…" oninput="Personen.filterPersonen(this.value)">
       <div id="personen-list"></div>
-    </div>
+    </details>
+
+    <!-- Lieferanten-Verwaltung -->
+    <details class="collapsible-section vorstand-only" open>
+      <summary>Lieferanten</summary>
+      <div class="toolbar" style="margin-top:2px;">
+        <div class="desc">Händler für Getränke, Metzgerei, Bäckerei, Leihmaterial etc.</div>
+        <button type="button" class="btn vorstand-only" onclick="Lieferanten.openForm()">+ Neuer Lieferant</button>
+      </div>
+      <input type="search" class="search-input" placeholder="Lieferant suchen (Name, Kontakt)…" oninput="Lieferanten.filterListe(this.value)">
+      <div id="lieferanten-list"></div>
+    </details>
 
   </section>
 
@@ -1282,7 +1302,7 @@
    ZENTRALE KONFIGURATION & DATENSCHICHT
    ============================================================ */
 
-const APP_VERSION = "0.1.089";
+const APP_VERSION = "0.1.092";
 let currentUserProfile = { role: "A", actualRole: "A", email: "", name: "" };
 
 function uid(prefix) {
@@ -1880,12 +1900,30 @@ const MeineSchichten = {
    ============================================================ */
 
 const Lieferanten = {
+  searchTerm: "",
+
+  filterListe(term) {
+    this.searchTerm = term;
+    this.render();
+  },
+
   render() {
     const list = document.getElementById("lieferanten-list");
     if (!list) return;
-    const lList = Store.data.lieferanten || [];
+    let lList = [...(Store.data.lieferanten || [])].sort((a, b) => (a.name || "").localeCompare(b.name || "", "de"));
+
+    if (this.searchTerm.trim()) {
+      const t = this.searchTerm.trim().toLowerCase();
+      lList = lList.filter(l =>
+        (l.name || "").toLowerCase().includes(t) ||
+        (l.kontakt || "").toLowerCase().includes(t) ||
+        (l.telefon || "").toLowerCase().includes(t) ||
+        (l.email || "").toLowerCase().includes(t)
+      );
+    }
+
     if (lList.length === 0) {
-      list.innerHTML = '<div class="empty-state">Noch keine Lieferanten angelegt. Klicke auf „+ Neuer Lieferant“.</div>';
+      list.innerHTML = `<div class="empty-state">${(Store.data.lieferanten || []).length === 0 ? 'Noch keine Lieferanten angelegt. Klicke auf „+ Neuer Lieferant“.' : 'Keine Lieferanten gefunden.'}</div>`;
       return;
     }
 
@@ -2646,15 +2684,42 @@ const MaterialRyder = {
    ============================================================ */
 
 const Personen = {
+  searchTerm: "",
+  usersSearchTerm: "",
+
+  filterPersonen(term) {
+    this.searchTerm = term;
+    this.render();
+  },
+
+  filterUsers(term) {
+    this.usersSearchTerm = term;
+    this.renderUsersTable();
+  },
+
   render() {
     this.renderUsersTable();
     const list = document.getElementById("personen-list");
     if (!list) return;
-    if (Store.data.personen.length === 0) {
-      list.innerHTML = '<div class="empty-state">Noch keine Personen angelegt.</div>';
+
+    let pList = [...(Store.data.personen || [])].sort((a, b) => (a.name || "").localeCompare(b.name || "", "de"));
+
+    if (this.searchTerm.trim()) {
+      const t = this.searchTerm.trim().toLowerCase();
+      pList = pList.filter(p =>
+        (p.name || "").toLowerCase().includes(t) ||
+        (p.rolle || "").toLowerCase().includes(t) ||
+        (p.telefon || "").toLowerCase().includes(t) ||
+        (p.email || "").toLowerCase().includes(t)
+      );
+    }
+
+    if (pList.length === 0) {
+      list.innerHTML = `<div class="empty-state">${(Store.data.personen || []).length === 0 ? 'Noch keine Personen angelegt.' : 'Keine Personen gefunden.'}</div>`;
       return;
     }
-    list.innerHTML = Store.data.personen.map(p => `
+
+    list.innerHTML = pList.map(p => `
       <div class="card">
         <div class="card-head">
           <div>
@@ -2683,6 +2748,21 @@ const Personen = {
       return;
     }
 
+    let uList = [...Store.data.users].sort((a, b) => (a.name || a.email || "").localeCompare(b.name || b.email || "", "de"));
+
+    if (this.usersSearchTerm.trim()) {
+      const t = this.usersSearchTerm.trim().toLowerCase();
+      uList = uList.filter(u =>
+        (u.name || "").toLowerCase().includes(t) ||
+        (u.email || "").toLowerCase().includes(t)
+      );
+    }
+
+    if (uList.length === 0) {
+      wrap.innerHTML = '<div class="empty-state">Keine Benutzer gefunden.</div>';
+      return;
+    }
+
     wrap.innerHTML = `
       <table class="subtable" style="background:#fff;border-radius:8px;border:1px solid var(--border);">
         <thead>
@@ -2693,7 +2773,7 @@ const Personen = {
           </tr>
         </thead>
         <tbody>
-          ${Store.data.users.map(u => `
+          ${uList.map(u => `
             <tr>
               <td>
                 <strong>${escapeHtml(u.name || u.email)}</strong>
