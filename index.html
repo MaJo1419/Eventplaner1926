@@ -9,6 +9,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
   import { 
@@ -273,6 +275,13 @@
   .bereichs-kachel .bk-icon { font-size: 32px; margin-bottom: 8px; }
   .bereichs-kachel .bk-title { font-size: 17px; font-weight: 700; color: var(--accent-dark, #143f34); margin-bottom: 4px; }
   .bereichs-kachel .bk-desc { font-size: 13px; color: var(--text-muted); }
+  .stempel-row { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+  .stempel-dot {
+    width: 20px; height: 20px; border-radius: 5px;
+    border: 1.5px solid var(--border-strong);
+    background: #fff; display: inline-block;
+  }
+  .stempel-dot.used { background: var(--accent-dark, #143f34); border-color: var(--accent-dark, #143f34); }
   .empty-state {
     text-align: center;
     padding: 40px 20px;
@@ -674,6 +683,9 @@
   <button type="button" class="tab-btn bereich-events admin-only" data-view="kategorien">Kategorien</button>
   <button type="button" class="tab-btn bereich-belegung belegung-only" data-view="belegungskalender">📅 Belegungskalender</button>
   <button type="button" class="tab-btn bereich-belegung vorstand-only" data-view="ressourcen">🏟️ Sportstätten &amp; Busse</button>
+  <button type="button" class="tab-btn bereich-kurse" data-view="meine-karten">🧘 Meine Karten</button>
+  <button type="button" class="tab-btn bereich-kurse kurse-only" data-view="karten-verwaltung">🎟️ Karten-Verwaltung</button>
+  <button type="button" class="tab-btn bereich-kurse vorstand-only" data-view="kurse-verwaltung">📋 Kurse verwalten</button>
 </nav>
 
 <main>
@@ -696,6 +708,11 @@
         <div class="bk-icon">🏟️</div>
         <div class="bk-title">Belegungsplan</div>
         <div class="bk-desc">Sportstätten und Vereinsbusse buchen und Auslastung einsehen</div>
+      </div>
+      <div class="bereichs-kachel" onclick="Bereich.open('kurse')">
+        <div class="bk-icon">🧘</div>
+        <div class="bk-title">Kurse</div>
+        <div class="bk-desc">Stempelkarten für Kurse wie Yoga verwalten und einsehen</div>
       </div>
     </div>
   </section>
@@ -871,6 +888,46 @@
       </div>
     </div>
     <div id="belegungskalender-content"></div>
+  </section>
+
+  <!-- MEINE KARTEN (für alle) -->
+  <section class="view" id="view-meine-karten">
+    <div class="toolbar">
+      <div>
+        <h2>🧘 Meine Karten</h2>
+        <div class="desc">Deine Stempelkarten für kostenpflichtige Kurse</div>
+      </div>
+      <button type="button" class="btn" onclick="Karten.openBeantragenForm()">+ Neue Karte beantragen</button>
+    </div>
+    <div id="meine-karten-list"></div>
+  </section>
+
+  <!-- KARTEN-VERWALTUNG (Trainer/Admin/Vorstand) -->
+  <section class="view" id="view-karten-verwaltung">
+    <div class="toolbar">
+      <div>
+        <h2>🎟️ Karten-Verwaltung</h2>
+        <div class="desc">Übersicht aller Stempelkarten, Aktivierung und Stempelvergabe</div>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <button type="button" class="btn" onclick="Karten.openAusstellenForm()">+ Karte ausstellen</button>
+        <button type="button" class="btn secondary" onclick="Karten.openScanner()">📷 QR-Scanner</button>
+      </div>
+    </div>
+    <input type="search" class="search-input" placeholder="Suchen (Name, Kurs)…" oninput="Karten.filterVerwaltung(this.value)">
+    <div id="karten-verwaltung-list"></div>
+  </section>
+
+  <!-- KURSE VERWALTEN (Stammdaten, A/B) -->
+  <section class="view" id="view-kurse-verwaltung">
+    <div class="toolbar">
+      <div>
+        <h2>📋 Kurse verwalten</h2>
+        <div class="desc">Kursangebote mit Preis und Stempelkarten-Größe</div>
+      </div>
+      <button type="button" class="btn" onclick="Kurse.openForm()">+ Neuer Kurs</button>
+    </div>
+    <div id="kurse-list"></div>
   </section>
 
 </main>
@@ -1097,6 +1154,7 @@
         <div class="field"><label>Dauer (Wochen)</label><input type="number" min="1" id="belegungSerieWochen" value="12"></div>
       </div>
     </div>
+    <input type="hidden" id="belegungSerieAnkerDatum">
     <div class="field-row">
       <div class="field"><label>Von</label><input type="time" id="belegungStart" value="18:00"></div>
       <div class="field"><label>Bis</label><input type="time" id="belegungEnde" value="20:00"></div>
@@ -1104,10 +1162,99 @@
     <div class="field"><label>Zweck / Titel</label><input id="belegungZweck" placeholder="z. B. Training F-Jugend, Fahrt zum Auswärtsspiel"></div>
     <div class="field"><label>Gebucht von</label><input id="belegungGebuchtVon"></div>
     <div class="modal-actions">
-      <button type="button" class="btn danger" id="belegungDeleteSerieBtn" style="display:none;margin-right:8px;" onclick="Belegungsplan.removeSerie()">Ganze Serie löschen</button>
-      <button type="button" class="btn danger" id="belegungDeleteBtn" style="display:none;margin-right:auto;" onclick="Belegungsplan.remove()">Löschen</button>
+      <div style="display:flex;gap:8px;margin-right:auto;">
+        <button type="button" class="btn secondary" id="belegungUpdateSerieBtn" style="display:none;" onclick="Belegungsplan.updateSerie()">Serie aktualisieren</button>
+        <button type="button" class="btn danger" id="belegungDeleteSerieBtn" style="display:none;" onclick="Belegungsplan.removeSerie()">Ganze Serie löschen</button>
+        <button type="button" class="btn danger" id="belegungDeleteBtn" style="display:none;" onclick="Belegungsplan.remove()">Löschen</button>
+      </div>
       <button type="button" class="btn secondary" onclick="Modal.close('modal-belegung')">Abbrechen</button>
       <button type="button" class="btn" onclick="Belegungsplan.save()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- Kurs (Stammdaten) -->
+<div class="overlay" id="modal-kurs">
+  <div class="modal">
+    <h3 id="kurs-modal-title">Kurs</h3>
+    <input type="hidden" id="kursId">
+    <div class="field"><label>Kursname</label><input id="kursName" placeholder="z. B. Yoga"></div>
+    <div class="field"><label>Beschreibung (optional)</label><textarea id="kursBeschreibung" placeholder="z. B. Montags 18-19 Uhr, Halle 2"></textarea></div>
+    <div class="field-row">
+      <div class="field"><label>Preis pro Karte (€)</label><input type="number" step="0.01" min="0" id="kursPreis" placeholder="z. B. 20"></div>
+      <div class="field"><label>Stempel pro Karte</label><input type="number" min="1" id="kursStempelProKarte" value="10"></div>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn secondary" onclick="Modal.close('modal-kurs')">Abbrechen</button>
+      <button type="button" class="btn" onclick="Kurse.save()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- Karte beantragen (Mitglied) -->
+<div class="overlay" id="modal-karte-beantragen">
+  <div class="modal">
+    <h3>Neue Karte beantragen</h3>
+    <div class="field">
+      <label>Kurs</label>
+      <select id="karteBeantragenKursId"></select>
+    </div>
+    <div class="desc" id="karteBeantragenInfo" style="margin-bottom:8px;"></div>
+    <div class="desc" style="background:#f5f0e0;padding:10px;border-radius:8px;">Nach dem Beantragen erscheint die Karte mit Status „Wartet auf Aktivierung". Bitte die Kursgebühr bar beim Trainer/Vorstand bezahlen – die Karte wird danach freigeschaltet.</div>
+    <div class="modal-actions">
+      <button type="button" class="btn secondary" onclick="Modal.close('modal-karte-beantragen')">Abbrechen</button>
+      <button type="button" class="btn" onclick="Karten.beantragen()">Beantragen</button>
+    </div>
+  </div>
+</div>
+
+<!-- Karte ausstellen (Admin/Trainer, direkt aktiv) -->
+<div class="overlay" id="modal-karte-ausstellen">
+  <div class="modal">
+    <h3>Neue Karte ausstellen</h3>
+    <div class="field">
+      <label>Mitglied</label>
+      <select id="karteAusstellenUserId"></select>
+    </div>
+    <div class="field">
+      <label>Kurs</label>
+      <select id="karteAusstellenKursId"></select>
+    </div>
+    <div class="field">
+      <label>Zahlungsart</label>
+      <select id="karteAusstellenZahlungsart">
+        <option value="bar">Bar bezahlt</option>
+        <option value="ueberweisung">Überweisung</option>
+      </select>
+    </div>
+    <div class="desc">Die Karte wird sofort mit Status „Aktiv" angelegt und erscheint direkt im Account des Mitglieds.</div>
+    <div class="modal-actions">
+      <button type="button" class="btn secondary" onclick="Modal.close('modal-karte-ausstellen')">Abbrechen</button>
+      <button type="button" class="btn" onclick="Karten.ausstellen()">Karte ausstellen</button>
+    </div>
+  </div>
+</div>
+
+<!-- QR-Code Anzeige -->
+<div class="overlay" id="modal-qr-anzeige">
+  <div class="modal" style="text-align:center;">
+    <h3 id="qr-anzeige-title">Meine Karte</h3>
+    <div class="desc" style="margin-bottom:10px;">Diesem Code beim Trainer zum Stempeln vorzeigen</div>
+    <div id="qr-anzeige-code" style="display:flex;justify-content:center;margin:10px 0;"></div>
+    <div class="modal-actions" style="justify-content:center;">
+      <button type="button" class="btn secondary" onclick="Modal.close('modal-qr-anzeige')">Schließen</button>
+    </div>
+  </div>
+</div>
+
+<!-- QR-Scanner (Trainer) -->
+<div class="overlay" id="modal-qr-scanner">
+  <div class="modal">
+    <h3>QR-Code scannen</h3>
+    <div class="desc" style="margin-bottom:10px;">Kamera auf den QR-Code der Mitglieds-Karte richten</div>
+    <div id="qr-scanner-reader" style="width:100%;"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn secondary" onclick="Karten.closeScanner()">Schließen</button>
     </div>
   </div>
 </div>
@@ -1458,7 +1605,7 @@
    ZENTRALE KONFIGURATION & DATENSCHICHT
    ============================================================ */
 
-const APP_VERSION = "0.1.097";
+const APP_VERSION = "0.1.099";
 let currentUserProfile = { role: "A", actualRole: "A", email: "", name: "" };
 
 function uid(prefix) {
@@ -1670,6 +1817,7 @@ const Store = {
         Store.data.materialRyder = d.materialRyder || [];
         Store.data.sportstaetten = d.sportstaetten || [];
         Store.data.vereinsbusse = d.vereinsbusse || [];
+        Store.data.kurse = d.kurse || [];
       } else {
         const seed = seedData();
         Store.data.lieferanten = seed.lieferanten;
@@ -1679,6 +1827,7 @@ const Store = {
         Store.data.materialRyder = seed.materialRyder;
         Store.data.sportstaetten = [];
         Store.data.vereinsbusse = [];
+        Store.data.kurse = [];
         setDoc(configDocRef, {
           lieferanten: seed.lieferanten,
           kategorien: seed.kategorien,
@@ -1686,7 +1835,8 @@ const Store = {
           gastroRyder: seed.gastroRyder,
           materialRyder: seed.materialRyder,
           sportstaetten: [],
-          vereinsbusse: []
+          vereinsbusse: [],
+          kurse: []
         });
       }
       Lieferanten.render();
@@ -1697,6 +1847,8 @@ const Store = {
       Events.refreshKategorieSelect();
       if (typeof Ressourcen !== "undefined") Ressourcen.render();
       if (typeof Belegungsplan !== "undefined") Belegungsplan.renderKalender();
+      if (typeof Kurse !== "undefined") Kurse.render();
+      if (typeof Karten !== "undefined") Karten.renderAll();
     });
 
     const personenCol = collection(db, ...PATH_BASE, "personen");
@@ -1732,7 +1884,13 @@ const Store = {
       if (typeof Belegungsplan !== "undefined") Belegungsplan.renderKalender();
     });
 
-    this._unsubscribes.push(unsubConfig, unsubPersonen, unsubEvents, unsubUsers, unsubBelegungen);
+    const stempelkartenCol = collection(db, ...PATH_BASE, "stempelkarten");
+    const unsubStempelkarten = onSnapshot(stempelkartenCol, (snap) => {
+      Store.data.stempelkarten = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      if (typeof Karten !== "undefined") Karten.renderAll();
+    });
+
+    this._unsubscribes.push(unsubConfig, unsubPersonen, unsubEvents, unsubUsers, unsubBelegungen, unsubStempelkarten);
     if (onReady) onReady();
   },
 
@@ -1746,7 +1904,8 @@ const Store = {
       gastroRyder: this.data.gastroRyder || [],
       materialRyder: this.data.materialRyder || [],
       sportstaetten: this.data.sportstaetten || [],
-      vereinsbusse: this.data.vereinsbusse || []
+      vereinsbusse: this.data.vereinsbusse || [],
+      kurse: this.data.kurse || []
     });
   },
 
@@ -1794,6 +1953,13 @@ const Store = {
     toast(erlaubt ? "Zugriff auf Belegungsplan erlaubt." : "Zugriff auf Belegungsplan entzogen.");
   },
 
+  async updateUserKurseFlag(uid, erlaubt) {
+    const { db, doc, updateDoc } = window.FB;
+    const ref = doc(db, ...PATH_BASE, "users", uid);
+    await updateDoc(ref, { duerfteKurseVerwalten: !!erlaubt });
+    toast(erlaubt ? "Trainer-Rechte für Kurse erlaubt." : "Trainer-Rechte für Kurse entzogen.");
+  },
+
   async saveBelegung(belegung) {
     const { db, doc, setDoc } = window.FB;
     const ref = doc(db, ...PATH_BASE, "belegungen", belegung.id);
@@ -1803,6 +1969,18 @@ const Store = {
   async deleteBelegung(id) {
     const { db, doc, deleteDoc } = window.FB;
     const ref = doc(db, ...PATH_BASE, "belegungen", id);
+    await deleteDoc(ref);
+  },
+
+  async saveStempelkarte(karte) {
+    const { db, doc, setDoc } = window.FB;
+    const ref = doc(db, ...PATH_BASE, "stempelkarten", karte.id);
+    await setDoc(ref, karte);
+  },
+
+  async deleteStempelkarte(id) {
+    const { db, doc, deleteDoc } = window.FB;
+    const ref = doc(db, ...PATH_BASE, "stempelkarten", id);
     await deleteDoc(ref);
   },
 
@@ -1911,6 +2089,10 @@ function darfBelegungsplanNutzen() {
   return currentUserProfile.role === "A" || currentUserProfile.role === "B" || !!currentUserProfile.duerfteBelegungBuchen;
 }
 
+function darfKurseVerwalten() {
+  return currentUserProfile.role === "A" || currentUserProfile.role === "B" || !!currentUserProfile.duerfteKurseVerwalten;
+}
+
 function updateNavVisibility() {
   const role = currentUserProfile.role;
   const isA = role === "A", isB = role === "B";
@@ -1919,6 +2101,7 @@ function updateNavVisibility() {
     if (btn.classList.contains("admin-only")) visible = visible && isA;
     if (btn.classList.contains("vorstand-only")) visible = visible && (isA || isB);
     if (btn.classList.contains("belegung-only")) visible = visible && darfBelegungsplanNutzen();
+    if (btn.classList.contains("kurse-only")) visible = visible && darfKurseVerwalten();
     btn.style.display = visible ? "" : "none";
   });
 }
@@ -1943,6 +2126,10 @@ function applyRolePermissions(role) {
 
   document.querySelectorAll(".belegung-only:not(.tab-btn)").forEach(el => {
     el.style.display = darfBelegungsplanNutzen() ? "" : "none";
+  });
+
+  document.querySelectorAll(".kurse-only:not(.tab-btn)").forEach(el => {
+    el.style.display = darfKurseVerwalten() ? "" : "none";
   });
 
   updateNavVisibility();
@@ -1997,6 +2184,9 @@ function renderViewContent(view) {
   if (view === "kategorien") Kategorien.render();
   if (view === "ressourcen") Ressourcen.render();
   if (view === "belegungskalender") Belegungsplan.renderKalender();
+  if (view === "meine-karten") Karten.renderMeine();
+  if (view === "karten-verwaltung") Karten.renderVerwaltung();
+  if (view === "kurse-verwaltung") Kurse.render();
 }
 
 function switchToView(view) {
@@ -2016,7 +2206,9 @@ const Bereich = {
   open(bereich) {
     if (bereich === "belegungsplan" && !darfBelegungsplanNutzen()) return;
     this.current = bereich;
-    switchToView(bereich === "events" ? "events" : "belegungskalender");
+    if (bereich === "events") switchToView("events");
+    else if (bereich === "belegungsplan") switchToView("belegungskalender");
+    else if (bereich === "kurse") switchToView("meine-karten");
   },
 
   backToStart() {
@@ -2458,13 +2650,31 @@ const Belegungsplan = {
     document.getElementById("belegungEnde").value = b?.ende || "20:00";
     document.getElementById("belegungZweck").value = b?.zweck || "";
 
-    // Serientermin-Optionen: nur bei Neuanlage wählbar, bei Bearbeitung immer nur die eine Instanz
+    // Serientermin-Optionen: bei Neuanlage frei wählbar; bei Bearbeitung eines Serientermins
+    // werden Wochentage/Dauer aus den bestehenden Terminen rekonstruiert und sind über
+    // "Serie aktualisieren" änderbar (dieses Formular ändert sonst nur den einzelnen Termin)
     document.getElementById("belegungArt").value = "einzel";
     document.getElementById("belegungArt").disabled = isEdit;
     document.getElementById("belegungArtWrap").style.display = isEdit ? "none" : "";
     document.querySelectorAll(".belegung-wochentag").forEach(cb => cb.checked = false);
     document.getElementById("belegungSerieWochen").value = 12;
-    this.onArtChange();
+    document.getElementById("belegungSerieAnkerDatum").value = "";
+
+    if (isEdit && b?.serienId) {
+      const serie = (Store.data.belegungen || []).filter(x => x.serienId === b.serienId);
+      const wochentageInSerie = [...new Set(serie.map(s => germanWeekday(s.datum)))];
+      document.querySelectorAll(".belegung-wochentag").forEach(cb => {
+        cb.checked = wochentageInSerie.includes(Number(cb.value));
+      });
+      const dates = serie.map(s => s.datum).sort();
+      const minDatum = dates[0], maxDatum = dates[dates.length - 1];
+      const wochenSpan = Math.round((new Date(maxDatum + "T00:00:00") - new Date(minDatum + "T00:00:00")) / (7 * 24 * 3600 * 1000)) + 1;
+      document.getElementById("belegungSerieWochen").value = wochenSpan;
+      document.getElementById("belegungSerieAnkerDatum").value = minDatum;
+      document.getElementById("belegungSerieWrap").style.display = "";
+    } else {
+      this.onArtChange();
+    }
 
     const gebuchtVonInput = document.getElementById("belegungGebuchtVon");
     gebuchtVonInput.value = b?.gebuchtVon || currentUserProfile.name || "";
@@ -2472,6 +2682,7 @@ const Belegungsplan = {
 
     document.getElementById("belegungDeleteBtn").style.display = isEdit ? "" : "none";
     document.getElementById("belegungDeleteSerieBtn").style.display = (isEdit && b?.serienId) ? "" : "none";
+    document.getElementById("belegungUpdateSerieBtn").style.display = (isEdit && b?.serienId) ? "" : "none";
 
     Modal.open("modal-belegung");
   },
@@ -2626,6 +2837,442 @@ const Belegungsplan = {
       console.error(err);
       toast("Fehler beim Löschen der Serie: " + (err?.message || "Unbekannter Fehler"));
     }
+  },
+
+  async updateSerie() {
+    const id = document.getElementById("belegungId").value;
+    const b = (Store.data.belegungen || []).find(x => x.id === id);
+    if (!b || !b.serienId) return;
+
+    const isVorstandOrAdmin = currentUserProfile.role === "A" || currentUserProfile.role === "B";
+    if (!isVorstandOrAdmin && b.erstelltVonUid !== this.currentUid()) {
+      toast("Du kannst nur eigene Buchungen bearbeiten.");
+      return;
+    }
+
+    const typ = document.getElementById("belegungTyp").value;
+    const ressourceId = document.getElementById("belegungRessourceId").value;
+    if (!ressourceId) { toast("Bitte eine Ressource auswählen."); return; }
+
+    const start = document.getElementById("belegungStart").value;
+    const ende = document.getElementById("belegungEnde").value;
+    if (start >= ende) { toast("Die Endzeit muss nach der Startzeit liegen."); return; }
+
+    const zweck = document.getElementById("belegungZweck").value.trim();
+    if (!zweck) { toast("Bitte einen Zweck / Titel angeben."); return; }
+
+    const wochentage = [...document.querySelectorAll(".belegung-wochentag:checked")].map(cb => Number(cb.value));
+    if (wochentage.length === 0) { toast("Bitte mindestens einen Wochentag auswählen."); return; }
+
+    const dauerWochen = Math.max(1, Number(document.getElementById("belegungSerieWochen").value) || 1);
+    const ankerDatum = document.getElementById("belegungSerieAnkerDatum").value || b.datum;
+    const gebuchtVon = document.getElementById("belegungGebuchtVon").value.trim() || currentUserProfile.name || "";
+
+    const alteTermine = (Store.data.belegungen || []).filter(x => x.serienId === b.serienId);
+    if (!confirm(`Die ${alteTermine.length} bestehenden Termine dieser Serie werden gelöscht und mit den neuen Einstellungen neu angelegt. Fortfahren?`)) return;
+
+    const serienId = b.serienId;
+    try {
+      for (const t of alteTermine) await Store.deleteBelegung(t.id);
+      Store.data.belegungen = (Store.data.belegungen || []).filter(x => x.serienId !== serienId);
+    } catch (err) {
+      console.error(err);
+      toast("Fehler beim Aktualisieren der Serie: " + (err?.message || "Unbekannter Fehler"));
+      return;
+    }
+
+    const neueTermine = [];
+    for (let i = 0; i < dauerWochen * 7; i++) {
+      const d = addDaysISO(ankerDatum, i);
+      if (wochentage.includes(germanWeekday(d))) neueTermine.push(d);
+    }
+
+    let angelegt = 0;
+    const uebersprungen = [];
+    for (const d of neueTermine) {
+      const konflikt = (Store.data.belegungen || []).find(x =>
+        x.ressourceTyp === typ && x.ressourceId === ressourceId && x.datum === d &&
+        start < x.ende && x.start < ende
+      );
+      if (konflikt) { uebersprungen.push(d); continue; }
+
+      const belegung = {
+        id: uid("beleg"), ressourceTyp: typ, ressourceId, datum: d, start, ende, zweck,
+        gebuchtVon, serienId,
+        erstelltVonUid: b.erstelltVonUid, erstelltAm: b.erstelltAm
+      };
+      try {
+        await Store.saveBelegung(belegung);
+        Store.data.belegungen.push(belegung);
+        angelegt++;
+      } catch (err) {
+        console.error(err);
+        toast("Fehler beim Anlegen der neuen Serie: " + (err?.message || "Unbekannter Fehler"));
+        return;
+      }
+    }
+
+    Modal.close("modal-belegung");
+    toast(`Serie aktualisiert: ${angelegt} Termin(e) angelegt${uebersprungen.length ? `, ${uebersprungen.length} wegen Konflikt übersprungen` : ''}.`);
+  }
+};
+
+const Kurse = {
+  render() {
+    const list = document.getElementById("kurse-list");
+    if (!list) return;
+    const kurse = [...(Store.data.kurse || [])].sort((a, b) => (a.name || "").localeCompare(b.name || "", "de"));
+
+    if (kurse.length === 0) {
+      list.innerHTML = '<div class="empty-state">Noch keine Kurse angelegt. Klicke auf „+ Neuer Kurs".</div>';
+      return;
+    }
+
+    list.innerHTML = kurse.map(k => {
+      const anzahlKarten = (Store.data.stempelkarten || []).filter(s => s.kursId === k.id).length;
+      return `
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <h3>🧘 ${escapeHtml(k.name)}</h3>
+              <div class="meta">${k.preis != null ? k.preis + ' € pro Karte' : ''} &middot; ${k.stempelProKarte || 10} Stempel pro Karte &middot; ${anzahlKarten} Karte(n) insgesamt</div>
+              ${k.beschreibung ? `<div style="font-size:12px;color:var(--text-muted);margin-top:4px;">${escapeHtml(k.beschreibung)}</div>` : ''}
+            </div>
+            <div class="card-actions">
+              <button type="button" class="btn secondary small" onclick="Kurse.openForm('${k.id}')">Bearbeiten</button>
+              <button type="button" class="btn danger small" onclick="Kurse.remove('${k.id}')">Löschen</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join("");
+  },
+
+  openForm(id = "") {
+    document.getElementById("kursId").value = id;
+    const isEdit = !!id;
+    const k = isEdit ? (Store.data.kurse || []).find(x => x.id === id) : {};
+    document.getElementById("kurs-modal-title").textContent = isEdit ? "Kurs bearbeiten" : "Neuer Kurs";
+    document.getElementById("kursName").value = k.name || "";
+    document.getElementById("kursBeschreibung").value = k.beschreibung || "";
+    document.getElementById("kursPreis").value = k.preis ?? "";
+    document.getElementById("kursStempelProKarte").value = k.stempelProKarte || 10;
+    Modal.open("modal-kurs");
+  },
+
+  async save() {
+    const id = document.getElementById("kursId").value || uid("kurs");
+    const name = document.getElementById("kursName").value.trim();
+    if (!name) { toast("Bitte einen Kursnamen angeben."); return; }
+
+    const kurs = {
+      id, name,
+      beschreibung: document.getElementById("kursBeschreibung").value.trim(),
+      preis: Number(document.getElementById("kursPreis").value) || 0,
+      stempelProKarte: Math.max(1, Number(document.getElementById("kursStempelProKarte").value) || 10)
+    };
+
+    if (!Store.data.kurse) Store.data.kurse = [];
+    const idx = Store.data.kurse.findIndex(x => x.id === id);
+    if (idx >= 0) Store.data.kurse[idx] = kurs;
+    else Store.data.kurse.push(kurs);
+
+    await Store.persistConfig();
+    Modal.close("modal-kurs");
+    toast("Kurs gespeichert.");
+  },
+
+  async remove(id) {
+    const hatKarten = (Store.data.stempelkarten || []).some(s => s.kursId === id);
+    const frage = hatKarten
+      ? "Für diesen Kurs existieren bereits Stempelkarten. Kurs trotzdem löschen? Die Karten bleiben bestehen, verweisen dann aber ins Leere."
+      : "Diesen Kurs wirklich löschen?";
+    if (!confirm(frage)) return;
+    Store.data.kurse = (Store.data.kurse || []).filter(x => x.id !== id);
+    await Store.persistConfig();
+    toast("Kurs gelöscht.");
+  }
+};
+
+const Karten = {
+  scannerInstance: null,
+
+  currentUid() {
+    return window.FB.auth.currentUser ? window.FB.auth.currentUser.uid : "";
+  },
+
+  renderAll() {
+    const activeView = document.querySelector(".view.active");
+    if (!activeView) return;
+    if (activeView.id === "view-meine-karten") this.renderMeine();
+    if (activeView.id === "view-karten-verwaltung") this.renderVerwaltung();
+  },
+
+  // ---- Mitglied: "Meine Karten" ----
+  renderMeine() {
+    const list = document.getElementById("meine-karten-list");
+    if (!list) return;
+    const uidCurrent = this.currentUid();
+    const meine = (Store.data.stempelkarten || [])
+      .filter(k => k.inhaberUid === uidCurrent)
+      .sort((a, b) => (b.beantragtAm || "").localeCompare(a.beantragtAm || ""));
+
+    if (meine.length === 0) {
+      list.innerHTML = '<div class="empty-state">Du hast noch keine Karte. Klicke auf „+ Neue Karte beantragen".</div>';
+      return;
+    }
+    list.innerHTML = meine.map(k => this.renderKarteCard(k, false)).join("");
+  },
+
+  renderKarteCard(k, adminView) {
+    const kurs = (Store.data.kurse || []).find(x => x.id === k.kursId);
+    const statusLabel = k.status === 'aktiv' ? '🟢 Aktiv' : (k.status === 'aufgebraucht' ? '⚪ Aufgebraucht' : '🟡 Wartet auf Aktivierung');
+    const dots = Array.from({ length: k.stempelGesamt || 0 }, (_, i) =>
+      `<span class="stempel-dot ${i < k.stempelGebraucht ? 'used' : ''}"></span>`
+    ).join("");
+    const historie = (k.stempelHistorie || []).slice().reverse().map(h => h.datum).join(", ");
+
+    return `
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <h3>🧘 ${escapeHtml(kurs ? kurs.name : "Unbekannter Kurs")} ${adminView ? `<span class="meta" style="font-weight:400;">— ${escapeHtml(k.inhaberName || "")}</span>` : ''}</h3>
+            <div class="meta">${statusLabel} &middot; ${k.stempelGebraucht}/${k.stempelGesamt} Stempel &middot; frei: ${k.stempelGesamt - k.stempelGebraucht}</div>
+            <div class="stempel-row">${dots}</div>
+            ${historie ? `<div style="font-size:11.5px;color:var(--text-muted);margin-top:6px;">War da am: ${escapeHtml(historie)}</div>` : ''}
+          </div>
+          <div class="card-actions">
+            ${!adminView && k.status === 'aktiv' ? `<button type="button" class="btn secondary small" onclick="Karten.zeigeQr('${k.id}')">QR-Code</button>` : ''}
+            ${adminView && k.status === 'offen' ? `<button type="button" class="btn small" onclick="Karten.aktivieren('${k.id}')">Aktivieren (bezahlt)</button>` : ''}
+            ${adminView && k.status === 'aktiv' ? `<button type="button" class="btn small" onclick="Karten.stempel('${k.id}')">+ Stempel</button>` : ''}
+            ${adminView ? `<button type="button" class="btn danger small" onclick="Karten.remove('${k.id}')">Löschen</button>` : ''}
+          </div>
+        </div>
+      </div>
+    `;
+  },
+
+  openBeantragenForm() {
+    const kurse = Store.data.kurse || [];
+    if (kurse.length === 0) { toast("Es sind noch keine Kurse angelegt."); return; }
+    const sel = document.getElementById("karteBeantragenKursId");
+    sel.innerHTML = kurse.map(k => `<option value="${k.id}">${escapeHtml(k.name)}</option>`).join("");
+    sel.onchange = () => this.updateBeantragenInfo();
+    this.updateBeantragenInfo();
+    Modal.open("modal-karte-beantragen");
+  },
+
+  updateBeantragenInfo() {
+    const kursId = document.getElementById("karteBeantragenKursId").value;
+    const kurs = (Store.data.kurse || []).find(k => k.id === kursId);
+    document.getElementById("karteBeantragenInfo").textContent = kurs ? `${kurs.stempelProKarte} Stempel für ${kurs.preis} €` : '';
+  },
+
+  async beantragen() {
+    const kursId = document.getElementById("karteBeantragenKursId").value;
+    const kurs = (Store.data.kurse || []).find(k => k.id === kursId);
+    if (!kurs) { toast("Bitte einen Kurs auswählen."); return; }
+
+    const karte = {
+      id: uid("karte"),
+      kursId,
+      inhaberUid: this.currentUid(),
+      inhaberName: currentUserProfile.name || currentUserProfile.email || "",
+      stempelGesamt: kurs.stempelProKarte || 10,
+      stempelGebraucht: 0,
+      status: "offen",
+      zahlungsart: "bar",
+      beantragtAm: new Date().toISOString(),
+      stempelHistorie: []
+    };
+
+    try {
+      await Store.saveStempelkarte(karte);
+      Modal.close("modal-karte-beantragen");
+      toast("Karte beantragt – bitte Gebühr bar bezahlen, dann wird sie freigeschaltet.");
+    } catch (err) {
+      console.error(err);
+      toast("Fehler beim Beantragen: " + (err?.message || "Unbekannter Fehler"));
+    }
+  },
+
+  // ---- Admin/Trainer: Karten-Verwaltung ----
+  verwaltungSearchTerm: "",
+
+  filterVerwaltung(term) {
+    this.verwaltungSearchTerm = term;
+    this.renderVerwaltung();
+  },
+
+  renderVerwaltung() {
+    const list = document.getElementById("karten-verwaltung-list");
+    if (!list) return;
+    let karten = [...(Store.data.stempelkarten || [])].sort((a, b) => (b.beantragtAm || "").localeCompare(a.beantragtAm || ""));
+
+    if (this.verwaltungSearchTerm.trim()) {
+      const t = this.verwaltungSearchTerm.trim().toLowerCase();
+      karten = karten.filter(k => {
+        const kurs = (Store.data.kurse || []).find(x => x.id === k.kursId);
+        return (k.inhaberName || "").toLowerCase().includes(t) || (kurs?.name || "").toLowerCase().includes(t);
+      });
+    }
+
+    if (karten.length === 0) {
+      list.innerHTML = '<div class="empty-state">Keine Karten gefunden.</div>';
+      return;
+    }
+    list.innerHTML = karten.map(k => this.renderKarteCard(k, true)).join("");
+  },
+
+  openAusstellenForm() {
+    const kurse = Store.data.kurse || [];
+    if (kurse.length === 0) { toast("Es sind noch keine Kurse angelegt."); return; }
+    const userSel = document.getElementById("karteAusstellenUserId");
+    const uList = [...(Store.data.users || [])].sort((a, b) => (a.name || a.email || "").localeCompare(b.name || b.email || "", "de"));
+    userSel.innerHTML = uList.map(u => `<option value="${u.id}">${escapeHtml(u.name || u.email)}</option>`).join("");
+    const kursSel = document.getElementById("karteAusstellenKursId");
+    kursSel.innerHTML = kurse.map(k => `<option value="${k.id}">${escapeHtml(k.name)}</option>`).join("");
+    Modal.open("modal-karte-ausstellen");
+  },
+
+  async ausstellen() {
+    const userId = document.getElementById("karteAusstellenUserId").value;
+    const kursId = document.getElementById("karteAusstellenKursId").value;
+    const zahlungsart = document.getElementById("karteAusstellenZahlungsart").value;
+    const user = (Store.data.users || []).find(u => u.id === userId);
+    const kurs = (Store.data.kurse || []).find(k => k.id === kursId);
+    if (!user || !kurs) { toast("Bitte Mitglied und Kurs auswählen."); return; }
+
+    const karte = {
+      id: uid("karte"),
+      kursId,
+      inhaberUid: userId,
+      inhaberName: user.name || user.email || "",
+      stempelGesamt: kurs.stempelProKarte || 10,
+      stempelGebraucht: 0,
+      status: "aktiv",
+      zahlungsart,
+      beantragtAm: new Date().toISOString(),
+      aktiviertAm: new Date().toISOString(),
+      aktiviertVonUid: this.currentUid(),
+      stempelHistorie: []
+    };
+
+    try {
+      await Store.saveStempelkarte(karte);
+      Modal.close("modal-karte-ausstellen");
+      toast("Karte ausgestellt und aktiv.");
+    } catch (err) {
+      console.error(err);
+      toast("Fehler beim Ausstellen: " + (err?.message || "Unbekannter Fehler"));
+    }
+  },
+
+  async aktivieren(id) {
+    const k = (Store.data.stempelkarten || []).find(x => x.id === id);
+    if (!k) return;
+    if (!confirm(`Karte für ${k.inhaberName} aktivieren (Zahlung erhalten)?`)) return;
+    const update = { ...k, status: "aktiv", aktiviertAm: new Date().toISOString(), aktiviertVonUid: this.currentUid() };
+    try {
+      await Store.saveStempelkarte(update);
+      toast("Karte aktiviert.");
+    } catch (err) {
+      console.error(err);
+      toast("Fehler: " + (err?.message || "Unbekannter Fehler"));
+    }
+  },
+
+  async stempel(id) {
+    const k = (Store.data.stempelkarten || []).find(x => x.id === id);
+    if (!k) return;
+    if (k.status !== "aktiv") { toast("Diese Karte ist nicht aktiv."); return; }
+    if (k.stempelGebraucht >= k.stempelGesamt) { toast("Karte ist bereits voll."); return; }
+    if (!confirm(`Stempel für ${k.inhaberName} (${k.stempelGebraucht + 1}/${k.stempelGesamt}) hinzufügen?`)) return;
+    await this._stempelHinzufuegen(k);
+  },
+
+  async _stempelHinzufuegen(k) {
+    const neuerStand = k.stempelGebraucht + 1;
+    const historie = [...(k.stempelHistorie || []), { datum: new Date().toISOString().slice(0, 10), vonUid: this.currentUid(), vonName: currentUserProfile.name || "" }];
+    const update = {
+      ...k,
+      stempelGebraucht: neuerStand,
+      status: neuerStand >= k.stempelGesamt ? "aufgebraucht" : "aktiv",
+      stempelHistorie: historie
+    };
+    try {
+      await Store.saveStempelkarte(update);
+      toast(neuerStand >= k.stempelGesamt ? `Stempel hinzugefügt – Karte von ${k.inhaberName} ist jetzt aufgebraucht.` : "Stempel hinzugefügt.");
+    } catch (err) {
+      console.error(err);
+      toast("Fehler beim Stempeln: " + (err?.message || "Unbekannter Fehler"));
+    }
+  },
+
+  async remove(id) {
+    if (!confirm("Diese Karte wirklich löschen?")) return;
+    try {
+      await Store.deleteStempelkarte(id);
+      toast("Karte gelöscht.");
+    } catch (err) {
+      console.error(err);
+      toast("Fehler beim Löschen: " + (err?.message || "Unbekannter Fehler"));
+    }
+  },
+
+  // ---- QR anzeigen (Mitglied) ----
+  zeigeQr(id) {
+    const k = (Store.data.stempelkarten || []).find(x => x.id === id);
+    if (!k) return;
+    const kurs = (Store.data.kurse || []).find(x => x.id === k.kursId);
+    document.getElementById("qr-anzeige-title").textContent = `Karte: ${kurs ? kurs.name : ''}`;
+    const area = document.getElementById("qr-anzeige-code");
+    area.innerHTML = "";
+    new QRCode(area, { text: k.id, width: 220, height: 220 });
+    Modal.open("modal-qr-anzeige");
+  },
+
+  // ---- QR scannen (Trainer/Admin) ----
+  openScanner() {
+    Modal.open("modal-qr-scanner");
+    const readerEl = document.getElementById("qr-scanner-reader");
+    readerEl.innerHTML = "";
+    this.scannerInstance = new Html5Qrcode("qr-scanner-reader");
+    this.scannerInstance.start(
+      { facingMode: "environment" },
+      { fps: 10, qrbox: 220 },
+      (decodedText) => this.onScanSuccess(decodedText),
+      () => {}
+    ).catch(err => {
+      console.error(err);
+      toast("Kamera konnte nicht gestartet werden: " + (err?.message || err));
+    });
+  },
+
+  async onScanSuccess(decodedText) {
+    const karteId = decodedText.trim();
+    const k = (Store.data.stempelkarten || []).find(x => x.id === karteId);
+    if (!k) { toast("Unbekannte Karte gescannt."); return; }
+    if (k.status !== "aktiv") { toast(`Karte von ${k.inhaberName} ist nicht aktiv (${k.status}).`); return; }
+    if (k.stempelGebraucht >= k.stempelGesamt) { toast(`Karte von ${k.inhaberName} ist bereits voll.`); return; }
+
+    if (this.scannerInstance) { try { await this.scannerInstance.pause(true); } catch (e) {} }
+
+    if (confirm(`Stempel für ${k.inhaberName} hinzufügen? (${k.stempelGebraucht + 1}/${k.stempelGesamt})`)) {
+      await this._stempelHinzufuegen(k);
+    }
+
+    if (this.scannerInstance) { try { await this.scannerInstance.resume(); } catch (e) {} }
+  },
+
+  closeScanner() {
+    if (this.scannerInstance) {
+      this.scannerInstance.stop().then(() => {
+        this.scannerInstance.clear();
+        this.scannerInstance = null;
+      }).catch(() => { this.scannerInstance = null; });
+    }
+    Modal.close("modal-qr-scanner");
   }
 };
 
@@ -3407,6 +4054,7 @@ const Personen = {
             <th>Aktuelle Rolle</th>
             <th style="width:160px;">Rolle zuweisen</th>
             <th style="width:110px;">Belegungsplan</th>
+            <th style="width:110px;">Kurse (Trainer)</th>
           </tr>
         </thead>
         <tbody>
@@ -3431,6 +4079,15 @@ const Personen = {
                   ? `<span class="meta">Immer erlaubt</span>`
                   : `<label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;">
                        <input type="checkbox" ${u.duerfteBelegungBuchen ? 'checked' : ''} onchange="Store.updateUserBelegungFlag('${u.id}', this.checked)">
+                       erlaubt
+                     </label>`
+                }
+              </td>
+              <td>
+                ${u.role === 'A' || u.role === 'B'
+                  ? `<span class="meta">Immer erlaubt</span>`
+                  : `<label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;">
+                       <input type="checkbox" ${u.duerfteKurseVerwalten ? 'checked' : ''} onchange="Store.updateUserKurseFlag('${u.id}', this.checked)">
                        erlaubt
                      </label>`
                 }
