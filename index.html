@@ -686,6 +686,7 @@
   <button type="button" class="tab-btn bereich-kurse" data-view="meine-karten">🧘 Meine Karten</button>
   <button type="button" class="tab-btn bereich-kurse kurse-only" data-view="karten-verwaltung">🎟️ Karten-Verwaltung</button>
   <button type="button" class="tab-btn bereich-kurse vorstand-only" data-view="kurse-verwaltung">📋 Kurse verwalten</button>
+  <button type="button" class="tab-btn bereich-kurse vorstand-only" data-view="kassenabrechnung">💰 Kassenabrechnung</button>
 </nav>
 
 <main>
@@ -895,9 +896,12 @@
     <div class="toolbar">
       <div>
         <h2>🧘 Meine Karten</h2>
-        <div class="desc">Deine Stempelkarten für kostenpflichtige Kurse</div>
+        <div class="desc">Deine Wertkarten – gültig für alle Kurse</div>
       </div>
-      <button type="button" class="btn" onclick="Karten.openBeantragenForm()">+ Neue Karte beantragen</button>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <button type="button" class="btn" onclick="Karten.openEincheckenScanner()">📷 Bei Kurs einchecken</button>
+        <button type="button" class="btn secondary" onclick="Karten.openBeantragenForm()">+ Neue Karte beantragen</button>
+      </div>
     </div>
     <div id="meine-karten-list"></div>
   </section>
@@ -907,14 +911,16 @@
     <div class="toolbar">
       <div>
         <h2>🎟️ Karten-Verwaltung</h2>
-        <div class="desc">Übersicht aller Stempelkarten, Aktivierung und Stempelvergabe</div>
+        <div class="desc">Übersicht aller Wertkarten, Aktivierung und Besuchs-Erfassung</div>
       </div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;">
         <button type="button" class="btn" onclick="Karten.openAusstellenForm()">+ Karte ausstellen</button>
-        <button type="button" class="btn secondary" onclick="Karten.openScanner()">📷 QR-Scanner</button>
+        <button type="button" class="btn" onclick="Karten.openKursSitzung()">📷 Kurs-Sitzung öffnen</button>
+        <button type="button" class="btn secondary" onclick="Karten.openScanner()">📷 Karte scannen</button>
+        <button type="button" class="btn danger admin-only" onclick="Karten.bereinigeAlteKarten()">🧹 Alte Karten entfernen</button>
       </div>
     </div>
-    <input type="search" class="search-input" placeholder="Suchen (Name, Kurs)…" oninput="Karten.filterVerwaltung(this.value)">
+    <input type="search" class="search-input" placeholder="Suchen (Name)…" oninput="Karten.filterVerwaltung(this.value)">
     <div id="karten-verwaltung-list"></div>
   </section>
 
@@ -928,6 +934,17 @@
       <button type="button" class="btn" onclick="Kurse.openForm()">+ Neuer Kurs</button>
     </div>
     <div id="kurse-list"></div>
+  </section>
+
+  <!-- KASSENABRECHNUNG (nur A/B) -->
+  <section class="view" id="view-kassenabrechnung">
+    <div class="toolbar">
+      <div>
+        <h2>💰 Kassenabrechnung</h2>
+        <div class="desc">Wer hat wie viele Karten verkauft, welcher Betrag ist noch nicht abgegeben?</div>
+      </div>
+    </div>
+    <div id="kassenabrechnung-content"></div>
   </section>
 
 </main>
@@ -1180,10 +1197,7 @@
     <input type="hidden" id="kursId">
     <div class="field"><label>Kursname</label><input id="kursName" placeholder="z. B. Yoga"></div>
     <div class="field"><label>Beschreibung (optional)</label><textarea id="kursBeschreibung" placeholder="z. B. Montags 18-19 Uhr, Halle 2"></textarea></div>
-    <div class="field-row">
-      <div class="field"><label>Preis pro Karte (€)</label><input type="number" step="0.01" min="0" id="kursPreis" placeholder="z. B. 20"></div>
-      <div class="field"><label>Stempel pro Karte</label><input type="number" min="1" id="kursStempelProKarte" value="10"></div>
-    </div>
+    <div class="field"><label>Kosten pro Besuch (€)</label><input type="number" step="0.01" min="0" id="kursKostenProBesuch" placeholder="z. B. 5"></div>
     <div class="modal-actions">
       <button type="button" class="btn secondary" onclick="Modal.close('modal-kurs')">Abbrechen</button>
       <button type="button" class="btn" onclick="Kurse.save()">Speichern</button>
@@ -1194,13 +1208,9 @@
 <!-- Karte beantragen (Mitglied) -->
 <div class="overlay" id="modal-karte-beantragen">
   <div class="modal">
-    <h3>Neue Karte beantragen</h3>
-    <div class="field">
-      <label>Kurs</label>
-      <select id="karteBeantragenKursId"></select>
-    </div>
-    <div class="desc" id="karteBeantragenInfo" style="margin-bottom:8px;"></div>
-    <div class="desc" style="background:#f5f0e0;padding:10px;border-radius:8px;">Nach dem Beantragen erscheint die Karte mit Status „Wartet auf Aktivierung". Bitte die Kursgebühr bar beim Trainer/Vorstand bezahlen – die Karte wird danach freigeschaltet.</div>
+    <h3>Neue Wertkarte beantragen</h3>
+    <div class="field"><label>Kartenwert (€)</label><input type="number" step="0.01" min="0" id="karteBeantragenWert" value="20" placeholder="z. B. 20"></div>
+    <div class="desc" style="background:#f5f0e0;padding:10px;border-radius:8px;">Die Karte gilt für alle Kurse – jeder Besuch zieht die jeweiligen Kurskosten von deinem Guthaben ab. Nach dem Beantragen erscheint die Karte mit Status „Wartet auf Aktivierung". Bitte den Betrag bar beim Trainer/Vorstand bezahlen – die Karte wird danach freigeschaltet.</div>
     <div class="modal-actions">
       <button type="button" class="btn secondary" onclick="Modal.close('modal-karte-beantragen')">Abbrechen</button>
       <button type="button" class="btn" onclick="Karten.beantragen()">Beantragen</button>
@@ -1211,15 +1221,12 @@
 <!-- Karte ausstellen (Admin/Trainer, direkt aktiv) -->
 <div class="overlay" id="modal-karte-ausstellen">
   <div class="modal">
-    <h3>Neue Karte ausstellen</h3>
+    <h3>Neue Wertkarte ausstellen</h3>
     <div class="field">
       <label>Mitglied</label>
       <select id="karteAusstellenUserId"></select>
     </div>
-    <div class="field">
-      <label>Kurs</label>
-      <select id="karteAusstellenKursId"></select>
-    </div>
+    <div class="field"><label>Kartenwert (€)</label><input type="number" step="0.01" min="0" id="karteAusstellenWert" value="20" placeholder="z. B. 20"></div>
     <div class="field">
       <label>Zahlungsart</label>
       <select id="karteAusstellenZahlungsart">
@@ -1227,7 +1234,7 @@
         <option value="ueberweisung">Überweisung</option>
       </select>
     </div>
-    <div class="desc">Die Karte wird sofort mit Status „Aktiv" angelegt und erscheint direkt im Account des Mitglieds.</div>
+    <div class="desc">Die Karte wird sofort mit Status „Aktiv" angelegt, gilt für alle Kurse und erscheint direkt im Account des Mitglieds.</div>
     <div class="modal-actions">
       <button type="button" class="btn secondary" onclick="Modal.close('modal-karte-ausstellen')">Abbrechen</button>
       <button type="button" class="btn" onclick="Karten.ausstellen()">Karte ausstellen</button>
@@ -1235,11 +1242,11 @@
   </div>
 </div>
 
-<!-- QR-Code Anzeige -->
+<!-- QR-Code Anzeige (eigene Wertkarte) -->
 <div class="overlay" id="modal-qr-anzeige">
   <div class="modal" style="text-align:center;">
-    <h3 id="qr-anzeige-title">Meine Karte</h3>
-    <div class="desc" style="margin-bottom:10px;">Diesem Code beim Trainer zum Stempeln vorzeigen</div>
+    <h3 id="qr-anzeige-title">Meine Wertkarte</h3>
+    <div class="desc" style="margin-bottom:10px;">Diesem Code beim Trainer vorzeigen (Alternative zum Selbst-Einchecken)</div>
     <div id="qr-anzeige-code" style="display:flex;justify-content:center;margin:10px 0;"></div>
     <div class="modal-actions" style="justify-content:center;">
       <button type="button" class="btn secondary" onclick="Modal.close('modal-qr-anzeige')">Schließen</button>
@@ -1247,14 +1254,60 @@
   </div>
 </div>
 
-<!-- QR-Scanner (Trainer) -->
+<!-- QR-Scanner (Trainer scannt Mitglieds-Karte, danach Kurs-Auswahl) -->
 <div class="overlay" id="modal-qr-scanner">
   <div class="modal">
-    <h3>QR-Code scannen</h3>
+    <h3>Wertkarte scannen</h3>
     <div class="desc" style="margin-bottom:10px;">Kamera auf den QR-Code der Mitglieds-Karte richten</div>
     <div id="qr-scanner-reader" style="width:100%;"></div>
     <div class="modal-actions">
       <button type="button" class="btn secondary" onclick="Karten.closeScanner()">Schließen</button>
+    </div>
+  </div>
+</div>
+
+<!-- Kurs-Sitzung öffnen (Trainer) -->
+<div class="overlay" id="modal-kurs-sitzung">
+  <div class="modal" style="text-align:center;">
+    <h3>Kurs-Sitzung öffnen</h3>
+    <div class="field" style="text-align:left;">
+      <label>Welcher Kurs findet gerade statt?</label>
+      <select id="sitzungKursId" onchange="Karten.zeigeSitzungsQr()"></select>
+    </div>
+    <div class="desc" id="sitzungInfo" style="margin:6px 0;"></div>
+    <div id="sitzung-qr-code" style="display:flex;justify-content:center;margin:10px 0;"></div>
+    <div class="desc">Teilnehmer scannen diesen Code über „Meine Karten" → „Bei Kurs einchecken" selbst ein. Gültig nur für heute.</div>
+    <div class="modal-actions" style="justify-content:center;">
+      <button type="button" class="btn secondary" onclick="Modal.close('modal-kurs-sitzung')">Schließen</button>
+    </div>
+  </div>
+</div>
+
+<!-- Einchecken (Mitglied scannt Sitzungs-QR mit eigener Kamera) -->
+<div class="overlay" id="modal-einchecken-scanner">
+  <div class="modal">
+    <h3>Bei Kurs einchecken</h3>
+    <div class="desc" style="margin-bottom:10px;">Kamera auf die Sitzungs-QR des Trainers richten</div>
+    <div id="einchecken-scanner-reader" style="width:100%;"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn secondary" onclick="Karten.closeEincheckenScanner()">Schließen</button>
+    </div>
+  </div>
+</div>
+
+<!-- Kurs-Auswahl für manuellen Besuch / nach Karten-Scan -->
+<div class="overlay" id="modal-kurs-waehlen">
+  <div class="modal">
+    <h3>Für welchen Kurs?</h3>
+    <input type="hidden" id="kursWahlKarteId">
+    <div class="field">
+      <label>Kurs</label>
+      <select id="kursWahlKursId"></select>
+    </div>
+    <div class="desc" id="kursWahlInfo"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn secondary" onclick="Modal.close('modal-kurs-waehlen')">Abbrechen</button>
+      <button type="button" class="btn" onclick="Karten.bestaetigeBesuch()">Besuch eintragen</button>
     </div>
   </div>
 </div>
@@ -1605,7 +1658,7 @@
    ZENTRALE KONFIGURATION & DATENSCHICHT
    ============================================================ */
 
-const APP_VERSION = "0.1.099";
+const APP_VERSION = "0.1.104";
 let currentUserProfile = { role: "A", actualRole: "A", email: "", name: "" };
 
 function uid(prefix) {
@@ -2187,6 +2240,7 @@ function renderViewContent(view) {
   if (view === "meine-karten") Karten.renderMeine();
   if (view === "karten-verwaltung") Karten.renderVerwaltung();
   if (view === "kurse-verwaltung") Kurse.render();
+  if (view === "kassenabrechnung") Karten.renderKassenabrechnung();
 }
 
 function switchToView(view) {
@@ -2929,13 +2983,14 @@ const Kurse = {
     }
 
     list.innerHTML = kurse.map(k => {
-      const anzahlKarten = (Store.data.stempelkarten || []).filter(s => s.kursId === k.id).length;
+      const anzahlBesuche = (Store.data.stempelkarten || []).reduce((s, karte) =>
+        s + (karte.stempelHistorie || []).filter(h => h.kursId === k.id).length, 0);
       return `
         <div class="card">
           <div class="card-head">
             <div>
               <h3>🧘 ${escapeHtml(k.name)}</h3>
-              <div class="meta">${k.preis != null ? k.preis + ' € pro Karte' : ''} &middot; ${k.stempelProKarte || 10} Stempel pro Karte &middot; ${anzahlKarten} Karte(n) insgesamt</div>
+              <div class="meta">${(k.kostenProBesuch ?? 0).toFixed(2)} € pro Besuch &middot; ${anzahlBesuche} Besuch(e) bisher</div>
               ${k.beschreibung ? `<div style="font-size:12px;color:var(--text-muted);margin-top:4px;">${escapeHtml(k.beschreibung)}</div>` : ''}
             </div>
             <div class="card-actions">
@@ -2955,8 +3010,7 @@ const Kurse = {
     document.getElementById("kurs-modal-title").textContent = isEdit ? "Kurs bearbeiten" : "Neuer Kurs";
     document.getElementById("kursName").value = k.name || "";
     document.getElementById("kursBeschreibung").value = k.beschreibung || "";
-    document.getElementById("kursPreis").value = k.preis ?? "";
-    document.getElementById("kursStempelProKarte").value = k.stempelProKarte || 10;
+    document.getElementById("kursKostenProBesuch").value = k.kostenProBesuch ?? "";
     Modal.open("modal-kurs");
   },
 
@@ -2968,8 +3022,7 @@ const Kurse = {
     const kurs = {
       id, name,
       beschreibung: document.getElementById("kursBeschreibung").value.trim(),
-      preis: Number(document.getElementById("kursPreis").value) || 0,
-      stempelProKarte: Math.max(1, Number(document.getElementById("kursStempelProKarte").value) || 10)
+      kostenProBesuch: Number(document.getElementById("kursKostenProBesuch").value) || 0
     };
 
     if (!Store.data.kurse) Store.data.kurse = [];
@@ -2983,9 +3036,9 @@ const Kurse = {
   },
 
   async remove(id) {
-    const hatKarten = (Store.data.stempelkarten || []).some(s => s.kursId === id);
-    const frage = hatKarten
-      ? "Für diesen Kurs existieren bereits Stempelkarten. Kurs trotzdem löschen? Die Karten bleiben bestehen, verweisen dann aber ins Leere."
+    const hatBesuche = (Store.data.stempelkarten || []).some(s => (s.stempelHistorie || []).some(h => h.kursId === id));
+    const frage = hatBesuche
+      ? "Für diesen Kurs gibt es bereits erfasste Besuche. Kurs trotzdem löschen? Die Besuchseinträge bleiben in der Historie bestehen."
       : "Diesen Kurs wirklich löschen?";
     if (!confirm(frage)) return;
     Store.data.kurse = (Store.data.kurse || []).filter(x => x.id !== id);
@@ -2996,6 +3049,7 @@ const Kurse = {
 
 const Karten = {
   scannerInstance: null,
+  eincheckenScannerInstance: null,
 
   currentUid() {
     return window.FB.auth.currentUser ? window.FB.auth.currentUser.uid : "";
@@ -3006,6 +3060,7 @@ const Karten = {
     if (!activeView) return;
     if (activeView.id === "view-meine-karten") this.renderMeine();
     if (activeView.id === "view-karten-verwaltung") this.renderVerwaltung();
+    if (activeView.id === "view-kassenabrechnung") this.renderKassenabrechnung();
   },
 
   // ---- Mitglied: "Meine Karten" ----
@@ -3018,33 +3073,56 @@ const Karten = {
       .sort((a, b) => (b.beantragtAm || "").localeCompare(a.beantragtAm || ""));
 
     if (meine.length === 0) {
-      list.innerHTML = '<div class="empty-state">Du hast noch keine Karte. Klicke auf „+ Neue Karte beantragen".</div>';
+      list.innerHTML = '<div class="empty-state">Du hast noch keine Wertkarte. Klicke auf „+ Neue Karte beantragen".</div>';
       return;
     }
-    list.innerHTML = meine.map(k => this.renderKarteCard(k, false)).join("");
+
+    const besuche = [];
+    meine.forEach(k => {
+      (k.stempelHistorie || []).forEach(h => {
+        besuche.push({ datum: h.datum, kursName: h.kursName || "Unbekannter Kurs", betrag: h.betrag });
+      });
+    });
+    besuche.sort((a, b) => b.datum.localeCompare(a.datum));
+
+    const historieHtml = besuche.length > 0 ? `
+      <div class="card" style="background:#f7f7f4;">
+        <h3 style="margin-bottom:8px;">🗓️ Deine Besuchshistorie</h3>
+        <table class="subtable matrix-table" style="width:100%;">
+          <thead><tr><th>Datum</th><th>Kurs</th><th>Betrag</th></tr></thead>
+          <tbody>
+            ${besuche.map(b => `<tr><td>${escapeHtml(b.datum)}</td><td>${escapeHtml(b.kursName)}</td><td>${(b.betrag || 0).toFixed(2)} €</td></tr>`).join("")}
+          </tbody>
+        </table>
+      </div>
+    ` : '';
+
+    list.innerHTML = historieHtml + meine.map(k => this.renderKarteCard(k, false)).join("");
   },
 
   renderKarteCard(k, adminView) {
-    const kurs = (Store.data.kurse || []).find(x => x.id === k.kursId);
     const statusLabel = k.status === 'aktiv' ? '🟢 Aktiv' : (k.status === 'aufgebraucht' ? '⚪ Aufgebraucht' : '🟡 Wartet auf Aktivierung');
-    const dots = Array.from({ length: k.stempelGesamt || 0 }, (_, i) =>
-      `<span class="stempel-dot ${i < k.stempelGebraucht ? 'used' : ''}"></span>`
-    ).join("");
-    const historie = (k.stempelHistorie || []).slice().reverse().map(h => h.datum).join(", ");
+    const rest = Math.max(0, (k.wertGesamt || 0) - (k.wertVerbraucht || 0));
+    const pct = k.wertGesamt ? Math.min(100, Math.round((k.wertVerbraucht || 0) / k.wertGesamt * 100)) : 0;
+    const letzteBesuche = (k.stempelHistorie || []).slice().reverse().slice(0, 5)
+      .map(h => `${h.datum} (${escapeHtml(h.kursName || '–')}, ${(h.betrag || 0).toFixed(2)} €)`).join(", ");
 
     return `
       <div class="card">
         <div class="card-head">
           <div>
-            <h3>🧘 ${escapeHtml(kurs ? kurs.name : "Unbekannter Kurs")} ${adminView ? `<span class="meta" style="font-weight:400;">— ${escapeHtml(k.inhaberName || "")}</span>` : ''}</h3>
-            <div class="meta">${statusLabel} &middot; ${k.stempelGebraucht}/${k.stempelGesamt} Stempel &middot; frei: ${k.stempelGesamt - k.stempelGebraucht}</div>
-            <div class="stempel-row">${dots}</div>
-            ${historie ? `<div style="font-size:11.5px;color:var(--text-muted);margin-top:6px;">War da am: ${escapeHtml(historie)}</div>` : ''}
+            <h3>💳 Wertkarte ${adminView ? `<span class="meta" style="font-weight:400;">— ${escapeHtml(k.inhaberName || "")}</span>` : ''}</h3>
+            <div class="meta">${statusLabel} &middot; Guthaben: ${rest.toFixed(2)} € von ${(k.wertGesamt || 0).toFixed(2)} €</div>
+            <div style="background:#eee;border-radius:6px;height:10px;margin-top:8px;overflow:hidden;">
+              <div style="background:var(--accent-dark, #143f34);height:100%;width:${pct}%;"></div>
+            </div>
+            ${letzteBesuche ? `<div style="font-size:11.5px;color:var(--text-muted);margin-top:6px;">Letzte Besuche: ${letzteBesuche}</div>` : ''}
           </div>
           <div class="card-actions">
             ${!adminView && k.status === 'aktiv' ? `<button type="button" class="btn secondary small" onclick="Karten.zeigeQr('${k.id}')">QR-Code</button>` : ''}
             ${adminView && k.status === 'offen' ? `<button type="button" class="btn small" onclick="Karten.aktivieren('${k.id}')">Aktivieren (bezahlt)</button>` : ''}
-            ${adminView && k.status === 'aktiv' ? `<button type="button" class="btn small" onclick="Karten.stempel('${k.id}')">+ Stempel</button>` : ''}
+            ${adminView && k.status === 'aktiv' ? `<button type="button" class="btn small" onclick="Karten.openKursWahlManuell('${k.id}')">+ Besuch eintragen</button>` : ''}
+            ${adminView && currentUserProfile.role === 'A' && (k.stempelHistorie || []).length > 0 ? `<button type="button" class="btn secondary small" onclick="Karten.besuchRueckgaengig('${k.id}')">↩ Letzten Besuch zurück</button>` : ''}
             ${adminView ? `<button type="button" class="btn danger small" onclick="Karten.remove('${k.id}')">Löschen</button>` : ''}
           </div>
         </div>
@@ -3053,35 +3131,23 @@ const Karten = {
   },
 
   openBeantragenForm() {
-    const kurse = Store.data.kurse || [];
-    if (kurse.length === 0) { toast("Es sind noch keine Kurse angelegt."); return; }
-    const sel = document.getElementById("karteBeantragenKursId");
-    sel.innerHTML = kurse.map(k => `<option value="${k.id}">${escapeHtml(k.name)}</option>`).join("");
-    sel.onchange = () => this.updateBeantragenInfo();
-    this.updateBeantragenInfo();
+    document.getElementById("karteBeantragenWert").value = 20;
     Modal.open("modal-karte-beantragen");
   },
 
-  updateBeantragenInfo() {
-    const kursId = document.getElementById("karteBeantragenKursId").value;
-    const kurs = (Store.data.kurse || []).find(k => k.id === kursId);
-    document.getElementById("karteBeantragenInfo").textContent = kurs ? `${kurs.stempelProKarte} Stempel für ${kurs.preis} €` : '';
-  },
-
   async beantragen() {
-    const kursId = document.getElementById("karteBeantragenKursId").value;
-    const kurs = (Store.data.kurse || []).find(k => k.id === kursId);
-    if (!kurs) { toast("Bitte einen Kurs auswählen."); return; }
+    const wert = Number(document.getElementById("karteBeantragenWert").value);
+    if (!wert || wert <= 0) { toast("Bitte einen gültigen Kartenwert angeben."); return; }
 
     const karte = {
       id: uid("karte"),
-      kursId,
       inhaberUid: this.currentUid(),
       inhaberName: currentUserProfile.name || currentUserProfile.email || "",
-      stempelGesamt: kurs.stempelProKarte || 10,
-      stempelGebraucht: 0,
+      wertGesamt: wert,
+      wertVerbraucht: 0,
       status: "offen",
       zahlungsart: "bar",
+      bezahlBeglichen: false,
       beantragtAm: new Date().toISOString(),
       stempelHistorie: []
     };
@@ -3089,7 +3155,7 @@ const Karten = {
     try {
       await Store.saveStempelkarte(karte);
       Modal.close("modal-karte-beantragen");
-      toast("Karte beantragt – bitte Gebühr bar bezahlen, dann wird sie freigeschaltet.");
+      toast("Karte beantragt – bitte Betrag bar bezahlen, dann wird sie freigeschaltet.");
     } catch (err) {
       console.error(err);
       toast("Fehler beim Beantragen: " + (err?.message || "Unbekannter Fehler"));
@@ -3111,10 +3177,7 @@ const Karten = {
 
     if (this.verwaltungSearchTerm.trim()) {
       const t = this.verwaltungSearchTerm.trim().toLowerCase();
-      karten = karten.filter(k => {
-        const kurs = (Store.data.kurse || []).find(x => x.id === k.kursId);
-        return (k.inhaberName || "").toLowerCase().includes(t) || (kurs?.name || "").toLowerCase().includes(t);
-      });
+      karten = karten.filter(k => (k.inhaberName || "").toLowerCase().includes(t));
     }
 
     if (karten.length === 0) {
@@ -3125,33 +3188,30 @@ const Karten = {
   },
 
   openAusstellenForm() {
-    const kurse = Store.data.kurse || [];
-    if (kurse.length === 0) { toast("Es sind noch keine Kurse angelegt."); return; }
     const userSel = document.getElementById("karteAusstellenUserId");
     const uList = [...(Store.data.users || [])].sort((a, b) => (a.name || a.email || "").localeCompare(b.name || b.email || "", "de"));
     userSel.innerHTML = uList.map(u => `<option value="${u.id}">${escapeHtml(u.name || u.email)}</option>`).join("");
-    const kursSel = document.getElementById("karteAusstellenKursId");
-    kursSel.innerHTML = kurse.map(k => `<option value="${k.id}">${escapeHtml(k.name)}</option>`).join("");
+    document.getElementById("karteAusstellenWert").value = 20;
     Modal.open("modal-karte-ausstellen");
   },
 
   async ausstellen() {
     const userId = document.getElementById("karteAusstellenUserId").value;
-    const kursId = document.getElementById("karteAusstellenKursId").value;
+    const wert = Number(document.getElementById("karteAusstellenWert").value);
     const zahlungsart = document.getElementById("karteAusstellenZahlungsart").value;
     const user = (Store.data.users || []).find(u => u.id === userId);
-    const kurs = (Store.data.kurse || []).find(k => k.id === kursId);
-    if (!user || !kurs) { toast("Bitte Mitglied und Kurs auswählen."); return; }
+    if (!user) { toast("Bitte ein Mitglied auswählen."); return; }
+    if (!wert || wert <= 0) { toast("Bitte einen gültigen Kartenwert angeben."); return; }
 
     const karte = {
       id: uid("karte"),
-      kursId,
       inhaberUid: userId,
       inhaberName: user.name || user.email || "",
-      stempelGesamt: kurs.stempelProKarte || 10,
-      stempelGebraucht: 0,
+      wertGesamt: wert,
+      wertVerbraucht: 0,
       status: "aktiv",
       zahlungsart,
+      bezahlBeglichen: false,
       beantragtAm: new Date().toISOString(),
       aktiviertAm: new Date().toISOString(),
       aktiviertVonUid: this.currentUid(),
@@ -3171,7 +3231,7 @@ const Karten = {
   async aktivieren(id) {
     const k = (Store.data.stempelkarten || []).find(x => x.id === id);
     if (!k) return;
-    if (!confirm(`Karte für ${k.inhaberName} aktivieren (Zahlung erhalten)?`)) return;
+    if (!confirm(`Karte für ${k.inhaberName} aktivieren (Zahlung von ${(k.wertGesamt || 0).toFixed(2)} € erhalten)?`)) return;
     const update = { ...k, status: "aktiv", aktiviertAm: new Date().toISOString(), aktiviertVonUid: this.currentUid() };
     try {
       await Store.saveStempelkarte(update);
@@ -3182,30 +3242,95 @@ const Karten = {
     }
   },
 
-  async stempel(id) {
-    const k = (Store.data.stempelkarten || []).find(x => x.id === id);
-    if (!k) return;
-    if (k.status !== "aktiv") { toast("Diese Karte ist nicht aktiv."); return; }
-    if (k.stempelGebraucht >= k.stempelGesamt) { toast("Karte ist bereits voll."); return; }
-    if (!confirm(`Stempel für ${k.inhaberName} (${k.stempelGebraucht + 1}/${k.stempelGesamt}) hinzufügen?`)) return;
-    await this._stempelHinzufuegen(k);
+  // ---- Besuch manuell eintragen (Admin/Trainer wählt Karte, dann Kurs) ----
+  openKursWahlManuell(karteId) {
+    const kurse = Store.data.kurse || [];
+    if (kurse.length === 0) { toast("Es sind noch keine Kurse angelegt."); return; }
+    document.getElementById("kursWahlKarteId").value = karteId;
+    const sel = document.getElementById("kursWahlKursId");
+    sel.innerHTML = kurse.map(k => `<option value="${k.id}">${escapeHtml(k.name)} (${(k.kostenProBesuch || 0).toFixed(2)} €)</option>`).join("");
+    sel.onchange = () => this.updateKursWahlInfo();
+    this.updateKursWahlInfo();
+    Modal.open("modal-kurs-waehlen");
   },
 
-  async _stempelHinzufuegen(k) {
-    const neuerStand = k.stempelGebraucht + 1;
-    const historie = [...(k.stempelHistorie || []), { datum: new Date().toISOString().slice(0, 10), vonUid: this.currentUid(), vonName: currentUserProfile.name || "" }];
+  updateKursWahlInfo() {
+    const karteId = document.getElementById("kursWahlKarteId").value;
+    const kursId = document.getElementById("kursWahlKursId").value;
+    const k = (Store.data.stempelkarten || []).find(x => x.id === karteId);
+    const kurs = (Store.data.kurse || []).find(x => x.id === kursId);
+    if (!k || !kurs) { document.getElementById("kursWahlInfo").textContent = ""; return; }
+    const rest = (k.wertGesamt || 0) - (k.wertVerbraucht || 0);
+    document.getElementById("kursWahlInfo").textContent = `Guthaben: ${rest.toFixed(2)} € — Kosten: ${(kurs.kostenProBesuch || 0).toFixed(2)} €${rest < kurs.kostenProBesuch ? ' — ⚠️ Guthaben reicht nicht aus!' : ''}`;
+  },
+
+  async bestaetigeBesuch() {
+    const karteId = document.getElementById("kursWahlKarteId").value;
+    const kursId = document.getElementById("kursWahlKursId").value;
+    const k = (Store.data.stempelkarten || []).find(x => x.id === karteId);
+    const kurs = (Store.data.kurse || []).find(x => x.id === kursId);
+    if (!k || !kurs) return;
+
+    const ok = await this._besuchEintragen(k, kurs, this.currentUid(), currentUserProfile.name || "");
+    if (ok) {
+      Modal.close("modal-kurs-waehlen");
+    }
+  },
+
+  async _besuchEintragen(k, kurs, vonUid, vonName) {
+    const rest = (k.wertGesamt || 0) - (k.wertVerbraucht || 0);
+    if (k.status !== "aktiv") { toast("Diese Karte ist nicht aktiv."); return false; }
+    if (rest < (kurs.kostenProBesuch || 0)) { toast(`Guthaben reicht nicht aus (noch ${rest.toFixed(2)} € übrig, ${kurs.name} kostet ${(kurs.kostenProBesuch || 0).toFixed(2)} €).`); return false; }
+
+    const neuerVerbraucht = (k.wertVerbraucht || 0) + (kurs.kostenProBesuch || 0);
+    const historie = [...(k.stempelHistorie || []), {
+      datum: new Date().toISOString().slice(0, 10),
+      kursId: kurs.id,
+      kursName: kurs.name,
+      betrag: kurs.kostenProBesuch || 0,
+      vonUid, vonName
+    }];
     const update = {
       ...k,
-      stempelGebraucht: neuerStand,
-      status: neuerStand >= k.stempelGesamt ? "aufgebraucht" : "aktiv",
+      wertVerbraucht: neuerVerbraucht,
+      status: neuerVerbraucht >= (k.wertGesamt || 0) ? "aufgebraucht" : "aktiv",
       stempelHistorie: historie
     };
     try {
       await Store.saveStempelkarte(update);
-      toast(neuerStand >= k.stempelGesamt ? `Stempel hinzugefügt – Karte von ${k.inhaberName} ist jetzt aufgebraucht.` : "Stempel hinzugefügt.");
+      toast(update.status === "aufgebraucht" ? `Besuch erfasst – Karte von ${k.inhaberName} ist jetzt aufgebraucht.` : `Besuch erfasst (${kurs.name}, ${(kurs.kostenProBesuch || 0).toFixed(2)} €).`);
+      return true;
     } catch (err) {
       console.error(err);
-      toast("Fehler beim Stempeln: " + (err?.message || "Unbekannter Fehler"));
+      toast("Fehler beim Erfassen: " + (err?.message || "Unbekannter Fehler"));
+      return false;
+    }
+  },
+
+  async besuchRueckgaengig(id) {
+    if (currentUserProfile.role !== "A") {
+      toast("Nur Administratoren können einen Besuch zurücknehmen.");
+      return;
+    }
+    const k = (Store.data.stempelkarten || []).find(x => x.id === id);
+    if (!k || (k.stempelHistorie || []).length === 0) return;
+    const letzter = k.stempelHistorie[k.stempelHistorie.length - 1];
+    if (!confirm(`Letzten Besuch bei ${k.inhaberName} zurücknehmen? (${letzter.datum}, ${letzter.kursName}, ${(letzter.betrag || 0).toFixed(2)} €)`)) return;
+
+    const historie = [...k.stempelHistorie];
+    historie.pop();
+    const update = {
+      ...k,
+      wertVerbraucht: Math.max(0, (k.wertVerbraucht || 0) - (letzter.betrag || 0)),
+      status: "aktiv",
+      stempelHistorie: historie
+    };
+    try {
+      await Store.saveStempelkarte(update);
+      toast("Besuch zurückgenommen.");
+    } catch (err) {
+      console.error(err);
+      toast("Fehler: " + (err?.message || "Unbekannter Fehler"));
     }
   },
 
@@ -3220,19 +3345,38 @@ const Karten = {
     }
   },
 
-  // ---- QR anzeigen (Mitglied) ----
+  async bereinigeAlteKarten() {
+    if (currentUserProfile.role !== "A") {
+      toast("Nur Administratoren können alte Karten bereinigen.");
+      return;
+    }
+    const alte = (Store.data.stempelkarten || []).filter(k => k.wertGesamt == null);
+    if (alte.length === 0) {
+      toast("Keine alten Karten (Vorformat) gefunden.");
+      return;
+    }
+    if (!confirm(`${alte.length} Karte(n) im alten Stempel-Format gefunden. Wirklich unwiderruflich löschen?`)) return;
+    try {
+      for (const k of alte) await Store.deleteStempelkarte(k.id);
+      toast(`${alte.length} alte Karte(n) entfernt.`);
+    } catch (err) {
+      console.error(err);
+      toast("Fehler beim Bereinigen: " + (err?.message || "Unbekannter Fehler"));
+    }
+  },
+
+  // ---- QR anzeigen (Mitglied zeigt eigene Karte, Alternative zum Einchecken) ----
   zeigeQr(id) {
     const k = (Store.data.stempelkarten || []).find(x => x.id === id);
     if (!k) return;
-    const kurs = (Store.data.kurse || []).find(x => x.id === k.kursId);
-    document.getElementById("qr-anzeige-title").textContent = `Karte: ${kurs ? kurs.name : ''}`;
+    document.getElementById("qr-anzeige-title").textContent = "Meine Wertkarte";
     const area = document.getElementById("qr-anzeige-code");
     area.innerHTML = "";
     new QRCode(area, { text: k.id, width: 220, height: 220 });
     Modal.open("modal-qr-anzeige");
   },
 
-  // ---- QR scannen (Trainer/Admin) ----
+  // ---- Trainer scannt Mitglieds-Karte, wählt danach Kurs ----
   openScanner() {
     Modal.open("modal-qr-scanner");
     const readerEl = document.getElementById("qr-scanner-reader");
@@ -3254,15 +3398,10 @@ const Karten = {
     const k = (Store.data.stempelkarten || []).find(x => x.id === karteId);
     if (!k) { toast("Unbekannte Karte gescannt."); return; }
     if (k.status !== "aktiv") { toast(`Karte von ${k.inhaberName} ist nicht aktiv (${k.status}).`); return; }
-    if (k.stempelGebraucht >= k.stempelGesamt) { toast(`Karte von ${k.inhaberName} ist bereits voll.`); return; }
 
     if (this.scannerInstance) { try { await this.scannerInstance.pause(true); } catch (e) {} }
-
-    if (confirm(`Stempel für ${k.inhaberName} hinzufügen? (${k.stempelGebraucht + 1}/${k.stempelGesamt})`)) {
-      await this._stempelHinzufuegen(k);
-    }
-
-    if (this.scannerInstance) { try { await this.scannerInstance.resume(); } catch (e) {} }
+    this.closeScanner();
+    this.openKursWahlManuell(k.id);
   },
 
   closeScanner() {
@@ -3273,6 +3412,182 @@ const Karten = {
       }).catch(() => { this.scannerInstance = null; });
     }
     Modal.close("modal-qr-scanner");
+  },
+
+  // ---- Trainer: Kurs-Sitzung öffnen (Session-QR) ----
+  openKursSitzung() {
+    const kurse = Store.data.kurse || [];
+    if (kurse.length === 0) { toast("Es sind noch keine Kurse angelegt."); return; }
+    const sel = document.getElementById("sitzungKursId");
+    sel.innerHTML = kurse.map(k => `<option value="${k.id}">${escapeHtml(k.name)}</option>`).join("");
+    Modal.open("modal-kurs-sitzung");
+    this.zeigeSitzungsQr();
+  },
+
+  zeigeSitzungsQr() {
+    const kursId = document.getElementById("sitzungKursId").value;
+    const kurs = (Store.data.kurse || []).find(k => k.id === kursId);
+    if (!kurs) return;
+    const heute = new Date().toISOString().slice(0, 10);
+    const code = `sitzung:${kursId}:${heute}`;
+    document.getElementById("sitzungInfo").textContent = `${kurs.name} — ${(kurs.kostenProBesuch || 0).toFixed(2)} € pro Besuch — gültig nur heute (${heute})`;
+    const area = document.getElementById("sitzung-qr-code");
+    area.innerHTML = "";
+    new QRCode(area, { text: code, width: 220, height: 220 });
+  },
+
+  // ---- Mitglied: selbst einchecken via Sitzungs-QR ----
+  openEincheckenScanner() {
+    Modal.open("modal-einchecken-scanner");
+    const readerEl = document.getElementById("einchecken-scanner-reader");
+    readerEl.innerHTML = "";
+    this.eincheckenScannerInstance = new Html5Qrcode("einchecken-scanner-reader");
+    this.eincheckenScannerInstance.start(
+      { facingMode: "environment" },
+      { fps: 10, qrbox: 220 },
+      (decodedText) => this.onEincheckenScan(decodedText),
+      () => {}
+    ).catch(err => {
+      console.error(err);
+      toast("Kamera konnte nicht gestartet werden: " + (err?.message || err));
+    });
+  },
+
+  async onEincheckenScan(decodedText) {
+    const teile = decodedText.trim().split(":");
+    if (teile[0] !== "sitzung" || teile.length < 3) { toast("Das ist kein gültiger Kurs-Sitzungs-Code."); return; }
+    const kursId = teile[1];
+    const datum = teile[2];
+    const heute = new Date().toISOString().slice(0, 10);
+
+    if (this.eincheckenScannerInstance) { try { await this.eincheckenScannerInstance.pause(true); } catch (e) {} }
+
+    if (datum !== heute) {
+      toast("Diese Sitzungs-QR ist nicht mehr aktuell (gilt nur am Tag der Anzeige).");
+      if (this.eincheckenScannerInstance) { try { await this.eincheckenScannerInstance.resume(); } catch (e) {} }
+      return;
+    }
+
+    const kurs = (Store.data.kurse || []).find(x => x.id === kursId);
+    if (!kurs) {
+      toast("Unbekannter Kurs.");
+      if (this.eincheckenScannerInstance) { try { await this.eincheckenScannerInstance.resume(); } catch (e) {} }
+      return;
+    }
+
+    const meineUid = this.currentUid();
+    const meineKarten = (Store.data.stempelkarten || [])
+      .filter(k => k.inhaberUid === meineUid && k.status === "aktiv" && ((k.wertGesamt || 0) - (k.wertVerbraucht || 0)) >= (kurs.kostenProBesuch || 0))
+      .sort((a, b) => (a.beantragtAm || "").localeCompare(b.beantragtAm || ""));
+
+    if (meineKarten.length === 0) {
+      toast(`Kein ausreichendes Guthaben für „${kurs.name}" (${(kurs.kostenProBesuch || 0).toFixed(2)} €). Bitte eine neue Karte beantragen.`);
+      this.closeEincheckenScanner();
+      return;
+    }
+
+    if (confirm(`Bei „${kurs.name}" einchecken? (${(kurs.kostenProBesuch || 0).toFixed(2)} € werden von deiner Wertkarte abgebucht)`)) {
+      await this._besuchEintragen(meineKarten[0], kurs, meineUid, currentUserProfile.name || "");
+    }
+    this.closeEincheckenScanner();
+  },
+
+  closeEincheckenScanner() {
+    if (this.eincheckenScannerInstance) {
+      this.eincheckenScannerInstance.stop().then(() => {
+        this.eincheckenScannerInstance.clear();
+        this.eincheckenScannerInstance = null;
+      }).catch(() => { this.eincheckenScannerInstance = null; });
+    }
+    Modal.close("modal-einchecken-scanner");
+  },
+
+  // ---- Kassenabrechnung (A/B) ----
+  nameForUid(uidT) {
+    const u = (Store.data.users || []).find(x => x.id === uidT);
+    return u ? (u.name || u.email) : "Unbekannt";
+  },
+
+  betragFuer(k) {
+    return Number(k.wertGesamt) || 0;
+  },
+
+  renderKassenabrechnung() {
+    const wrap = document.getElementById("kassenabrechnung-content");
+    if (!wrap) return;
+
+    const verkauft = (Store.data.stempelkarten || []).filter(k => k.aktiviertVonUid);
+    if (verkauft.length === 0) {
+      wrap.innerHTML = '<div class="empty-state">Noch keine verkauften/aktivierten Karten.</div>';
+      return;
+    }
+
+    const gruppen = {};
+    verkauft.forEach(k => {
+      if (!gruppen[k.aktiviertVonUid]) gruppen[k.aktiviertVonUid] = [];
+      gruppen[k.aktiviertVonUid].push(k);
+    });
+
+    wrap.innerHTML = Object.keys(gruppen)
+      .sort((a, b) => this.nameForUid(a).localeCompare(this.nameForUid(b), "de"))
+      .map(uidT => {
+        const karten = gruppen[uidT].sort((a, b) => (b.aktiviertAm || "").localeCompare(a.aktiviertAm || ""));
+        const gesamt = karten.reduce((s, k) => s + this.betragFuer(k), 0);
+        const offen = karten.filter(k => !k.bezahlBeglichen);
+        const offenBetrag = offen.reduce((s, k) => s + this.betragFuer(k), 0);
+
+        return `
+          <details class="collapsible-section" open style="margin-bottom:16px;">
+            <summary>${escapeHtml(this.nameForUid(uidT))} — ${karten.length} Karte(n), ${gesamt.toFixed(2)} € gesamt
+              ${offenBetrag > 0 ? ` — <span style="color:#9c1c1c;">${offenBetrag.toFixed(2)} € noch offen</span>` : ' — alles beglichen ✅'}
+            </summary>
+            ${offen.length > 0 ? `<button type="button" class="btn small" style="margin:6px 0 10px;" onclick="Karten.alleBeglichen('${uidT}')">Alle ${offen.length} offenen Zahlungen als beglichen markieren</button>` : ''}
+            <div style="overflow-x:auto;">
+              <table class="subtable matrix-table" style="width:100%;">
+                <thead>
+                  <tr><th>Datum</th><th>Mitglied</th><th>Kartenwert</th><th>Status</th><th></th></tr>
+                </thead>
+                <tbody>
+                  ${karten.map(k => `<tr>
+                    <td>${(k.aktiviertAm || "").slice(0, 10)}</td>
+                    <td>${escapeHtml(k.inhaberName || '')}</td>
+                    <td>${this.betragFuer(k).toFixed(2)} €</td>
+                    <td>${k.bezahlBeglichen ? '✅ Beglichen' : '🟡 Offen'}</td>
+                    <td>${!k.bezahlBeglichen ? `<button type="button" class="btn secondary small" onclick="Karten.markBeglichen('${k.id}')">Als beglichen markieren</button>` : ''}</td>
+                  </tr>`).join("")}
+                </tbody>
+              </table>
+            </div>
+          </details>
+        `;
+      }).join("");
+  },
+
+  async markBeglichen(id) {
+    const k = (Store.data.stempelkarten || []).find(x => x.id === id);
+    if (!k) return;
+    try {
+      await Store.saveStempelkarte({ ...k, bezahlBeglichen: true });
+      toast("Als beglichen markiert.");
+    } catch (err) {
+      console.error(err);
+      toast("Fehler: " + (err?.message || "Unbekannter Fehler"));
+    }
+  },
+
+  async alleBeglichen(uidT) {
+    const offen = (Store.data.stempelkarten || []).filter(k => k.aktiviertVonUid === uidT && !k.bezahlBeglichen);
+    if (offen.length === 0) return;
+    if (!confirm(`${offen.length} Zahlung(en) als beglichen markieren?`)) return;
+    try {
+      for (const k of offen) {
+        await Store.saveStempelkarte({ ...k, bezahlBeglichen: true });
+      }
+      toast("Alle als beglichen markiert.");
+    } catch (err) {
+      console.error(err);
+      toast("Fehler: " + (err?.message || "Unbekannter Fehler"));
+    }
   }
 };
 
