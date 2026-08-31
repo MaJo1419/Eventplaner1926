@@ -241,6 +241,7 @@
   .mk-green { background: #d7f4dd !important; color: #1a6b32; font-weight: 600; }
   .mk-yellow { background: #fdf0c4 !important; color: #8a6400; font-weight: 600; }
   .mk-red { background: #fbd8d8 !important; color: #9c1c1c; font-weight: 600; }
+  .mk-overbooked { background: #6b1530 !important; color: #fff; font-weight: 700; }
   .mk-gray { background: #f0f0f0 !important; color: var(--text-muted); }
   .collapsible-section { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
   .collapsible-section > summary {
@@ -263,6 +264,15 @@
     display: block;
   }
   .search-input:focus { outline: none; border-color: var(--accent); }
+  .bereichs-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-top: 18px; }
+  .bereichs-kachel {
+    background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 24px 20px;
+    cursor: pointer; transition: box-shadow .15s, transform .15s;
+  }
+  .bereichs-kachel:hover { box-shadow: 0 4px 16px rgba(0,0,0,.08); transform: translateY(-2px); }
+  .bereichs-kachel .bk-icon { font-size: 32px; margin-bottom: 8px; }
+  .bereichs-kachel .bk-title { font-size: 17px; font-weight: 700; color: var(--accent-dark, #143f34); margin-bottom: 4px; }
+  .bereichs-kachel .bk-desc { font-size: 13px; color: var(--text-muted); }
   .empty-state {
     text-align: center;
     padding: 40px 20px;
@@ -653,20 +663,45 @@
 </header>
 
 <nav class="tabs">
-  <button type="button" class="tab-btn active" data-view="events">Events</button>
-  <button type="button" class="tab-btn" data-view="meine-schichten">📅 Mein Schichtplan</button>
-  <button type="button" class="tab-btn admin-only" data-view="ryder">📋 Aufgaben-Ryder</button>
-  <button type="button" class="tab-btn admin-only" data-view="gastro">🍽 Gastro-Ryder</button>
-  <button type="button" class="tab-btn admin-only" data-view="material-ryder">📦 Material-Ryder</button>
-  <button type="button" class="tab-btn vorstand-only" data-view="material-kalender">📅 Material-Kalender</button>
-  <button type="button" class="tab-btn vorstand-only" data-view="personen">👥 Benutzer, Personen &amp; Lieferanten</button>
-  <button type="button" class="tab-btn admin-only" data-view="kategorien">Kategorien</button>
+  <button type="button" class="tab-btn active" data-view="bereichsauswahl">🏠 Start</button>
+  <button type="button" class="tab-btn bereich-events" data-view="events">Events</button>
+  <button type="button" class="tab-btn bereich-events" data-view="meine-schichten">📅 Mein Schichtplan</button>
+  <button type="button" class="tab-btn bereich-events admin-only" data-view="ryder">📋 Aufgaben-Ryder</button>
+  <button type="button" class="tab-btn bereich-events admin-only" data-view="gastro">🍽 Gastro-Ryder</button>
+  <button type="button" class="tab-btn bereich-events admin-only" data-view="material-ryder">📦 Material-Ryder</button>
+  <button type="button" class="tab-btn bereich-events vorstand-only" data-view="material-kalender">📅 Material-Kalender</button>
+  <button type="button" class="tab-btn bereich-events vorstand-only" data-view="personen">👥 Benutzer, Personen &amp; Lieferanten</button>
+  <button type="button" class="tab-btn bereich-events admin-only" data-view="kategorien">Kategorien</button>
+  <button type="button" class="tab-btn bereich-belegung belegung-only" data-view="belegungskalender">📅 Belegungskalender</button>
+  <button type="button" class="tab-btn bereich-belegung vorstand-only" data-view="ressourcen">🏟️ Sportstätten &amp; Busse</button>
 </nav>
 
 <main>
 
+  <!-- BEREICHSAUSWAHL (Startseite nach Login) -->
+  <section class="view active" id="view-bereichsauswahl">
+    <div class="toolbar">
+      <div>
+        <h2>Willkommen</h2>
+        <div class="desc">Wähle einen Bereich aus</div>
+      </div>
+    </div>
+    <div class="bereichs-grid">
+      <div class="bereichs-kachel" onclick="Bereich.open('events')">
+        <div class="bk-icon">📋</div>
+        <div class="bk-title">Events</div>
+        <div class="bk-desc">Vereins-Events planen: Aufgaben, Gastro, Material, Schichten, Wareneingang</div>
+      </div>
+      <div class="bereichs-kachel belegung-only" onclick="Bereich.open('belegungsplan')">
+        <div class="bk-icon">🏟️</div>
+        <div class="bk-title">Belegungsplan</div>
+        <div class="bk-desc">Sportstätten und Vereinsbusse buchen und Auslastung einsehen</div>
+      </div>
+    </div>
+  </section>
+
   <!-- EVENTS -->
-  <section class="view active" id="view-events">
+  <section class="view" id="view-events">
     <div id="events-list-panel">
       <div class="toolbar">
         <div>
@@ -736,7 +771,7 @@
     <div class="toolbar">
       <div>
         <h2>Material-Kalender</h2>
-        <div class="desc">Auslastung des Equipments über alle Events hinweg – 🟢 alles frei, 🟡 teilweise gebucht, 🔴 komplett gebucht</div>
+        <div class="desc">Auslastung des Equipments über alle Events hinweg – 🟢 alles frei, 🟡 teilweise gebucht, 🔴 komplett gebucht, ⚠️ überbucht</div>
       </div>
       <div style="display:flex;gap:6px;align-items:center;">
         <button type="button" class="btn secondary small" onclick="MaterialKalender.prevWeek()">◀ Woche</button>
@@ -791,6 +826,51 @@
       <button type="button" class="btn admin-only" onclick="Kategorien.openForm()">+ Neue Kategorie</button>
     </div>
     <div id="kategorien-list"></div>
+  </section>
+
+  <!-- RESSOURCEN: SPORTSTÄTTEN & VEREINSBUSSE (Stammdaten) -->
+  <section class="view" id="view-ressourcen">
+    <div class="toolbar">
+      <div>
+        <h2>🏟️ Sportstätten &amp; Busse</h2>
+        <div class="desc">Stammdaten der buchbaren Ressourcen für den Belegungsplan</div>
+      </div>
+    </div>
+
+    <details class="collapsible-section" open style="margin-bottom:20px;">
+      <summary>🏟️ Sportstätten</summary>
+      <div class="toolbar" style="margin-top:2px;">
+        <div class="desc">Hallen, Plätze und sonstige Sportstätten des Vereins</div>
+        <button type="button" class="btn" onclick="Ressourcen.openForm('sportstaette')">+ Neue Sportstätte</button>
+      </div>
+      <div id="sportstaetten-list"></div>
+    </details>
+
+    <details class="collapsible-section" open>
+      <summary>🚌 Vereinsbusse</summary>
+      <div class="toolbar" style="margin-top:2px;">
+        <div class="desc">Fahrzeuge des Vereins zum Ausleihen</div>
+        <button type="button" class="btn" onclick="Ressourcen.openForm('bus')">+ Neuer Bus</button>
+      </div>
+      <div id="vereinsbusse-list"></div>
+    </details>
+  </section>
+
+  <!-- BELEGUNGSKALENDER -->
+  <section class="view" id="view-belegungskalender">
+    <div class="toolbar">
+      <div>
+        <h2>📅 Belegungskalender</h2>
+        <div class="desc">Sportstätten und Vereinsbusse buchen – 🟢 frei, 🟡 belegt</div>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <button type="button" class="btn" onclick="Belegungsplan.openForm()">+ Neue Buchung</button>
+        <button type="button" class="btn secondary small" onclick="Belegungsplan.prevWeek()">◀ Woche</button>
+        <button type="button" class="btn secondary small" onclick="Belegungsplan.today()">Heute</button>
+        <button type="button" class="btn secondary small" onclick="Belegungsplan.nextWeek()">Woche ▶</button>
+      </div>
+    </div>
+    <div id="belegungskalender-content"></div>
   </section>
 
 </main>
@@ -952,6 +1032,82 @@
     <div class="modal-actions">
       <button type="button" class="btn secondary" onclick="Modal.close('modal-lieferant')">Abbrechen</button>
       <button type="button" class="btn" onclick="Lieferanten.save()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- Ressource (Sportstätte / Bus) -->
+<div class="overlay" id="modal-ressource">
+  <div class="modal">
+    <h3 id="ressource-modal-title">Ressource</h3>
+    <input type="hidden" id="ressourceTyp">
+    <input type="hidden" id="ressourceId">
+    <div class="field"><label id="ressourceNameLabel">Bezeichnung</label><input id="ressourceName" placeholder="z. B. Sporthalle, VW Transporter"></div>
+    <div class="field-row">
+      <div class="field" id="ressourceFeldExtra1Wrap"><label id="ressourceFeldExtra1Label">Ort</label><input id="ressourceFeldExtra1"></div>
+      <div class="field" id="ressourceFeldExtra2Wrap"><label id="ressourceFeldExtra2Label">Kapazität</label><input id="ressourceFeldExtra2"></div>
+    </div>
+    <div class="field"><label>Notizen</label><textarea id="ressourceNotizen" placeholder="z. B. Schlüssel bei..., Tankkarte im Handschuhfach..."></textarea></div>
+    <div class="modal-actions">
+      <button type="button" class="btn secondary" onclick="Modal.close('modal-ressource')">Abbrechen</button>
+      <button type="button" class="btn" onclick="Ressourcen.save()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- Belegung / Buchung -->
+<div class="overlay" id="modal-belegung">
+  <div class="modal">
+    <h3 id="belegung-modal-title">Buchung</h3>
+    <input type="hidden" id="belegungId">
+    <div class="field">
+      <label>Ressourcen-Typ</label>
+      <select id="belegungTyp" onchange="Belegungsplan.onTypChange()">
+        <option value="sportstaette">🏟️ Sportstätte</option>
+        <option value="bus">🚌 Vereinsbus</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Ressource</label>
+      <select id="belegungRessourceId"></select>
+    </div>
+    <div class="field" id="belegungArtWrap">
+      <label>Termin-Art</label>
+      <select id="belegungArt" onchange="Belegungsplan.onArtChange()">
+        <option value="einzel">Einzeltermin</option>
+        <option value="serie">Serientermin (wöchentlich)</option>
+      </select>
+    </div>
+    <div class="field"><label id="belegungDatumLabel">Datum</label><input type="date" id="belegungDatum"></div>
+    <div id="belegungSerieWrap" style="display:none;">
+      <div class="field">
+        <label>Wochentage</label>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;font-size:13px;margin-top:4px;">
+          <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="belegung-wochentag" value="0"> Mo</label>
+          <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="belegung-wochentag" value="1"> Di</label>
+          <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="belegung-wochentag" value="2"> Mi</label>
+          <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="belegung-wochentag" value="3"> Do</label>
+          <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="belegung-wochentag" value="4"> Fr</label>
+          <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="belegung-wochentag" value="5"> Sa</label>
+          <label style="display:flex;align-items:center;gap:4px;cursor:pointer;"><input type="checkbox" class="belegung-wochentag" value="6"> So</label>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Intervall</label><input value="Wöchentlich" disabled></div>
+        <div class="field"><label>Dauer (Wochen)</label><input type="number" min="1" id="belegungSerieWochen" value="12"></div>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Von</label><input type="time" id="belegungStart" value="18:00"></div>
+      <div class="field"><label>Bis</label><input type="time" id="belegungEnde" value="20:00"></div>
+    </div>
+    <div class="field"><label>Zweck / Titel</label><input id="belegungZweck" placeholder="z. B. Training F-Jugend, Fahrt zum Auswärtsspiel"></div>
+    <div class="field"><label>Gebucht von</label><input id="belegungGebuchtVon"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn danger" id="belegungDeleteSerieBtn" style="display:none;margin-right:8px;" onclick="Belegungsplan.removeSerie()">Ganze Serie löschen</button>
+      <button type="button" class="btn danger" id="belegungDeleteBtn" style="display:none;margin-right:auto;" onclick="Belegungsplan.remove()">Löschen</button>
+      <button type="button" class="btn secondary" onclick="Modal.close('modal-belegung')">Abbrechen</button>
+      <button type="button" class="btn" onclick="Belegungsplan.save()">Speichern</button>
     </div>
   </div>
 </div>
@@ -1302,7 +1458,7 @@
    ZENTRALE KONFIGURATION & DATENSCHICHT
    ============================================================ */
 
-const APP_VERSION = "0.1.092";
+const APP_VERSION = "0.1.097";
 let currentUserProfile = { role: "A", actualRole: "A", email: "", name: "" };
 
 function uid(prefix) {
@@ -1512,6 +1668,8 @@ const Store = {
         Store.data.ryder = d.ryder || [];
         Store.data.gastroRyder = d.gastroRyder || [];
         Store.data.materialRyder = d.materialRyder || [];
+        Store.data.sportstaetten = d.sportstaetten || [];
+        Store.data.vereinsbusse = d.vereinsbusse || [];
       } else {
         const seed = seedData();
         Store.data.lieferanten = seed.lieferanten;
@@ -1519,12 +1677,16 @@ const Store = {
         Store.data.ryder = seed.ryder;
         Store.data.gastroRyder = seed.gastroRyder;
         Store.data.materialRyder = seed.materialRyder;
+        Store.data.sportstaetten = [];
+        Store.data.vereinsbusse = [];
         setDoc(configDocRef, {
           lieferanten: seed.lieferanten,
           kategorien: seed.kategorien,
           ryder: seed.ryder,
           gastroRyder: seed.gastroRyder,
-          materialRyder: seed.materialRyder
+          materialRyder: seed.materialRyder,
+          sportstaetten: [],
+          vereinsbusse: []
         });
       }
       Lieferanten.render();
@@ -1533,6 +1695,8 @@ const Store = {
       GastroRyder.render();
       MaterialRyder.render();
       Events.refreshKategorieSelect();
+      if (typeof Ressourcen !== "undefined") Ressourcen.render();
+      if (typeof Belegungsplan !== "undefined") Belegungsplan.renderKalender();
     });
 
     const personenCol = collection(db, ...PATH_BASE, "personen");
@@ -1562,7 +1726,13 @@ const Store = {
       Personen.renderUsersTable();
     });
 
-    this._unsubscribes.push(unsubConfig, unsubPersonen, unsubEvents, unsubUsers);
+    const belegungenCol = collection(db, ...PATH_BASE, "belegungen");
+    const unsubBelegungen = onSnapshot(belegungenCol, (snap) => {
+      Store.data.belegungen = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      if (typeof Belegungsplan !== "undefined") Belegungsplan.renderKalender();
+    });
+
+    this._unsubscribes.push(unsubConfig, unsubPersonen, unsubEvents, unsubUsers, unsubBelegungen);
     if (onReady) onReady();
   },
 
@@ -1574,7 +1744,9 @@ const Store = {
       kategorien: this.data.kategorien || [],
       ryder: this.data.ryder || [],
       gastroRyder: this.data.gastroRyder || [],
-      materialRyder: this.data.materialRyder || []
+      materialRyder: this.data.materialRyder || [],
+      sportstaetten: this.data.sportstaetten || [],
+      vereinsbusse: this.data.vereinsbusse || []
     });
   },
 
@@ -1613,6 +1785,25 @@ const Store = {
     const ref = doc(db, ...PATH_BASE, "users", uid);
     await updateDoc(ref, { role: newRole });
     toast(`Rolle auf ${newRole} aktualisiert.`);
+  },
+
+  async updateUserBelegungFlag(uid, erlaubt) {
+    const { db, doc, updateDoc } = window.FB;
+    const ref = doc(db, ...PATH_BASE, "users", uid);
+    await updateDoc(ref, { duerfteBelegungBuchen: !!erlaubt });
+    toast(erlaubt ? "Zugriff auf Belegungsplan erlaubt." : "Zugriff auf Belegungsplan entzogen.");
+  },
+
+  async saveBelegung(belegung) {
+    const { db, doc, setDoc } = window.FB;
+    const ref = doc(db, ...PATH_BASE, "belegungen", belegung.id);
+    await setDoc(ref, belegung);
+  },
+
+  async deleteBelegung(id) {
+    const { db, doc, deleteDoc } = window.FB;
+    const ref = doc(db, ...PATH_BASE, "belegungen", id);
+    await deleteDoc(ref);
   },
 
   getLieferant(id) { return (this.data.lieferanten || []).find(l => l.id === id); },
@@ -1716,23 +1907,45 @@ const Modal = {
   close(id) { document.getElementById(id).classList.remove("open"); }
 };
 
+function darfBelegungsplanNutzen() {
+  return currentUserProfile.role === "A" || currentUserProfile.role === "B" || !!currentUserProfile.duerfteBelegungBuchen;
+}
+
+function updateNavVisibility() {
+  const role = currentUserProfile.role;
+  const isA = role === "A", isB = role === "B";
+  document.querySelectorAll(".tab-btn").forEach(btn => {
+    let visible = true;
+    if (btn.classList.contains("admin-only")) visible = visible && isA;
+    if (btn.classList.contains("vorstand-only")) visible = visible && (isA || isB);
+    if (btn.classList.contains("belegung-only")) visible = visible && darfBelegungsplanNutzen();
+    btn.style.display = visible ? "" : "none";
+  });
+}
+
 function applyRolePermissions(role) {
   const isActualAdmin = currentUserProfile.actualRole === "A";
   const isEffectiveA = role === "A";
   const isEffectiveB = role === "B";
   const isVorstandOrAdmin = isEffectiveA || isEffectiveB;
 
-  document.querySelectorAll(".admin-only").forEach(el => {
+  document.querySelectorAll(".admin-only:not(.tab-btn)").forEach(el => {
     if (el.id === "user-role-selector") {
       el.style.display = isActualAdmin ? "" : "none";
     } else {
       el.style.display = isEffectiveA ? "" : "none";
     }
   });
-  
-  document.querySelectorAll(".vorstand-only").forEach(el => {
+
+  document.querySelectorAll(".vorstand-only:not(.tab-btn)").forEach(el => {
     el.style.display = isVorstandOrAdmin ? "" : "none";
   });
+
+  document.querySelectorAll(".belegung-only:not(.tab-btn)").forEach(el => {
+    el.style.display = darfBelegungsplanNutzen() ? "" : "none";
+  });
+
+  updateNavVisibility();
 
   const selector = document.getElementById("user-role-selector");
   const badge = document.getElementById("user-role-badge");
@@ -1773,20 +1986,49 @@ function clearAllUI() {
    NAVIGATION
    ============================================================ */
 
+function renderViewContent(view) {
+  if (view === "events") Events.render();
+  if (view === "meine-schichten") MeineSchichten.render();
+  if (view === "ryder") Ryder.render();
+  if (view === "gastro") GastroRyder.render();
+  if (view === "material-ryder") MaterialRyder.render();
+  if (view === "material-kalender") MaterialKalender.render();
+  if (view === "personen") { Lieferanten.render(); Personen.render(); }
+  if (view === "kategorien") Kategorien.render();
+  if (view === "ressourcen") Ressourcen.render();
+  if (view === "belegungskalender") Belegungsplan.renderKalender();
+}
+
+function switchToView(view) {
+  const viewEl = document.getElementById("view-" + view);
+  if (!viewEl) return;
+  document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+  document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
+  const btn = document.querySelector(`.tab-btn[data-view="${view}"]`);
+  if (btn) btn.classList.add("active");
+  viewEl.classList.add("active");
+  renderViewContent(view);
+}
+
+const Bereich = {
+  current: null,
+
+  open(bereich) {
+    if (bereich === "belegungsplan" && !darfBelegungsplanNutzen()) return;
+    this.current = bereich;
+    switchToView(bereich === "events" ? "events" : "belegungskalender");
+  },
+
+  backToStart() {
+    this.current = null;
+    switchToView("bereichsauswahl");
+  }
+};
+
 document.querySelectorAll(".tab-btn").forEach(btn => {
   btn.addEventListener("click", () => {
-    document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
-    document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
-    btn.classList.add("active");
-    document.getElementById("view-" + btn.dataset.view).classList.add("active");
-    if (btn.dataset.view === "events") Events.render();
-    if (btn.dataset.view === "meine-schichten") MeineSchichten.render();
-    if (btn.dataset.view === "ryder") Ryder.render();
-    if (btn.dataset.view === "gastro") GastroRyder.render();
-    if (btn.dataset.view === "material-ryder") MaterialRyder.render();
-    if (btn.dataset.view === "material-kalender") MaterialKalender.render();
-    if (btn.dataset.view === "personen") { Lieferanten.render(); Personen.render(); }
-    if (btn.dataset.view === "kategorien") Kategorien.render();
+    if (btn.dataset.view === "bereichsauswahl") { Bereich.backToStart(); return; }
+    switchToView(btn.dataset.view);
   });
 });
 
@@ -1990,6 +2232,400 @@ const Lieferanten = {
     Store.data.lieferanten = (Store.data.lieferanten || []).filter(l => l.id !== id);
     await Store.persistConfig();
     toast("Lieferant gelöscht.");
+  }
+};
+
+const Ressourcen = {
+  render() {
+    this.renderListe("sportstaette", "sportstaetten-list", "🏟️");
+    this.renderListe("bus", "vereinsbusse-list", "🚌");
+  },
+
+  renderListe(typ, elementId, icon) {
+    const list = document.getElementById(elementId);
+    if (!list) return;
+    const dataKey = typ === "sportstaette" ? "sportstaetten" : "vereinsbusse";
+    const items = [...(Store.data[dataKey] || [])].sort((a, b) => (a.name || "").localeCompare(b.name || "", "de"));
+
+    if (items.length === 0) {
+      list.innerHTML = `<div class="empty-state">Noch keine ${typ === "sportstaette" ? "Sportstätte" : "Busse"} angelegt.</div>`;
+      return;
+    }
+
+    list.innerHTML = items.map(r => `
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <h3>${icon} ${escapeHtml(r.name)}</h3>
+            <div class="meta">
+              ${typ === "sportstaette"
+                ? (r.ort ? '📍 ' + escapeHtml(r.ort) : '') + (r.kapazitaet ? ' &middot; 👥 ' + escapeHtml(r.kapazitaet) + ' Plätze' : '')
+                : (r.kennzeichen ? '🔖 ' + escapeHtml(r.kennzeichen) : '') + (r.sitzplaetze ? ' &middot; 💺 ' + escapeHtml(r.sitzplaetze) + ' Sitzplätze' : '')
+              }
+            </div>
+            ${r.notizen ? `<div style="font-size:12px;color:var(--text-muted);margin-top:4px;">${escapeHtml(r.notizen)}</div>` : ''}
+          </div>
+          <div class="card-actions">
+            <button type="button" class="btn secondary small" onclick="Ressourcen.openForm('${typ}', '${r.id}')">Bearbeiten</button>
+            <button type="button" class="btn danger small" onclick="Ressourcen.remove('${typ}', '${r.id}')">Löschen</button>
+          </div>
+        </div>
+      </div>
+    `).join("");
+  },
+
+  openForm(typ, id = "") {
+    document.getElementById("ressourceTyp").value = typ;
+    document.getElementById("ressourceId").value = id;
+    const isEdit = !!id;
+    const dataKey = typ === "sportstaette" ? "sportstaetten" : "vereinsbusse";
+    const r = isEdit ? (Store.data[dataKey] || []).find(x => x.id === id) : {};
+
+    document.getElementById("ressource-modal-title").textContent = isEdit
+      ? (typ === "sportstaette" ? "Sportstätte bearbeiten" : "Bus bearbeiten")
+      : (typ === "sportstaette" ? "Neue Sportstätte" : "Neuer Bus");
+    document.getElementById("ressourceNameLabel").textContent = typ === "sportstaette" ? "Bezeichnung" : "Bezeichnung / Modell";
+    document.getElementById("ressourceName").value = r.name || "";
+    document.getElementById("ressourceNotizen").value = r.notizen || "";
+
+    if (typ === "sportstaette") {
+      document.getElementById("ressourceFeldExtra1Label").textContent = "Ort";
+      document.getElementById("ressourceFeldExtra1").value = r.ort || "";
+      document.getElementById("ressourceFeldExtra1").placeholder = "z. B. Sportgelände Nord";
+      document.getElementById("ressourceFeldExtra2Label").textContent = "Kapazität (Personen)";
+      document.getElementById("ressourceFeldExtra2").value = r.kapazitaet || "";
+      document.getElementById("ressourceFeldExtra2").placeholder = "z. B. 200";
+    } else {
+      document.getElementById("ressourceFeldExtra1Label").textContent = "Kennzeichen";
+      document.getElementById("ressourceFeldExtra1").value = r.kennzeichen || "";
+      document.getElementById("ressourceFeldExtra1").placeholder = "z. B. OG-VS 123";
+      document.getElementById("ressourceFeldExtra2Label").textContent = "Sitzplätze";
+      document.getElementById("ressourceFeldExtra2").value = r.sitzplaetze || "";
+      document.getElementById("ressourceFeldExtra2").placeholder = "z. B. 9";
+    }
+
+    Modal.open("modal-ressource");
+  },
+
+  async save() {
+    const typ = document.getElementById("ressourceTyp").value;
+    const id = document.getElementById("ressourceId").value || uid(typ === "sportstaette" ? "sst" : "bus");
+    const name = document.getElementById("ressourceName").value.trim();
+    if (!name) { toast("Bitte eine Bezeichnung angeben."); return; }
+
+    const dataKey = typ === "sportstaette" ? "sportstaetten" : "vereinsbusse";
+    const extra1 = document.getElementById("ressourceFeldExtra1").value.trim();
+    const extra2 = document.getElementById("ressourceFeldExtra2").value.trim();
+
+    const ressource = typ === "sportstaette"
+      ? { id, name, ort: extra1, kapazitaet: extra2, notizen: document.getElementById("ressourceNotizen").value.trim() }
+      : { id, name, kennzeichen: extra1, sitzplaetze: extra2, notizen: document.getElementById("ressourceNotizen").value.trim() };
+
+    if (!Store.data[dataKey]) Store.data[dataKey] = [];
+    const idx = Store.data[dataKey].findIndex(x => x.id === id);
+    if (idx >= 0) Store.data[dataKey][idx] = ressource;
+    else Store.data[dataKey].push(ressource);
+
+    await Store.persistConfig();
+    Modal.close("modal-ressource");
+    toast("Gespeichert.");
+  },
+
+  async remove(typ, id) {
+    if (!confirm("Diese Ressource wirklich löschen? Bestehende Buchungen bleiben erhalten, verweisen dann aber ins Leere.")) return;
+    const dataKey = typ === "sportstaette" ? "sportstaetten" : "vereinsbusse";
+    Store.data[dataKey] = (Store.data[dataKey] || []).filter(x => x.id !== id);
+    await Store.persistConfig();
+    toast("Gelöscht.");
+  }
+};
+
+const Belegungsplan = {
+  weekStart: null,
+
+  getRessourcenListe(typ) {
+    return typ === "sportstaette" ? (Store.data.sportstaetten || []) : (Store.data.vereinsbusse || []);
+  },
+
+  currentUid() {
+    return window.FB.auth.currentUser ? window.FB.auth.currentUser.uid : "";
+  },
+
+  renderKalender() {
+    if (!this.weekStart) this.weekStart = getMondayISO();
+    const wochen = 4;
+    const tage = Array.from({ length: wochen * 7 }, (_, i) => addDaysISO(this.weekStart, i));
+    const wrap = document.getElementById("belegungskalender-content");
+    if (!wrap) return;
+
+    const isVorstandOrAdmin = currentUserProfile.role === "A" || currentUserProfile.role === "B";
+    const uid = this.currentUid();
+
+    const gruppen = [
+      { typ: "sportstaette", label: "🏟️ Sportstätten", items: [...(Store.data.sportstaetten || [])].sort((a, b) => (a.name || "").localeCompare(b.name || "", "de")) },
+      { typ: "bus", label: "🚌 Vereinsbusse", items: [...(Store.data.vereinsbusse || [])].sort((a, b) => (a.name || "").localeCompare(b.name || "", "de")) }
+    ];
+
+    if (gruppen.every(g => g.items.length === 0)) {
+      wrap.innerHTML = `<div class="empty-state">Noch keine Sportstätten oder Busse angelegt.${isVorstandOrAdmin ? ' Unter „Sportstätten &amp; Busse" zuerst welche anlegen.' : ''}</div>`;
+      return;
+    }
+
+    wrap.innerHTML = `
+      <div class="desc" style="margin:6px 0 10px;">Zeitraum: ${tage[0]} bis ${tage[tage.length - 1]}</div>
+      ${gruppen.filter(g => g.items.length > 0).map(g => `
+        <div class="bereich-header-row"><span class="b-title">${g.label}</span></div>
+        <div style="overflow-x:auto;">
+          <table class="subtable matrix-table mk-table" style="white-space:nowrap;">
+            <thead>
+              <tr>
+                <th style="min-width:150px;">Ressource</th>
+                ${tage.map(d => {
+                  const wd = WOCHENTAGE_KURZ[new Date(d + "T00:00:00").getDay()];
+                  return `<th>${wd}<br>${formatDatumKurz(d)}</th>`;
+                }).join("")}
+              </tr>
+            </thead>
+            <tbody>
+              ${g.items.map(r => `
+                <tr>
+                  <td><strong>${escapeHtml(r.name)}</strong></td>
+                  ${tage.map(d => {
+                    const buchungen = (Store.data.belegungen || [])
+                      .filter(b => b.ressourceTyp === g.typ && b.ressourceId === r.id && b.datum === d)
+                      .sort((a, b) => (a.start || "").localeCompare(b.start || ""));
+
+                    if (buchungen.length === 0) {
+                      return `<td class="mk-green" style="cursor:pointer;" onclick="Belegungsplan.openForm(null, '${g.typ}', '${r.id}', '${d}')" title="Buchen">frei</td>`;
+                    }
+
+                    const inhalt = buchungen.map(b => {
+                      const eigeneBuchung = isVorstandOrAdmin || b.erstelltVonUid === uid;
+                      const klick = eigeneBuchung ? `onclick="event.stopPropagation();Belegungsplan.openForm('${b.id}')" style="cursor:pointer;"` : '';
+                      return `<div ${klick} title="${escapeHtml(b.zweck || '')} — ${escapeHtml(b.gebuchtVon || '')}">${b.start}–${b.ende}<br>${escapeHtml(b.zweck || '')}</div>`;
+                    }).join('<hr style="border:none;border-top:1px dashed #c9c28a;margin:3px 0;">');
+
+                    return `<td class="mk-yellow" style="vertical-align:top;text-align:left;padding:4px 6px;font-weight:400;">${inhalt}</td>`;
+                  }).join("")}
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+      `).join("")}
+    `;
+  },
+
+  prevWeek() { this.weekStart = addDaysISO(this.weekStart || getMondayISO(), -7); this.renderKalender(); },
+  nextWeek() { this.weekStart = addDaysISO(this.weekStart || getMondayISO(), 7); this.renderKalender(); },
+  today() { this.weekStart = getMondayISO(); this.renderKalender(); },
+
+  onTypChange() {
+    const typ = document.getElementById("belegungTyp").value;
+    const items = this.getRessourcenListe(typ);
+    const sel = document.getElementById("belegungRessourceId");
+    sel.innerHTML = items.length
+      ? items.map(r => `<option value="${r.id}">${escapeHtml(r.name)}</option>`).join("")
+      : '<option value="">Keine Ressourcen angelegt</option>';
+  },
+
+  onArtChange() {
+    const art = document.getElementById("belegungArt").value;
+    document.getElementById("belegungSerieWrap").style.display = art === "serie" ? "" : "none";
+    document.getElementById("belegungDatumLabel").textContent = art === "serie" ? "Erster Termin ab" : "Datum";
+  },
+
+  openForm(id = null, presetTyp, presetRessourceId, presetDatum) {
+    const isEdit = !!id;
+    const b = isEdit ? (Store.data.belegungen || []).find(x => x.id === id) : null;
+    if (isEdit && !b) return;
+
+    const isVorstandOrAdmin = currentUserProfile.role === "A" || currentUserProfile.role === "B";
+    if (isEdit && !isVorstandOrAdmin && b.erstelltVonUid !== this.currentUid()) {
+      toast("Du kannst nur eigene Buchungen bearbeiten.");
+      return;
+    }
+
+    document.getElementById("belegungId").value = id || "";
+    document.getElementById("belegung-modal-title").textContent = isEdit ? "Buchung bearbeiten" : "Neue Buchung";
+
+    const typ = b?.ressourceTyp || presetTyp || "sportstaette";
+    document.getElementById("belegungTyp").value = typ;
+    this.onTypChange();
+    document.getElementById("belegungRessourceId").value = b?.ressourceId || presetRessourceId || "";
+    document.getElementById("belegungDatum").value = b?.datum || presetDatum || new Date().toISOString().slice(0, 10);
+    document.getElementById("belegungStart").value = b?.start || "18:00";
+    document.getElementById("belegungEnde").value = b?.ende || "20:00";
+    document.getElementById("belegungZweck").value = b?.zweck || "";
+
+    // Serientermin-Optionen: nur bei Neuanlage wählbar, bei Bearbeitung immer nur die eine Instanz
+    document.getElementById("belegungArt").value = "einzel";
+    document.getElementById("belegungArt").disabled = isEdit;
+    document.getElementById("belegungArtWrap").style.display = isEdit ? "none" : "";
+    document.querySelectorAll(".belegung-wochentag").forEach(cb => cb.checked = false);
+    document.getElementById("belegungSerieWochen").value = 12;
+    this.onArtChange();
+
+    const gebuchtVonInput = document.getElementById("belegungGebuchtVon");
+    gebuchtVonInput.value = b?.gebuchtVon || currentUserProfile.name || "";
+    gebuchtVonInput.readOnly = !isVorstandOrAdmin;
+
+    document.getElementById("belegungDeleteBtn").style.display = isEdit ? "" : "none";
+    document.getElementById("belegungDeleteSerieBtn").style.display = (isEdit && b?.serienId) ? "" : "none";
+
+    Modal.open("modal-belegung");
+  },
+
+  async save() {
+    const art = document.getElementById("belegungArt").value;
+    const isEdit = !!document.getElementById("belegungId").value;
+    if (art === "serie" && !isEdit) {
+      await this.saveSerie();
+    } else {
+      await this.saveEinzeln();
+    }
+  },
+
+  async saveEinzeln() {
+    const id = document.getElementById("belegungId").value || uid("beleg");
+    const typ = document.getElementById("belegungTyp").value;
+    const ressourceId = document.getElementById("belegungRessourceId").value;
+    if (!ressourceId) { toast("Bitte eine Ressource auswählen."); return; }
+
+    const datum = document.getElementById("belegungDatum").value;
+    const start = document.getElementById("belegungStart").value;
+    const ende = document.getElementById("belegungEnde").value;
+    if (!datum || !start || !ende) { toast("Bitte Datum und Uhrzeit angeben."); return; }
+    if (start >= ende) { toast("Die Endzeit muss nach der Startzeit liegen."); return; }
+
+    const zweck = document.getElementById("belegungZweck").value.trim();
+    if (!zweck) { toast("Bitte einen Zweck / Titel angeben."); return; }
+
+    const konflikt = (Store.data.belegungen || []).find(b =>
+      b.id !== id && b.ressourceTyp === typ && b.ressourceId === ressourceId && b.datum === datum &&
+      start < b.ende && b.start < ende
+    );
+    if (konflikt) {
+      toast(`Konflikt: Ressource ist am ${datum} von ${konflikt.start}–${konflikt.ende} Uhr bereits belegt (${konflikt.zweck}).`);
+      return;
+    }
+
+    const bestehend = (Store.data.belegungen || []).find(b => b.id === id);
+    const belegung = {
+      id, ressourceTyp: typ, ressourceId, datum, start, ende, zweck,
+      gebuchtVon: document.getElementById("belegungGebuchtVon").value.trim() || currentUserProfile.name || "",
+      serienId: bestehend?.serienId || null,
+      erstelltVonUid: bestehend?.erstelltVonUid || this.currentUid(),
+      erstelltAm: bestehend?.erstelltAm || new Date().toISOString()
+    };
+
+    try {
+      await Store.saveBelegung(belegung);
+      Modal.close("modal-belegung");
+      toast("Buchung gespeichert.");
+    } catch (err) {
+      console.error(err);
+      toast("Fehler beim Speichern: " + (err?.message || "Unbekannter Fehler (evtl. Firestore-Regeln prüfen)"));
+    }
+  },
+
+  async saveSerie() {
+    const typ = document.getElementById("belegungTyp").value;
+    const ressourceId = document.getElementById("belegungRessourceId").value;
+    if (!ressourceId) { toast("Bitte eine Ressource auswählen."); return; }
+
+    const startDatum = document.getElementById("belegungDatum").value;
+    const start = document.getElementById("belegungStart").value;
+    const ende = document.getElementById("belegungEnde").value;
+    if (!startDatum || !start || !ende) { toast("Bitte Startdatum und Uhrzeit angeben."); return; }
+    if (start >= ende) { toast("Die Endzeit muss nach der Startzeit liegen."); return; }
+
+    const zweck = document.getElementById("belegungZweck").value.trim();
+    if (!zweck) { toast("Bitte einen Zweck / Titel angeben."); return; }
+
+    const wochentage = [...document.querySelectorAll(".belegung-wochentag:checked")].map(cb => Number(cb.value));
+    if (wochentage.length === 0) { toast("Bitte mindestens einen Wochentag auswählen."); return; }
+
+    const dauerWochen = Math.max(1, Number(document.getElementById("belegungSerieWochen").value) || 1);
+    const gebuchtVon = document.getElementById("belegungGebuchtVon").value.trim() || currentUserProfile.name || "";
+    const serienId = uid("serie");
+
+    const termine = [];
+    for (let i = 0; i < dauerWochen * 7; i++) {
+      const d = addDaysISO(startDatum, i);
+      if (wochentage.includes(germanWeekday(d))) termine.push(d);
+    }
+
+    let angelegt = 0;
+    const uebersprungen = [];
+
+    for (const d of termine) {
+      const konflikt = (Store.data.belegungen || []).find(b =>
+        b.ressourceTyp === typ && b.ressourceId === ressourceId && b.datum === d &&
+        start < b.ende && b.start < ende
+      );
+      if (konflikt) { uebersprungen.push(d); continue; }
+
+      const belegung = {
+        id: uid("beleg"), ressourceTyp: typ, ressourceId, datum: d, start, ende, zweck,
+        gebuchtVon, serienId,
+        erstelltVonUid: this.currentUid(), erstelltAm: new Date().toISOString()
+      };
+      try {
+        await Store.saveBelegung(belegung);
+        if (!Store.data.belegungen) Store.data.belegungen = [];
+        Store.data.belegungen.push(belegung);
+        angelegt++;
+      } catch (err) {
+        console.error(err);
+        toast("Fehler beim Speichern der Serie: " + (err?.message || "Unbekannter Fehler (evtl. Firestore-Regeln prüfen)"));
+        return;
+      }
+    }
+
+    Modal.close("modal-belegung");
+    toast(`${angelegt} Termin(e) angelegt${uebersprungen.length ? `, ${uebersprungen.length} wegen Konflikt übersprungen` : ''}.`);
+  },
+
+  async remove() {
+    const id = document.getElementById("belegungId").value;
+    if (!id) return;
+    const b = (Store.data.belegungen || []).find(x => x.id === id);
+    const isVorstandOrAdmin = currentUserProfile.role === "A" || currentUserProfile.role === "B";
+    if (b && !isVorstandOrAdmin && b.erstelltVonUid !== this.currentUid()) {
+      toast("Du kannst nur eigene Buchungen löschen.");
+      return;
+    }
+    if (!confirm("Diese Buchung wirklich löschen?")) return;
+    try {
+      await Store.deleteBelegung(id);
+      Modal.close("modal-belegung");
+      toast("Buchung gelöscht.");
+    } catch (err) {
+      console.error(err);
+      toast("Fehler beim Löschen: " + (err?.message || "Unbekannter Fehler"));
+    }
+  },
+
+  async removeSerie() {
+    const id = document.getElementById("belegungId").value;
+    const b = (Store.data.belegungen || []).find(x => x.id === id);
+    if (!b || !b.serienId) return;
+    const isVorstandOrAdmin = currentUserProfile.role === "A" || currentUserProfile.role === "B";
+    if (!isVorstandOrAdmin && b.erstelltVonUid !== this.currentUid()) {
+      toast("Du kannst nur eigene Buchungen löschen.");
+      return;
+    }
+    const serie = (Store.data.belegungen || []).filter(x => x.serienId === b.serienId);
+    if (!confirm(`Wirklich alle ${serie.length} Termine dieser Serie löschen?`)) return;
+    try {
+      for (const s of serie) await Store.deleteBelegung(s.id);
+      Modal.close("modal-belegung");
+      toast("Serie gelöscht.");
+    } catch (err) {
+      console.error(err);
+      toast("Fehler beim Löschen der Serie: " + (err?.message || "Unbekannter Fehler"));
+    }
   }
 };
 
@@ -2770,6 +3406,7 @@ const Personen = {
             <th>E-Mail / Name</th>
             <th>Aktuelle Rolle</th>
             <th style="width:160px;">Rolle zuweisen</th>
+            <th style="width:110px;">Belegungsplan</th>
           </tr>
         </thead>
         <tbody>
@@ -2788,6 +3425,15 @@ const Personen = {
                   <option value="B" ${u.role === 'B' ? 'selected' : ''}>B: Vorstand</option>
                   <option value="A" ${u.role === 'A' ? 'selected' : ''}>A: Administrator</option>
                 </select>
+              </td>
+              <td>
+                ${u.role === 'A' || u.role === 'B'
+                  ? `<span class="meta">Immer erlaubt</span>`
+                  : `<label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;">
+                       <input type="checkbox" ${u.duerfteBelegungBuchen ? 'checked' : ''} onchange="Store.updateUserBelegungFlag('${u.id}', this.checked)">
+                       erlaubt
+                     </label>`
+                }
               </td>
             </tr>
           `).join("")}
@@ -3044,6 +3690,10 @@ function addDaysISO(dateStr, days) {
 
 const WOCHENTAGE_KURZ = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
 
+function germanWeekday(dateStr) {
+  return (new Date(dateStr + "T00:00:00").getDay() + 6) % 7; // 0=Mo, 6=So
+}
+
 const MaterialKalender = {
   weekStart: null,
 
@@ -3094,11 +3744,12 @@ const MaterialKalender = {
                     let cls = "mk-gray", label = "–";
                     if (verf.total > 0) {
                       if (verf.used <= 0) { cls = "mk-green"; }
+                      else if (verf.used > verf.total) { cls = "mk-overbooked"; label = `⚠ ${verf.used}/${verf.total}`; }
                       else if (verf.used >= verf.total) { cls = "mk-red"; }
                       else { cls = "mk-yellow"; }
-                      label = `${verf.used}/${verf.total}`;
+                      if (!label || label === "–") label = `${verf.used}/${verf.total}`;
                     }
-                    return `<td class="${cls}" title="${escapeHtml(art.name)} am ${d}: ${verf.used}/${verf.total} belegt">${label}</td>`;
+                    return `<td class="${cls}" title="${escapeHtml(art.name)} am ${d}: ${verf.used}/${verf.total} belegt${verf.used > verf.total ? ' — ÜBERBUCHT!' : ''}">${label}</td>`;
                   }).join("")}
                 </tr>
               `).join("")}
