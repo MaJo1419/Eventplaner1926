@@ -916,7 +916,6 @@
       <div style="display:flex;gap:6px;flex-wrap:wrap;">
         <button type="button" class="btn" onclick="Karten.openAusstellenForm()">+ Karte ausstellen</button>
         <button type="button" class="btn" onclick="Karten.openKursSitzung()">📷 Kurs-Sitzung öffnen</button>
-        <button type="button" class="btn secondary" onclick="Karten.openScanner()">📷 Karte scannen</button>
         <button type="button" class="btn danger admin-only" onclick="Karten.bereinigeAlteKarten()">🧹 Alte Karten entfernen</button>
       </div>
     </div>
@@ -1238,30 +1237,6 @@
     <div class="modal-actions">
       <button type="button" class="btn secondary" onclick="Modal.close('modal-karte-ausstellen')">Abbrechen</button>
       <button type="button" class="btn" onclick="Karten.ausstellen()">Karte ausstellen</button>
-    </div>
-  </div>
-</div>
-
-<!-- QR-Code Anzeige (eigene Wertkarte) -->
-<div class="overlay" id="modal-qr-anzeige">
-  <div class="modal" style="text-align:center;">
-    <h3 id="qr-anzeige-title">Meine Wertkarte</h3>
-    <div class="desc" style="margin-bottom:10px;">Diesem Code beim Trainer vorzeigen (Alternative zum Selbst-Einchecken)</div>
-    <div id="qr-anzeige-code" style="display:flex;justify-content:center;margin:10px 0;"></div>
-    <div class="modal-actions" style="justify-content:center;">
-      <button type="button" class="btn secondary" onclick="Modal.close('modal-qr-anzeige')">Schließen</button>
-    </div>
-  </div>
-</div>
-
-<!-- QR-Scanner (Trainer scannt Mitglieds-Karte, danach Kurs-Auswahl) -->
-<div class="overlay" id="modal-qr-scanner">
-  <div class="modal">
-    <h3>Wertkarte scannen</h3>
-    <div class="desc" style="margin-bottom:10px;">Kamera auf den QR-Code der Mitglieds-Karte richten</div>
-    <div id="qr-scanner-reader" style="width:100%;"></div>
-    <div class="modal-actions">
-      <button type="button" class="btn secondary" onclick="Karten.closeScanner()">Schließen</button>
     </div>
   </div>
 </div>
@@ -1658,7 +1633,7 @@
    ZENTRALE KONFIGURATION & DATENSCHICHT
    ============================================================ */
 
-const APP_VERSION = "0.1.104";
+const APP_VERSION = "0.1.105";
 let currentUserProfile = { role: "A", actualRole: "A", email: "", name: "" };
 
 function uid(prefix) {
@@ -3048,7 +3023,6 @@ const Kurse = {
 };
 
 const Karten = {
-  scannerInstance: null,
   eincheckenScannerInstance: null,
 
   currentUid() {
@@ -3119,7 +3093,6 @@ const Karten = {
             ${letzteBesuche ? `<div style="font-size:11.5px;color:var(--text-muted);margin-top:6px;">Letzte Besuche: ${letzteBesuche}</div>` : ''}
           </div>
           <div class="card-actions">
-            ${!adminView && k.status === 'aktiv' ? `<button type="button" class="btn secondary small" onclick="Karten.zeigeQr('${k.id}')">QR-Code</button>` : ''}
             ${adminView && k.status === 'offen' ? `<button type="button" class="btn small" onclick="Karten.aktivieren('${k.id}')">Aktivieren (bezahlt)</button>` : ''}
             ${adminView && k.status === 'aktiv' ? `<button type="button" class="btn small" onclick="Karten.openKursWahlManuell('${k.id}')">+ Besuch eintragen</button>` : ''}
             ${adminView && currentUserProfile.role === 'A' && (k.stempelHistorie || []).length > 0 ? `<button type="button" class="btn secondary small" onclick="Karten.besuchRueckgaengig('${k.id}')">↩ Letzten Besuch zurück</button>` : ''}
@@ -3363,55 +3336,6 @@ const Karten = {
       console.error(err);
       toast("Fehler beim Bereinigen: " + (err?.message || "Unbekannter Fehler"));
     }
-  },
-
-  // ---- QR anzeigen (Mitglied zeigt eigene Karte, Alternative zum Einchecken) ----
-  zeigeQr(id) {
-    const k = (Store.data.stempelkarten || []).find(x => x.id === id);
-    if (!k) return;
-    document.getElementById("qr-anzeige-title").textContent = "Meine Wertkarte";
-    const area = document.getElementById("qr-anzeige-code");
-    area.innerHTML = "";
-    new QRCode(area, { text: k.id, width: 220, height: 220 });
-    Modal.open("modal-qr-anzeige");
-  },
-
-  // ---- Trainer scannt Mitglieds-Karte, wählt danach Kurs ----
-  openScanner() {
-    Modal.open("modal-qr-scanner");
-    const readerEl = document.getElementById("qr-scanner-reader");
-    readerEl.innerHTML = "";
-    this.scannerInstance = new Html5Qrcode("qr-scanner-reader");
-    this.scannerInstance.start(
-      { facingMode: "environment" },
-      { fps: 10, qrbox: 220 },
-      (decodedText) => this.onScanSuccess(decodedText),
-      () => {}
-    ).catch(err => {
-      console.error(err);
-      toast("Kamera konnte nicht gestartet werden: " + (err?.message || err));
-    });
-  },
-
-  async onScanSuccess(decodedText) {
-    const karteId = decodedText.trim();
-    const k = (Store.data.stempelkarten || []).find(x => x.id === karteId);
-    if (!k) { toast("Unbekannte Karte gescannt."); return; }
-    if (k.status !== "aktiv") { toast(`Karte von ${k.inhaberName} ist nicht aktiv (${k.status}).`); return; }
-
-    if (this.scannerInstance) { try { await this.scannerInstance.pause(true); } catch (e) {} }
-    this.closeScanner();
-    this.openKursWahlManuell(k.id);
-  },
-
-  closeScanner() {
-    if (this.scannerInstance) {
-      this.scannerInstance.stop().then(() => {
-        this.scannerInstance.clear();
-        this.scannerInstance = null;
-      }).catch(() => { this.scannerInstance = null; });
-    }
-    Modal.close("modal-qr-scanner");
   },
 
   // ---- Trainer: Kurs-Sitzung öffnen (Session-QR) ----
