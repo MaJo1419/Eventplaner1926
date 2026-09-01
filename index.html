@@ -1749,7 +1749,7 @@
    ZENTRALE KONFIGURATION & DATENSCHICHT
    ============================================================ */
 
-const APP_VERSION = "0.1.126";
+const APP_VERSION = "0.1.127";
 let currentUserProfile = { role: "A", actualRole: "A", email: "", name: "" };
 
 function uid(prefix) {
@@ -2383,13 +2383,14 @@ function clearAllUI() {
    ============================================================ */
 
 function renderMeineSachenKacheln(kompakt) {
-  const heute = new Date().toISOString().slice(0, 10);
   const uidM = window.FB.auth.currentUser ? window.FB.auth.currentUser.uid : "";
 
+  // Exakt dieselbe Zähllogik wie MeineSchichten.render() (kein Datumsfilter,
+  // damit die Zahl auf der Kachel immer mit "Mein Schichtplan" übereinstimmt).
   let meineSchichtenAnzahl = 0;
   (Store.data.events || []).forEach(e => {
     (e.schichten || []).forEach(s => {
-      if ((s.datum || e.datumStart) >= heute && (s.eintragungen || []).some(en => en.uid === uidM)) {
+      if ((s.eintragungen || []).some(en => en.uid === uidM)) {
         meineSchichtenAnzahl++;
       }
     });
