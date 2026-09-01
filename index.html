@@ -1749,7 +1749,7 @@
    ZENTRALE KONFIGURATION & DATENSCHICHT
    ============================================================ */
 
-const APP_VERSION = "0.1.125";
+const APP_VERSION = "0.1.126";
 let currentUserProfile = { role: "A", actualRole: "A", email: "", name: "" };
 
 function uid(prefix) {
@@ -2018,6 +2018,7 @@ const Store = {
     const unsubEvents = onSnapshot(eventsCol, (snap) => {
       Store.data.events = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       Events.render();
+      refreshBereichsauswahlIfAktiv();
 
       const detailPanel = document.getElementById("event-detail-panel");
       if (detailPanel.classList.contains("open") && detailPanel.dataset.eventId) {
@@ -2035,18 +2036,21 @@ const Store = {
     const unsubBelegungen = onSnapshot(belegungenCol, (snap) => {
       Store.data.belegungen = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       if (typeof Belegungsplan !== "undefined") Belegungsplan.renderKalender();
+      refreshBereichsauswahlIfAktiv();
     });
 
     const stempelkartenCol = collection(db, ...PATH_BASE, "stempelkarten");
     const unsubStempelkarten = onSnapshot(stempelkartenCol, (snap) => {
       Store.data.stempelkarten = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       if (typeof Karten !== "undefined") Karten.renderAll();
+      refreshBereichsauswahlIfAktiv();
     });
 
     const nachrichtenCol = collection(db, ...PATH_BASE, "nachrichten");
     const unsubNachrichten = onSnapshot(nachrichtenCol, (snap) => {
       Store.data.nachrichten = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       if (typeof Nachrichten !== "undefined") Nachrichten.onDataChanged();
+      refreshBereichsauswahlIfAktiv();
     });
 
     this._unsubscribes.push(unsubConfig, unsubPersonen, unsubEvents, unsubUsers, unsubBelegungen, unsubStempelkarten, unsubNachrichten);
@@ -2417,6 +2421,13 @@ function renderMeineSachenKacheln(kompakt) {
       <div class="bk-desc">${ungelesen > 0 ? `${ungelesen} neue Nachricht(en)` : 'Keine neuen Nachrichten'}</div>
     </div>
   `;
+}
+
+function refreshBereichsauswahlIfAktiv() {
+  const activeView = document.querySelector(".view.active");
+  if (activeView && activeView.id === "view-bereichsauswahl" && typeof renderBereichsauswahl === "function") {
+    renderBereichsauswahl();
+  }
 }
 
 function renderBereichsauswahl() {
