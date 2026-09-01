@@ -1181,6 +1181,11 @@
       <div class="field" id="ressourceFeldExtra2Wrap"><label id="ressourceFeldExtra2Label">Kapazität</label><input id="ressourceFeldExtra2"></div>
     </div>
     <div class="field"><label>Notizen</label><textarea id="ressourceNotizen" placeholder="z. B. Schlüssel bei..., Tankkarte im Handschuhfach..."></textarea></div>
+    <div class="field">
+      <label>Kollidiert mit (kann nicht gleichzeitig gebucht werden)</label>
+      <div class="desc" style="margin-bottom:4px;">z. B. "Sportplatz gesamt" kollidiert mit "linke Hälfte" und "rechte Hälfte" – die Hälften selbst kollidieren nicht miteinander</div>
+      <div id="ressourceKonfliktPicker" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
+    </div>
     <div class="modal-actions">
       <button type="button" class="btn secondary" onclick="Modal.close('modal-ressource')">Abbrechen</button>
       <button type="button" class="btn" onclick="Ressourcen.save()">Speichern</button>
@@ -1753,7 +1758,7 @@
    ZENTRALE KONFIGURATION & DATENSCHICHT
    ============================================================ */
 
-const APP_VERSION = "0.1.129";
+const APP_VERSION = "0.1.130";
 let currentUserProfile = { role: "A", actualRole: "A", email: "", name: "" };
 
 function uid(prefix) {
@@ -2274,6 +2279,19 @@ const Modal = {
 
 function darfBelegungsplanNutzen() {
   return currentUserProfile.role === "A" || currentUserProfile.role === "B" || !!currentUserProfile.duerfteBelegungBuchen;
+}
+
+// Prüft, ob zwei Ressourcen (gleicher Typ) sich gegenseitig blockieren – entweder identisch,
+// oder eine hat die andere in ihrer konfliktMitIds-Liste eingetragen (Prüfung in beide Richtungen,
+// damit die Zuordnung nur an einer Stelle gepflegt werden muss).
+function ressourcenKollidieren(typ, idA, idB) {
+  if (idA === idB) return true;
+  const liste = typ === "sportstaette" ? (Store.data.sportstaetten || []) : (Store.data.vereinsbusse || []);
+  const a = liste.find(r => r.id === idA);
+  const b = liste.find(r => r.id === idB);
+  if (a && (a.konfliktMitIds || []).includes(idB)) return true;
+  if (b && (b.konfliktMitIds || []).includes(idA)) return true;
+  return false;
 }
 
 function darfKurseVerwalten() {
@@ -2800,7 +2818,12 @@ const Ressourcen = {
       return;
     }
 
-    list.innerHTML = items.map(r => `
+    list.innerHTML = items.map(r => {
+      const konfliktNamen = (r.konfliktMitIds || []).map(kid => {
+        const k = (Store.data[dataKey] || []).find(x => x.id === kid);
+        return k ? k.name : null;
+      }).filter(Boolean);
+      return `
       <div class="card">
         <div class="card-head">
           <div>
@@ -2812,6 +2835,7 @@ const Ressourcen = {
               }
             </div>
             ${r.notizen ? `<div style="font-size:12px;color:var(--text-muted);margin-top:4px;">${escapeHtml(r.notizen)}</div>` : ''}
+            ${konfliktNamen.length > 0 ? `<div style="font-size:12px;color:#9c1c1c;margin-top:4px;">⚠️ Kollidiert mit: ${konfliktNamen.map(escapeHtml).join(", ")}</div>` : ''}
           </div>
           <div class="card-actions">
             <button type="button" class="btn secondary small" onclick="Ressourcen.openForm('${typ}', '${r.id}')">Bearbeiten</button>
@@ -2819,7 +2843,8 @@ const Ressourcen = {
           </div>
         </div>
       </div>
-    `).join("");
+    `;
+    }).join("");
   },
 
   openForm(typ, id = "") {
@@ -2852,6 +2877,17 @@ const Ressourcen = {
       document.getElementById("ressourceFeldExtra2").placeholder = "z. B. 9";
     }
 
+    const konfliktListe = (Store.data[dataKey] || []).filter(x => x.id !== id);
+    const meineKonflikte = r.konfliktMitIds || [];
+    const picker = document.getElementById("ressourceKonfliktPicker");
+    picker.innerHTML = konfliktListe.length === 0
+      ? '<span class="meta">Keine weiteren Ressourcen dieses Typs vorhanden.</span>'
+      : konfliktListe.map(x => `
+          <label style="display:flex;align-items:center;gap:5px;font-size:13px;border:1px solid var(--border-strong);padding:5px 9px;border-radius:16px;cursor:pointer;">
+            <input type="checkbox" class="ressource-konflikt-cb" value="${x.id}" ${meineKonflikte.includes(x.id) ? 'checked' : ''}> ${escapeHtml(x.name)}
+          </label>
+        `).join("");
+
     Modal.open("modal-ressource");
   },
 
@@ -2864,10 +2900,11 @@ const Ressourcen = {
     const dataKey = typ === "sportstaette" ? "sportstaetten" : "vereinsbusse";
     const extra1 = document.getElementById("ressourceFeldExtra1").value.trim();
     const extra2 = document.getElementById("ressourceFeldExtra2").value.trim();
+    const konfliktMitIds = [...document.querySelectorAll(".ressource-konflikt-cb:checked")].map(cb => cb.value);
 
     const ressource = typ === "sportstaette"
-      ? { id, name, ort: extra1, kapazitaet: extra2, notizen: document.getElementById("ressourceNotizen").value.trim() }
-      : { id, name, kennzeichen: extra1, sitzplaetze: extra2, notizen: document.getElementById("ressourceNotizen").value.trim() };
+      ? { id, name, ort: extra1, kapazitaet: extra2, notizen: document.getElementById("ressourceNotizen").value.trim(), konfliktMitIds }
+      : { id, name, kennzeichen: extra1, sitzplaetze: extra2, notizen: document.getElementById("ressourceNotizen").value.trim(), konfliktMitIds };
 
     if (!Store.data[dataKey]) Store.data[dataKey] = [];
     const idx = Store.data[dataKey].findIndex(x => x.id === id);
@@ -3071,11 +3108,13 @@ const Belegungsplan = {
     if (!zweck) { toast("Bitte einen Zweck / Titel angeben."); return; }
 
     const konflikt = (Store.data.belegungen || []).find(b =>
-      b.id !== id && b.ressourceTyp === typ && b.ressourceId === ressourceId && b.datum === datum &&
+      b.id !== id && b.ressourceTyp === typ && b.datum === datum &&
+      ressourcenKollidieren(typ, b.ressourceId, ressourceId) &&
       start < b.ende && b.start < ende
     );
     if (konflikt) {
-      toast(`Konflikt: Ressource ist am ${datum} von ${konflikt.start}–${konflikt.ende} Uhr bereits belegt (${konflikt.zweck}).`);
+      const konfliktRessourcenName = this.getRessourcenListe(typ).find(r => r.id === konflikt.ressourceId)?.name || "eine kollidierende Ressource";
+      toast(`Konflikt: "${konfliktRessourcenName}" ist am ${datum} von ${konflikt.start}–${konflikt.ende} Uhr bereits belegt (${konflikt.zweck}).`);
       return;
     }
 
@@ -3130,7 +3169,8 @@ const Belegungsplan = {
 
     for (const d of termine) {
       const konflikt = (Store.data.belegungen || []).find(b =>
-        b.ressourceTyp === typ && b.ressourceId === ressourceId && b.datum === d &&
+        b.ressourceTyp === typ && b.datum === d &&
+        ressourcenKollidieren(typ, b.ressourceId, ressourceId) &&
         start < b.ende && b.start < ende
       );
       if (konflikt) { uebersprungen.push(d); continue; }
@@ -3249,7 +3289,8 @@ const Belegungsplan = {
     const uebersprungen = [];
     for (const d of neueTermine) {
       const konflikt = (Store.data.belegungen || []).find(x =>
-        x.ressourceTyp === typ && x.ressourceId === ressourceId && x.datum === d &&
+        x.ressourceTyp === typ && x.datum === d &&
+        ressourcenKollidieren(typ, x.ressourceId, ressourceId) &&
         start < x.ende && x.start < ende
       );
       if (konflikt) { uebersprungen.push(d); continue; }
