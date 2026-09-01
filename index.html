@@ -1174,6 +1174,16 @@
     </div>
     <div class="field"><label>Zweck / Titel</label><input id="belegungZweck" placeholder="z. B. Training F-Jugend, Fahrt zum Auswärtsspiel"></div>
     <div class="field"><label>Gebucht von</label><input id="belegungGebuchtVon"></div>
+    <div id="belegungEinzelHinweis" style="display:none;background:#fbeceb;padding:10px 12px;border-radius:6px;margin-bottom:4px;font-size:13px;">
+      <div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:6px;">
+        <span>💾</span>
+        <span><strong>Speichern</strong> ändert nur diesen einen Termin am angegebenen Datum – die restliche Serie bleibt unverändert.</span>
+      </div>
+      <div style="display:flex;gap:8px;align-items:flex-start;">
+        <span>🔁</span>
+        <span><strong>Serie aktualisieren</strong> ändert dagegen die ganze Serie.</span>
+      </div>
+    </div>
     <div class="modal-actions">
       <div style="display:flex;gap:8px;margin-right:auto;">
         <button type="button" class="btn secondary" id="belegungUpdateSerieBtn" style="display:none;" onclick="Belegungsplan.updateSerie()">Serie aktualisieren</button>
@@ -1617,7 +1627,7 @@
    ZENTRALE KONFIGURATION & DATENSCHICHT
    ============================================================ */
 
-const APP_VERSION = "0.1.109";
+const APP_VERSION = "0.1.113";
 let currentUserProfile = { role: "A", actualRole: "A", email: "", name: "" };
 
 function uid(prefix) {
@@ -2674,6 +2684,7 @@ const Belegungsplan = {
     document.getElementById("belegungSerieAnkerDatum").value = "";
 
     if (isEdit && b?.serienId) {
+      document.getElementById("belegungEinzelHinweis").style.display = "";
       const serie = (Store.data.belegungen || []).filter(x => x.serienId === b.serienId);
       const wochentageInSerie = [...new Set(serie.map(s => germanWeekday(s.datum)))];
       document.querySelectorAll(".belegung-wochentag").forEach(cb => {
@@ -2686,6 +2697,7 @@ const Belegungsplan = {
       document.getElementById("belegungSerieAnkerDatum").value = minDatum;
       document.getElementById("belegungSerieWrap").style.display = "";
     } else {
+      document.getElementById("belegungEinzelHinweis").style.display = "none";
       this.onArtChange();
     }
 
