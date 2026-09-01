@@ -998,6 +998,10 @@
         <h2>💰 Kassenabrechnung</h2>
         <div class="desc">Wer hat wie viele Karten verkauft, welcher Betrag ist noch nicht abgegeben?</div>
       </div>
+      <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;">
+        <input type="checkbox" id="kassenabrechnungBeglicheneAusblenden" onchange="Karten.toggleBeglicheneFilter(this.checked)">
+        Beglichene ausblenden
+      </label>
     </div>
     <div id="kassenabrechnung-content"></div>
   </section>
@@ -1749,7 +1753,7 @@
    ZENTRALE KONFIGURATION & DATENSCHICHT
    ============================================================ */
 
-const APP_VERSION = "0.1.127";
+const APP_VERSION = "0.1.129";
 let currentUserProfile = { role: "A", actualRole: "A", email: "", name: "" };
 
 function uid(prefix) {
@@ -3745,9 +3749,19 @@ const Karten = {
     return u ? (u.name || u.email) : "Unbekannt";
   },
 
+  beglicheneAusblenden: false,
+
+  toggleBeglicheneFilter(checked) {
+    this.beglicheneAusblenden = checked;
+    this.renderKassenabrechnung();
+  },
+
   renderKassenabrechnung() {
     const wrap = document.getElementById("kassenabrechnung-content");
     if (!wrap) return;
+
+    const cb = document.getElementById("kassenabrechnungBeglicheneAusblenden");
+    if (cb) cb.checked = this.beglicheneAusblenden;
 
     const zeilen = [];
     (Store.data.stempelkarten || []).forEach(k => {
@@ -3773,27 +3787,38 @@ const Karten = {
       gruppen[z.aktiviertVonUid].push(z);
     });
 
-    wrap.innerHTML = Object.keys(gruppen)
+    const nurOffene = this.beglicheneAusblenden;
+
+    const gruppenHtml = Object.keys(gruppen)
       .sort((a, b) => this.nameForUid(a).localeCompare(this.nameForUid(b), "de"))
       .map(uidT => {
-        const eintraege = gruppen[uidT].sort((a, b) => (b.aktiviertAm || "").localeCompare(a.aktiviertAm || ""));
-        const gesamt = eintraege.reduce((s, z) => s + (z.betrag || 0), 0);
-        const offen = eintraege.filter(z => !z.bezahlBeglichen);
+        const alleEintraege = gruppen[uidT].sort((a, b) => (b.aktiviertAm || "").localeCompare(a.aktiviertAm || ""));
+        const gesamt = alleEintraege.reduce((s, z) => s + (z.betrag || 0), 0);
+        const offen = alleEintraege.filter(z => !z.bezahlBeglichen);
         const offenBetrag = offen.reduce((s, z) => s + (z.betrag || 0), 0);
+        const eintraege = nurOffene ? offen : alleEintraege;
+
+        if (nurOffene && eintraege.length === 0) return "";
 
         return `
           <details class="collapsible-section" open style="margin-bottom:16px;">
-            <summary>${escapeHtml(this.nameForUid(uidT))} — ${eintraege.length} Aufladung(en), ${gesamt.toFixed(2)} € gesamt
+            <summary>${escapeHtml(this.nameForUid(uidT))} — ${alleEintraege.length} Aufladung(en), ${gesamt.toFixed(2)} € gesamt
               ${offenBetrag > 0 ? ` — <span style="color:#9c1c1c;">${offenBetrag.toFixed(2)} € noch offen</span>` : ' — alles beglichen ✅'}
             </summary>
             ${offen.length > 0 ? `<button type="button" class="btn small" style="margin:6px 0 10px;" onclick="Karten.alleBeglichen('${uidT}')">Alle ${offen.length} offenen Zahlungen als beglichen markieren</button>` : ''}
             <div style="overflow-x:auto;">
-              <table class="subtable matrix-table" style="width:100%;">
-                <thead><tr><th>Datum</th><th>Mitglied</th><th>Betrag</th><th>Status</th><th></th></tr></thead>
+              <table class="subtable matrix-table" style="width:100%;table-layout:fixed;">
+                <thead><tr>
+                  <th style="width:14%;">Datum</th>
+                  <th style="width:34%;">Mitglied</th>
+                  <th style="width:14%;">Betrag</th>
+                  <th style="width:16%;">Status</th>
+                  <th style="width:22%;"></th>
+                </tr></thead>
                 <tbody>
                   ${eintraege.map(z => `<tr>
                     <td>${(z.aktiviertAm || "").slice(0, 10)}</td>
-                    <td>${escapeHtml(z.inhaberName || '')}</td>
+                    <td style="overflow-wrap:break-word;">${escapeHtml(z.inhaberName || '')}</td>
                     <td>${(z.betrag || 0).toFixed(2)} €</td>
                     <td>${z.bezahlBeglichen ? '✅ Beglichen' : '🟡 Offen'}</td>
                     <td>${!z.bezahlBeglichen ? `<button type="button" class="btn secondary small" onclick="Karten.markBeglichen('${z.karteId}', '${z.aufladungId}')">Als beglichen markieren</button>` : ''}</td>
@@ -3804,6 +3829,13 @@ const Karten = {
           </details>
         `;
       }).join("");
+
+    const sichtbareGruppen = gruppenHtml.trim();
+    if (nurOffene && sichtbareGruppen === "") {
+      wrap.innerHTML = '<div class="empty-state">Alle Zahlungen sind beglichen. ✅</div>';
+      return;
+    }
+    wrap.innerHTML = gruppenHtml;
   },
 
   async markBeglichen(karteId, aufladungId) {
