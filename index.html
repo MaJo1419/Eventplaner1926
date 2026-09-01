@@ -5,9 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Eventplaner &amp; Schicht-Board</title>
 <link rel="manifest" href="/Eventplaner1926/manifest.json">
-<meta name="theme-color" content="#143f34">
+<meta name="theme-color" content="#146b48">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
@@ -42,26 +45,32 @@
 </script>
 <style>
   :root {
-    --bg: #f6f5f1;
+    --bg: #e7e9ea;
     --surface: #ffffff;
-    --surface-2: #eef1ee;
-    --border: #d9d7cd;
-    --border-strong: #b9b7ac;
-    --text: #24261f;
-    --text-muted: #6b6d61;
-    --accent: #1f5c4d;
-    --accent-light: #dceee7;
-    --accent-dark: #143f34;
-    --warn-bg: #fdf1de;
-    --warn-text: #8a5a12;
-    --warn-border: #f0c785;
+    --surface-2: #eef1f0;
+    --border: #d3d7d8;
+    --border-strong: #b7bdbe;
+    --text: #1d2422;
+    --text-muted: #6b7573;
+    --accent: #1e9463;
+    --accent-light: #dcf0e6;
+    --accent-dark: #146b48;
+    --petrol: #0f7a82;
+    --petrol-light: #dcedee;
+    --lachs: #f2836c;
+    --lachs-light: #fdebe6;
+    --gold: #c99a2e;
+    --gold-light: #f7ecd3;
+    --warn-bg: #fdebe6;
+    --warn-text: #b2481f;
+    --warn-border: #f2836c;
     --danger-bg: #fbe6e4;
     --danger-text: #a3352a;
     --danger-border: #edb0a8;
-    --ok-bg: #e3f2e7;
-    --ok-text: #276238;
+    --ok-bg: #dcf0e6;
+    --ok-text: #146b48;
     --radius: 10px;
-    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   }
   * { box-sizing: border-box; }
   body {
@@ -82,7 +91,7 @@
     gap: 8px;
   }
   header h1 { font-size: 19px; font-weight: 600; margin: 0; }
-  header .sub { font-size: 12.5px; color: #cfe3dc; }
+  header .sub { font-size: 12.5px; color: #bfe4d1; }
   .version-badge {
     display: inline-block;
     font-size: 10.5px;
@@ -99,16 +108,16 @@
     padding: 3px 8px;
     border-radius: 6px;
     font-weight: 600;
-    background: #e3f2e7;
-    color: #276238;
+    background: #dcf0e6;
+    color: #146b48;
   }
-  .role-badge.role-B { background: #fdf1de; color: #8a5a12; }
+  .role-badge.role-B { background: #fdebe6; color: #b2481f; }
   .role-badge.role-A { background: #fbe6e4; color: #a3352a; }
   .role-select-header {
     font-size: 11.5px;
     padding: 3px 6px;
     border-radius: 6px;
-    background: #eef1ee;
+    background: #eef1f0;
     border: 1px solid var(--border-strong);
     color: var(--text);
     font-weight: 600;
@@ -257,7 +266,7 @@
     cursor: pointer;
     font-weight: 700;
     font-size: 16px;
-    color: var(--accent-dark, #143f34);
+    color: var(--accent-dark, #146b48);
     list-style: revert;
     padding: 2px 0;
   }
@@ -280,7 +289,7 @@
     box-shadow: 0 6px 16px rgba(0,0,0,.1);
   }
   .user-picker-item { padding: 8px 12px; cursor: pointer; font-size: 13.5px; }
-  .user-picker-item:hover { background: #eef4ef; }
+  .user-picker-item:hover { background: #dcf0e6; }
   .bereichs-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-top: 18px; }
   .bereichs-kachel {
     background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 24px 20px;
@@ -288,7 +297,7 @@
   }
   .bereichs-kachel:hover { box-shadow: 0 4px 16px rgba(0,0,0,.08); transform: translateY(-2px); }
   .bereichs-kachel .bk-icon { font-size: 32px; margin-bottom: 8px; }
-  .bereichs-kachel .bk-title { font-size: 17px; font-weight: 700; color: var(--accent-dark, #143f34); margin-bottom: 4px; }
+  .bereichs-kachel .bk-title { font-size: 17px; font-weight: 700; color: var(--accent-dark, #146b48); margin-bottom: 4px; }
   .bereichs-kachel .bk-desc { font-size: 13px; color: var(--text-muted); }
   .bereichs-kachel.kompakt { padding: 14px 16px; }
   .bereichs-kachel.kompakt .bk-icon { font-size: 22px; margin-bottom: 4px; }
@@ -302,19 +311,19 @@
     border: 1.5px solid var(--border-strong);
     background: #fff; display: inline-block;
   }
-  .stempel-dot.used { background: var(--accent-dark, #143f34); border-color: var(--accent-dark, #143f34); }
+  .stempel-dot.used { background: var(--accent-dark, #146b48); border-color: var(--accent-dark, #146b48); }
   .nachrichten-badge {
     display: inline-block; background: #c0392b; color: #fff; font-size: 10.5px; font-weight: 700;
     border-radius: 10px; padding: 1px 6px; margin-left: 4px; vertical-align: 2px;
   }
   .nachricht-card { position: relative; }
-  .nachricht-card.ungelesen { border-left: 4px solid var(--accent-dark, #143f34); background: #f7faf8; }
+  .nachricht-card.ungelesen { border-left: 4px solid var(--accent-dark, #146b48); background: #f7faf8; }
   .icon-picker { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
   .icon-picker button {
     font-size: 20px; padding: 6px 9px; border: 1.5px solid var(--border-strong); border-radius: 8px;
     background: #fff; cursor: pointer; line-height: 1;
   }
-  .icon-picker button.selected { border-color: var(--accent-dark, #143f34); background: #eef4ef; }
+  .icon-picker button.selected { border-color: var(--accent-dark, #146b48); background: #dcf0e6; }
   .empty-state {
     text-align: center;
     padding: 40px 20px;
@@ -373,7 +382,7 @@
   }
   .event-tile .tile-title { font-size: 14px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; }
   .event-tile .tile-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
-  .event-tile.active .tile-sub { color: #cfe3dc; }
+  .event-tile.active .tile-sub { color: #bfe4d1; }
 
   .progress-wrap {
     background: var(--surface-2);
@@ -568,9 +577,9 @@
     font-weight: 500;
   }
   .status-select-gastro.status-bestellt {
-    background: #e3f2e7 !important;
-    color: #276238 !important;
-    border-color: #a8d5b5 !important;
+    background: #dcf0e6 !important;
+    color: #146b48 !important;
+    border-color: #8fd1ac !important;
     font-weight: 700 !important;
   }
   .status-select-gastro.status-geliefert {
@@ -588,7 +597,7 @@
     cursor: pointer; padding: 4px 8px; border-radius: 4px; border: 1px solid var(--border-strong);
     font-size: 11px; font-weight: bold; background: var(--surface);
   }
-  .toggle-btn.on { background: var(--ok-bg); color: var(--ok-text); border-color: #a8d5b5; }
+  .toggle-btn.on { background: var(--ok-bg); color: var(--ok-text); border-color: #8fd1ac; }
   .toggle-btn.off { background: var(--surface-2); color: var(--text-muted); }
 
   .gastro-input-matrix {
@@ -1021,7 +1030,7 @@
     
     <div class="field">
       <label>Google-Anmeldename (E-Mail)</label>
-      <input id="buchenSpendeAnmeldename" disabled style="background:#eef1ee; color:var(--text-muted);">
+      <input id="buchenSpendeAnmeldename" disabled style="background:#eef1f0; color:var(--text-muted);">
     </div>
     <div class="field-row">
       <div class="field">
@@ -1083,7 +1092,7 @@
     
     <div class="field">
       <label>Google-Anmeldename (E-Mail)</label>
-      <input id="buchenAnmeldename" disabled style="background:#eef1ee; color:var(--text-muted);">
+      <input id="buchenAnmeldename" disabled style="background:#eef1f0; color:var(--text-muted);">
     </div>
     <div class="field-row">
       <div class="field">
@@ -1758,7 +1767,7 @@
    ZENTRALE KONFIGURATION & DATENSCHICHT
    ============================================================ */
 
-const APP_VERSION = "0.1.130";
+const APP_VERSION = "0.1.131";
 let currentUserProfile = { role: "A", actualRole: "A", email: "", name: "" };
 
 function uid(prefix) {
@@ -3469,7 +3478,7 @@ const Karten = {
             <h3>💳 Wertkarte ${adminView ? `<span class="meta" style="font-weight:400;">— ${escapeHtml(k.inhaberName || "")}</span>` : ''}</h3>
             <div class="meta">Guthaben: <strong>${saldo.toFixed(2)} €</strong>${offeneAufladungen.length > 0 ? ` &middot; ${offeneAufladungen.length} Aufladung(en) wartet auf Aktivierung` : ''}</div>
             <div style="background:#eee;border-radius:6px;height:10px;margin-top:8px;overflow:hidden;">
-              <div style="background:var(--accent-dark, #143f34);height:100%;width:${pct}%;"></div>
+              <div style="background:var(--accent-dark, #146b48);height:100%;width:${pct}%;"></div>
             </div>
             <div style="margin-top:10px;">${aufladungenHtml}</div>
             ${letzteBesuche ? `<div style="font-size:11.5px;color:var(--text-muted);margin-top:6px;">Letzte Besuche: ${letzteBesuche}</div>` : ''}
@@ -5015,7 +5024,7 @@ const Personen = {
               </td>
               <td>
                 <div class="meta" style="margin-bottom:4px;">Mitglied${(u.abteilungen || []).length ? ', ' + u.abteilungen.map(id => escapeHtml(Nachrichten.abteilungName(id))).join(', ') : ''}</div>
-                ${(u.abteilungsleiterVon || []).length ? `<div class="meta" style="color:var(--accent-dark,#143f34);">Leiter: ${u.abteilungsleiterVon.map(id => escapeHtml(Nachrichten.abteilungName(id))).join(', ')}</div>` : ''}
+                ${(u.abteilungsleiterVon || []).length ? `<div class="meta" style="color:var(--accent-dark,#146b48);">Leiter: ${u.abteilungsleiterVon.map(id => escapeHtml(Nachrichten.abteilungName(id))).join(', ')}</div>` : ''}
                 <button type="button" class="btn secondary small" style="margin-top:4px;" onclick="Nachrichten.openUserAbteilungenForm('${u.id}')">Bearbeiten</button>
               </td>
             </tr>
@@ -5747,7 +5756,7 @@ const Events = {
   reportBlockMeta(e, k, abschnittTitel) {
     const datumAnzeige = e.datumStart === e.datumEnde || !e.datumEnde ? (e.datumStart || 'Noch offen') : `${e.datumStart} bis ${e.datumEnde}`;
     const html = `
-      <h1 style="color:#143f34;font-size:20px;margin-bottom:2px;">${escapeHtml(e.name)}</h1>
+      <h1 style="color:#146b48;font-size:20px;margin-bottom:2px;">${escapeHtml(e.name)}</h1>
       <div style="font-size:12px;color:#888;margin-bottom:2px;">${escapeHtml(abschnittTitel)}</div>
       <div style="font-size:13px;color:#555;margin-bottom:14px;border-bottom:1px solid #ddd;padding-bottom:10px;">
         🗓 ${escapeHtml(datumAnzeige)}${e.ort ? ` &middot; 📍 ${escapeHtml(e.ort)}` : ""} &middot; 🏷 ${escapeHtml(k.name)}
@@ -5763,7 +5772,7 @@ const Events = {
     const groups = {};
     items.forEach(i => { const b = i.bereich || "Allgemein"; if (!groups[b]) groups[b] = []; groups[b].push(i); });
 
-    let html = `<h3 style="margin-top:18px;color:#143f34;">📋 Aufgaben (${done}/${items.length} erledigt)</h3>`;
+    let html = `<h3 style="margin-top:18px;color:#146b48;">📋 Aufgaben (${done}/${items.length} erledigt)</h3>`;
     if (items.length === 0) html += `<p style="color:#888;">Keine Aufgaben erfasst.</p>`;
     Object.keys(groups).forEach(b => {
       html += `<div style="font-weight:600;margin-top:8px;">${escapeHtml(b)}</div><ul style="margin:4px 0 0 18px;padding:0;">`;
@@ -5793,8 +5802,8 @@ const Events = {
     return `
       <table style="width:100%;border-collapse:collapse;font-size:12px;margin:6px 0 4px;border:1px solid #d8ddd9;">
         <thead>
-          <tr style="background:#eef4ef;">
-            ${headers.map(h => `<th style="text-align:left;padding:7px 9px;border-bottom:1px solid #d8ddd9;color:#143f34;font-size:11.5px;text-transform:uppercase;letter-spacing:.02em;">${h}</th>`).join("")}
+          <tr style="background:#dcf0e6;">
+            ${headers.map(h => `<th style="text-align:left;padding:7px 9px;border-bottom:1px solid #d8ddd9;color:#146b48;font-size:11.5px;text-transform:uppercase;letter-spacing:.02em;">${h}</th>`).join("")}
           </tr>
         </thead>
         <tbody>${rowsHtml}</tbody>
@@ -5806,7 +5815,7 @@ const Events = {
   reportSectionCard(titel, innerHtml) {
     return `
       <div style="margin:10px 0 14px;padding:10px 12px 12px;border:1px solid #e2e6e3;border-radius:8px;background:#fbfbfa;">
-        <div style="font-weight:700;color:#143f34;font-size:13px;margin-bottom:2px;">${titel}</div>
+        <div style="font-weight:700;color:#146b48;font-size:13px;margin-bottom:2px;">${titel}</div>
         ${innerHtml}
       </div>
     `;
@@ -5818,7 +5827,7 @@ const Events = {
     items.forEach(i => { const b = i.bereich || "Allgemein"; if (!groups[b]) groups[b] = []; groups[b].push(i); });
     const statusLabel = s => s === 'geliefert' ? 'Geliefert' : s === 'bestellt' ? 'Bestellt' : 'Offen';
 
-    let html = `<h3 style="margin-top:18px;color:#143f34;">🍽 Gastro</h3>`;
+    let html = `<h3 style="margin-top:18px;color:#146b48;">🍽 Gastro</h3>`;
     if (items.length === 0) html += `<p style="color:#888;">Keine Gastro-Artikel erfasst.</p>`;
     Object.keys(groups).forEach(b => {
       const rows = groups[b].map(i => {
@@ -5852,7 +5861,7 @@ const Events = {
     items.forEach(i => { const b = i.bereich || "Allgemein"; if (!groups[b]) groups[b] = []; groups[b].push(i); });
     const statusLabel = s => s === 'bereit' ? 'Geliefert / Bereit' : s === 'bestellt' ? 'Bestellt' : 'Offen';
 
-    let html = `<h3 style="margin-top:18px;color:#143f34;">📦 Material</h3>`;
+    let html = `<h3 style="margin-top:18px;color:#146b48;">📦 Material</h3>`;
     if (items.length === 0) html += `<p style="color:#888;">Keine Material-Positionen erfasst.</p>`;
     Object.keys(groups).forEach(b => {
       const rows = groups[b].map(i => {
@@ -5885,7 +5894,7 @@ const Events = {
     const items = e.gastroListe || [];
     const dates = getEventDateRange(e.datumStart, e.datumEnde);
 
-    let html = `<h3 style="margin-top:18px;color:#143f34;">🧾 Wareneingang &amp; Verbrauch</h3>`;
+    let html = `<h3 style="margin-top:18px;color:#146b48;">🧾 Wareneingang &amp; Verbrauch</h3>`;
     let text = `🧾 *WARENEINGANG & VERBRAUCH*`;
 
     if (items.length === 0 || dates.length === 0) {
@@ -5924,7 +5933,7 @@ const Events = {
     const schichten = e.schichten || [];
     const spenden = e.spendenListen || [];
 
-    let html = `<h3 style="margin-top:18px;color:#143f34;">👥 Schichten</h3>`;
+    let html = `<h3 style="margin-top:18px;color:#146b48;">👥 Schichten</h3>`;
     let text = `👥 *SCHICHTEN*`;
 
     if (schichten.length === 0 && spenden.length === 0) {
@@ -5947,7 +5956,7 @@ const Events = {
 
       const wd = WOCHENTAGE_KURZ[new Date(tag + "T00:00:00").getDay()];
       const tagLabel = `${wd}, ${formatDatumKurz(tag)}${tag.slice(0, 4)}`;
-      html += `<div style="font-weight:700;margin-top:12px;color:#143f34;">📅 ${escapeHtml(tagLabel)}</div>`;
+      html += `<div style="font-weight:700;margin-top:12px;color:#146b48;">📅 ${escapeHtml(tagLabel)}</div>`;
       text += `\n\n📅 *${tagLabel}*`;
 
       if (tagesSchichten.length > 0) {
@@ -5973,7 +5982,7 @@ const Events = {
 
     const spendenOhneTag = spenden.filter(l => !l.datum);
     if (spendenOhneTag.length > 0) {
-      html += `<div style="font-weight:700;margin-top:12px;color:#143f34;">🍰 Mitbringlisten ohne festen Tag</div><ul style="margin:4px 0 0 18px;padding:0;">`;
+      html += `<div style="font-weight:700;margin-top:12px;color:#146b48;">🍰 Mitbringlisten ohne festen Tag</div><ul style="margin:4px 0 0 18px;padding:0;">`;
       text += `\n\n🍰 *Mitbringlisten ohne festen Tag*`;
       spendenOhneTag.forEach(l => {
         const namen = (l.eintragungen || []).map(en => `${escapeHtml(en.name)} (${escapeHtml(en.wert)})`).join(", ") || "Noch niemand eingetragen";
@@ -5988,7 +5997,7 @@ const Events = {
 
   reportBlockPersonal(e, k) {
     const stellen = k.verkaufsstellen || [];
-    let html = `<h3 style="margin-top:18px;color:#143f34;">🏢 Personal je Verkaufsstelle</h3>`;
+    let html = `<h3 style="margin-top:18px;color:#146b48;">🏢 Personal je Verkaufsstelle</h3>`;
     let text = `🏢 *PERSONAL JE VERKAUFSSTELLE*`;
 
     if (stellen.length === 0) {
@@ -6339,7 +6348,7 @@ const Events = {
           </div>
           <div style="display:flex;gap:6px;flex-wrap:wrap;width:100%;">
             ${currentGastroFilterLieferant !== 'alle' && currentGastroFilterLieferant !== 'ohne' ? `
-              <button type="button" class="btn small" style="background:#1f5c4d;color:#fff;flex:1;justify-content:center;" onclick="Events.sendLieferantenOrderMailClient('${e.id}', '${currentGastroFilterLieferant}')">✉️ E-Mail senden (Gesamt)</button>
+              <button type="button" class="btn small" style="background:#1e9463;color:#fff;flex:1;justify-content:center;" onclick="Events.sendLieferantenOrderMailClient('${e.id}', '${currentGastroFilterLieferant}')">✉️ E-Mail senden (Gesamt)</button>
               <button type="button" class="btn secondary small" style="flex:1;justify-content:center;" onclick="Events.exportLieferantenPDF('${e.id}', '${currentGastroFilterLieferant}')">📄 PDF (Gesamt)</button>
             ` : ''}
             <button type="button" class="btn secondary small" style="flex:1;justify-content:center;" onclick="Events.openGastroItemForm('${e.id}')">+ Artikel</button>
@@ -6518,7 +6527,7 @@ const Events = {
           </div>
           <div style="display:flex;gap:6px;flex-wrap:wrap;width:100%;">
             ${currentMaterialFilterLieferant !== 'alle' && currentMaterialFilterLieferant !== 'ohne' ? `
-              <button type="button" class="btn small" style="background:#1f5c4d;color:#fff;flex:1;justify-content:center;" onclick="Events.sendLieferantenOrderMailClient('${e.id}', '${currentMaterialFilterLieferant}')">✉️ E-Mail senden (Gesamt)</button>
+              <button type="button" class="btn small" style="background:#1e9463;color:#fff;flex:1;justify-content:center;" onclick="Events.sendLieferantenOrderMailClient('${e.id}', '${currentMaterialFilterLieferant}')">✉️ E-Mail senden (Gesamt)</button>
               <button type="button" class="btn secondary small" style="flex:1;justify-content:center;" onclick="Events.exportLieferantenPDF('${e.id}', '${currentMaterialFilterLieferant}')">📄 PDF (Gesamt)</button>
             ` : ''}
             <button type="button" class="btn secondary small" style="flex:1;justify-content:center;" onclick="Events.openMaterialItemForm('${e.id}')">+ Artikel</button>
@@ -7180,7 +7189,7 @@ const Events = {
 
     pdfArea.innerHTML = `
       <div style="font-family:sans-serif; color:#222; padding:15px;">
-        <h1 style="color:#143f34; font-size:20px;">GESAMTBESTELLUNG: ${escapeHtml(lief.name)}</h1>
+        <h1 style="color:#146b48; font-size:20px;">GESAMTBESTELLUNG: ${escapeHtml(lief.name)}</h1>
         <p>Event: <strong>${escapeHtml(e.name)}</strong> (${e.datumStart} bis ${e.datumEnde})</p>
         ${gastroItems.length > 0 ? `
           <h3>Gastro & Getränke</h3>
@@ -7422,7 +7431,7 @@ const Events = {
       }
 
       return `
-        <div class="card" style="border-left: 4px solid #8a5a12; background:#fdfdfc;">
+        <div class="card" style="border-left: 4px solid #b2481f; background:#fdfdfc;">
           <div class="card-head">
             <div>
               <h3>🍰 ${escapeHtml(l.titel)}</h3>
@@ -7459,7 +7468,7 @@ const Events = {
         if (s.austragen !== false || isVorstandOrAdmin) {
           actionBtn = `<button type="button" class="btn danger small" onclick="Events.austragen('${e.id}', '${s.id}', '${userUid}')">Austragen</button>`;
         } else {
-          actionBtn = `<span class="pill" style="background:#e3f2e7;color:#276238;">Gebucht</span>`;
+          actionBtn = `<span class="pill" style="background:#dcf0e6;color:#146b48;">Gebucht</span>`;
         }
       } else if (isExpired && !isVorstandOrAdmin) {
         actionBtn = `<span class="pill inactive">Frist abgelaufen</span>`;
