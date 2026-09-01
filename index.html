@@ -123,18 +123,25 @@
     flex-wrap: wrap;
   }
   nav.tabs button {
-    border: none;
-    background: transparent;
-    padding: 10px 16px;
+    border: 1px solid var(--border-strong);
+    background: #fff;
+    padding: 9px 16px;
     font-size: 14px;
     font-weight: 500;
     color: var(--text-muted);
     cursor: pointer;
-    border-bottom: 2px solid transparent;
+    border-radius: 7px;
+    margin: 2px 1px;
+  }
+  nav.tabs button:hover {
+    background: #f5f5f0;
+    color: var(--accent-dark);
   }
   nav.tabs button.active {
-    color: var(--accent-dark);
-    border-bottom: 2px solid var(--accent);
+    color: #fff;
+    background: var(--accent-dark);
+    border-color: var(--accent-dark);
+    font-weight: 700;
   }
   main { max-width: 1800px; width: 96%; margin: 0 auto; padding: 24px; }
   .view { display: none; }
@@ -266,6 +273,14 @@
     display: block;
   }
   .search-input:focus { outline: none; border-color: var(--accent); }
+  .user-picker-results {
+    position: absolute; z-index: 40; left: 0; right: 0; top: 100%;
+    background: #fff; border: 1px solid var(--border-strong); border-top: none;
+    border-radius: 0 0 8px 8px; max-height: 220px; overflow-y: auto;
+    box-shadow: 0 6px 16px rgba(0,0,0,.1);
+  }
+  .user-picker-item { padding: 8px 12px; cursor: pointer; font-size: 13.5px; }
+  .user-picker-item:hover { background: #eef4ef; }
   .bereichs-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-top: 18px; }
   .bereichs-kachel {
     background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 24px 20px;
@@ -275,6 +290,12 @@
   .bereichs-kachel .bk-icon { font-size: 32px; margin-bottom: 8px; }
   .bereichs-kachel .bk-title { font-size: 17px; font-weight: 700; color: var(--accent-dark, #143f34); margin-bottom: 4px; }
   .bereichs-kachel .bk-desc { font-size: 13px; color: var(--text-muted); }
+  .bereichs-kachel.kompakt { padding: 14px 16px; }
+  .bereichs-kachel.kompakt .bk-icon { font-size: 22px; margin-bottom: 4px; }
+  .bereichs-kachel.kompakt .bk-title { font-size: 14px; }
+  .bereichs-kachel.kompakt .bk-desc { font-size: 12px; }
+  .kompakt-grid { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
+  .meine-sachen-label { font-size: 12.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .03em; margin-top: 6px; margin-bottom: 4px; }
   .stempel-row { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
   .stempel-dot {
     width: 20px; height: 20px; border-radius: 5px;
@@ -688,19 +709,17 @@
   <button type="button" class="tab-btn active" data-view="bereichsauswahl">🏠 Start</button>
   <button type="button" class="tab-btn" data-view="nachrichten">🔔 Nachrichten <span id="nachrichten-badge" class="nachrichten-badge" style="display:none;"></span></button>
   <button type="button" class="tab-btn bereich-events" data-view="events">Events</button>
-  <button type="button" class="tab-btn bereich-events" data-view="meine-schichten">📅 Mein Schichtplan</button>
   <button type="button" class="tab-btn bereich-events admin-only" data-view="ryder">📋 Aufgaben-Ryder</button>
   <button type="button" class="tab-btn bereich-events admin-only" data-view="gastro">🍽 Gastro-Ryder</button>
+  <button type="button" class="tab-btn bereich-events admin-only" data-view="kategorien">🏷️ Kategorien</button>
+  <button type="button" class="tab-btn bereich-events vorstand-only" data-view="personen">👥 Benutzer, Personen &amp; Lieferanten</button>
+  <button type="button" class="tab-btn bereich-belegung vorstand-only" data-view="ressourcen">🏟️ Sportstätten &amp; Busse</button>
+  <button type="button" class="tab-btn bereich-belegung belegung-only" data-view="belegungskalender">📅 Belegungskalender</button>
   <button type="button" class="tab-btn bereich-events admin-only" data-view="material-ryder">📦 Material-Ryder</button>
   <button type="button" class="tab-btn bereich-events vorstand-only" data-view="material-kalender">📅 Material-Kalender</button>
-  <button type="button" class="tab-btn bereich-events vorstand-only" data-view="personen">👥 Benutzer, Personen &amp; Lieferanten</button>
-  <button type="button" class="tab-btn bereich-events admin-only" data-view="kategorien">Kategorien</button>
-  <button type="button" class="tab-btn bereich-belegung belegung-only" data-view="belegungskalender">📅 Belegungskalender</button>
-  <button type="button" class="tab-btn bereich-belegung vorstand-only" data-view="ressourcen">🏟️ Sportstätten &amp; Busse</button>
-  <button type="button" class="tab-btn bereich-kurse" data-view="meine-karten">🧘 Meine Karten</button>
   <button type="button" class="tab-btn bereich-kurse kurse-only" data-view="karten-verwaltung">🎟️ Karten-Verwaltung</button>
   <button type="button" class="tab-btn bereich-kurse vorstand-only" data-view="kurse-verwaltung">📋 Kurse verwalten</button>
-  <button type="button" class="tab-btn bereich-kurse vorstand-only" data-view="kassenabrechnung">💰 Kassenabrechnung</button>
+  <button type="button" class="tab-btn bereich-kurse vorstand-only" data-view="kassenabrechnung">💰 Kartenabrechnung</button>
 </nav>
 
 <main>
@@ -1252,9 +1271,13 @@
 <div class="overlay" id="modal-karte-ausstellen">
   <div class="modal">
     <h3>Guthaben aufladen</h3>
-    <div class="field">
+    <div class="field" style="position:relative;">
       <label>Mitglied</label>
-      <select id="karteAusstellenUserId"></select>
+      <input type="text" id="karteAusstellenUserSearch" placeholder="Name suchen…" autocomplete="off"
+             oninput="Karten.filterAusstellenUserList(this.value)"
+             onfocus="Karten.filterAusstellenUserList(this.value)">
+      <input type="hidden" id="karteAusstellenUserId">
+      <div id="karteAusstellenUserResults" class="user-picker-results"></div>
     </div>
     <div class="field"><label>Aufladebetrag (€)</label><input type="number" step="0.01" min="0" id="karteAusstellenWert" value="20" placeholder="z. B. 20"></div>
     <div class="field">
@@ -1723,7 +1746,7 @@
    ZENTRALE KONFIGURATION & DATENSCHICHT
    ============================================================ */
 
-const APP_VERSION = "0.1.116";
+const APP_VERSION = "0.1.121";
 let currentUserProfile = { role: "A", actualRole: "A", email: "", name: "" };
 
 function uid(prefix) {
@@ -2352,6 +2375,47 @@ function clearAllUI() {
    NAVIGATION
    ============================================================ */
 
+function renderMeineSachenKacheln(kompakt) {
+  const heute = new Date().toISOString().slice(0, 10);
+  const uidM = window.FB.auth.currentUser ? window.FB.auth.currentUser.uid : "";
+
+  let meineSchichtenAnzahl = 0;
+  (Store.data.events || []).forEach(e => {
+    (e.schichten || []).forEach(s => {
+      if ((s.datum || e.datumStart) >= heute && (s.eintragungen || []).some(en => en.uid === uidM)) {
+        meineSchichtenAnzahl++;
+      }
+    });
+  });
+
+  const meineKarte = (Store.data.stempelkarten || []).find(k => k.id === uidM);
+  const guthaben = meineKarte && typeof Karten !== "undefined" ? Karten.saldo(meineKarte) : 0;
+
+  const ungelesen = typeof Nachrichten !== "undefined"
+    ? Nachrichten.meineNachrichten().filter(n => !(n.geleseneUids || []).includes(uidM)).length
+    : 0;
+
+  const cls = kompakt ? "bereichs-kachel kompakt" : "bereichs-kachel";
+
+  return `
+    <div class="${cls}" onclick="switchToView('meine-schichten')">
+      <div class="bk-icon">📅</div>
+      <div class="bk-title">Meine Schichten</div>
+      <div class="bk-desc">${meineSchichtenAnzahl > 0 ? `${meineSchichtenAnzahl} gebuchte Schicht(en)` : 'Keine gebuchten Schichten'}</div>
+    </div>
+    <div class="${cls}" onclick="switchToView('meine-karten')">
+      <div class="bk-icon">🧘</div>
+      <div class="bk-title">Meine Karten</div>
+      <div class="bk-desc">Guthaben: ${guthaben.toFixed(2)} €</div>
+    </div>
+    <div class="${cls}" onclick="switchToView('nachrichten')">
+      <div class="bk-icon">🔔</div>
+      <div class="bk-title">Nachrichten</div>
+      <div class="bk-desc">${ungelesen > 0 ? `${ungelesen} neue Nachricht(en)` : 'Keine neuen Nachrichten'}</div>
+    </div>
+  `;
+}
+
 function renderBereichsauswahl() {
   const el = document.getElementById("bereichsauswahl-content");
   if (!el) return;
@@ -2365,22 +2429,6 @@ function renderBereichsauswahl() {
       .sort((a, b) => (a.datumStart || "").localeCompare(b.datumStart || ""));
     const naechstesEvent = kommendeEvents[0];
 
-    let meineSchichtenAnzahl = 0;
-    (Store.data.events || []).forEach(e => {
-      (e.schichten || []).forEach(s => {
-        if ((s.datum || e.datumStart) >= heute && (s.eintragungen || []).some(en => en.uid === uidM)) {
-          meineSchichtenAnzahl++;
-        }
-      });
-    });
-
-    const meineKarte = (Store.data.stempelkarten || []).find(k => k.id === uidM);
-    const guthaben = meineKarte && typeof Karten !== "undefined" ? Karten.saldo(meineKarte) : 0;
-
-    const ungelesen = typeof Nachrichten !== "undefined"
-      ? Nachrichten.meineNachrichten().filter(n => !(n.geleseneUids || []).includes(uidM)).length
-      : 0;
-
     const eigeneBuchungen = (Store.data.belegungen || []).filter(b => b.erstelltVonUid === uidM && b.datum >= heute).length;
 
     let kacheln = `
@@ -2389,16 +2437,7 @@ function renderBereichsauswahl() {
         <div class="bk-title">Events</div>
         <div class="bk-desc">${naechstesEvent ? `Nächstes Event: ${escapeHtml(naechstesEvent.name)} am ${escapeHtml(naechstesEvent.datumStart)}` : 'Keine bevorstehenden Events'}</div>
       </div>
-      <div class="bereichs-kachel" onclick="switchToView('meine-schichten')">
-        <div class="bk-icon">📅</div>
-        <div class="bk-title">Meine Schichten</div>
-        <div class="bk-desc">${meineSchichtenAnzahl > 0 ? `${meineSchichtenAnzahl} gebuchte Schicht(en)` : 'Keine gebuchten Schichten'}</div>
-      </div>
-      <div class="bereichs-kachel" onclick="switchToView('meine-karten')">
-        <div class="bk-icon">🧘</div>
-        <div class="bk-title">Meine Karten</div>
-        <div class="bk-desc">Guthaben: ${guthaben.toFixed(2)} €</div>
-      </div>
+      ${renderMeineSachenKacheln(false)}
     `;
 
     if (darfBelegungsplanNutzen()) {
@@ -2410,14 +2449,6 @@ function renderBereichsauswahl() {
         </div>
       `;
     }
-
-    kacheln += `
-      <div class="bereichs-kachel" onclick="switchToView('nachrichten')">
-        <div class="bk-icon">🔔</div>
-        <div class="bk-title">Nachrichten</div>
-        <div class="bk-desc">${ungelesen > 0 ? `${ungelesen} neue Nachricht(en)` : 'Keine neuen Nachrichten'}</div>
-      </div>
-    `;
 
     if (darfKurseVerwalten()) {
       kacheln += `
@@ -2446,6 +2477,9 @@ function renderBereichsauswahl() {
           <div class="desc">Wähle einen Bereich aus</div>
         </div>
       </div>
+      <div class="meine-sachen-label">👤 Meine Sachen</div>
+      <div class="bereichs-grid kompakt-grid">${renderMeineSachenKacheln(true)}</div>
+      <div class="meine-sachen-label" style="margin-top:22px;">🗂️ Verwaltung</div>
       <div class="bereichs-grid">
         <div class="bereichs-kachel" onclick="Bereich.open('events')">
           <div class="bk-icon">📋</div>
@@ -2506,7 +2540,7 @@ const Bereich = {
     this.current = bereich;
     if (bereich === "events") switchToView("events");
     else if (bereich === "belegungsplan") switchToView("belegungskalender");
-    else if (bereich === "kurse") switchToView("meine-karten");
+    else if (bereich === "kurse") switchToView(darfKurseVerwalten() ? "karten-verwaltung" : "kurse-verwaltung");
   },
 
   backToStart() {
@@ -3415,11 +3449,38 @@ const Karten = {
   },
 
   openAusstellenForm(presetUserId = "") {
-    const userSel = document.getElementById("karteAusstellenUserId");
-    const uList = [...(Store.data.users || [])].sort((a, b) => (a.name || a.email || "").localeCompare(b.name || b.email || "", "de"));
-    userSel.innerHTML = uList.map(u => `<option value="${u.id}" ${u.id === presetUserId ? 'selected' : ''}>${escapeHtml(u.name || u.email)}</option>`).join("");
+    document.getElementById("karteAusstellenUserId").value = presetUserId || "";
+    const preUser = presetUserId ? (Store.data.users || []).find(u => u.id === presetUserId) : null;
+    document.getElementById("karteAusstellenUserSearch").value = preUser ? (preUser.name || preUser.email || "") : "";
+    document.getElementById("karteAusstellenUserResults").innerHTML = "";
     document.getElementById("karteAusstellenWert").value = 20;
     Modal.open("modal-karte-ausstellen");
+  },
+
+  filterAusstellenUserList(term) {
+    const box = document.getElementById("karteAusstellenUserResults");
+    let uList = [...(Store.data.users || [])].sort((a, b) => (a.name || a.email || "").localeCompare(b.name || b.email || "", "de"));
+
+    if (term.trim()) {
+      const t = term.trim().toLowerCase();
+      uList = uList.filter(u => (u.name || "").toLowerCase().includes(t) || (u.email || "").toLowerCase().includes(t));
+    }
+
+    if (uList.length === 0) {
+      box.innerHTML = '<div class="user-picker-item" style="cursor:default;color:var(--text-muted);">Keine Treffer.</div>';
+      return;
+    }
+    box.innerHTML = uList.slice(0, 40).map(u => `
+      <div class="user-picker-item" onclick="Karten.waehleAusstellenUser('${u.id}')">${escapeHtml(u.name || u.email)}</div>
+    `).join("");
+  },
+
+  waehleAusstellenUser(userId) {
+    const u = (Store.data.users || []).find(x => x.id === userId);
+    if (!u) return;
+    document.getElementById("karteAusstellenUserId").value = userId;
+    document.getElementById("karteAusstellenUserSearch").value = u.name || u.email || "";
+    document.getElementById("karteAusstellenUserResults").innerHTML = "";
   },
 
   async ausstellen() {
