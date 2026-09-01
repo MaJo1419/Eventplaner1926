@@ -1746,7 +1746,7 @@
    ZENTRALE KONFIGURATION & DATENSCHICHT
    ============================================================ */
 
-const APP_VERSION = "0.1.121";
+const APP_VERSION = "0.1.124";
 let currentUserProfile = { role: "A", actualRole: "A", email: "", name: "" };
 
 function uid(prefix) {
@@ -2498,7 +2498,12 @@ function renderBereichsauswahl() {
         </div>
       </div>
     `;
-    applyRolePermissions(currentUserProfile.role);
+    // Nur die Sichtbarkeit der "belegung-only"-Kachel korrigieren (nicht die komplette
+    // applyRolePermissions() erneut aufrufen, da die wiederum renderBereichsauswahl() aufruft
+    // und das eine Endlosschleife erzeugen würde).
+    document.querySelectorAll("#bereichsauswahl-content .belegung-only").forEach(elx => {
+      elx.style.display = darfBelegungsplanNutzen() ? "" : "none";
+    });
   }
 }
 
