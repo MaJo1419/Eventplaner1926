@@ -17,7 +17,7 @@
     getFirestore, doc, setDoc, getDoc, updateDoc, deleteDoc, collection, onSnapshot, getDocs, writeBatch, serverTimestamp 
   } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
   import { 
-    getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged 
+    getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged, sendPasswordResetEmail 
   } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
 
   const firebaseConfig = {
@@ -36,7 +36,7 @@
 
   window.FB = {
     db, doc, setDoc, getDoc, updateDoc, deleteDoc, collection, onSnapshot, getDocs, writeBatch, serverTimestamp,
-    auth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, googleProvider, signOut, onAuthStateChanged
+    auth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, googleProvider, signOut, onAuthStateChanged, sendPasswordResetEmail
   };
   window.dispatchEvent(new Event("firebase-ready"));
 </script>
@@ -670,6 +670,9 @@
         <input type="password" id="login-password" autocomplete="current-password">
       </div>
       <div id="login-error" style="color:#b3261e; font-size:12.5px; margin-bottom:8px; display:none;"></div>
+      <div style="text-align:right;margin-bottom:12px;">
+        <a href="javascript:void(0)" style="font-size:12.5px;color:var(--accent-dark);" onclick="Auth.passwortVergessen()">Passwort vergessen?</a>
+      </div>
       <div class="modal-actions" style="flex-direction:column; gap:8px;">
         <button type="button" class="btn" style="width:100%;justify-content:center;" onclick="Auth.loginEmail()">Mit Passwort anmelden</button>
         <button type="button" class="btn secondary" style="width:100%;justify-content:center;" onclick="Auth.registerEmail()">Neues Konto registrieren</button>
@@ -1746,7 +1749,7 @@
    ZENTRALE KONFIGURATION & DATENSCHICHT
    ============================================================ */
 
-const APP_VERSION = "0.1.124";
+const APP_VERSION = "0.1.125";
 let currentUserProfile = { role: "A", actualRole: "A", email: "", name: "" };
 
 function uid(prefix) {
@@ -7765,6 +7768,30 @@ const Auth = {
     if (!email || !pw) return;
     signInWithEmailAndPassword(auth, email, pw).catch(() => {
       errEl.textContent = "Anmeldung fehlgeschlagen.";
+      errEl.style.display = "block";
+    });
+  },
+
+  passwortVergessen() {
+    const { auth, sendPasswordResetEmail } = window.FB;
+    const email = document.getElementById("login-email").value.trim();
+    const errEl = document.getElementById("login-error");
+    errEl.style.display = "none";
+
+    if (!email) {
+      errEl.textContent = "Bitte zuerst deine E-Mail-Adresse oben eintragen, dann auf \"Passwort vergessen?\" klicken.";
+      errEl.style.display = "block";
+      return;
+    }
+
+    sendPasswordResetEmail(auth, email).then(() => {
+      errEl.style.color = "#1a6b32";
+      errEl.textContent = "Falls ein Konto mit dieser E-Mail existiert, wurde eine E-Mail zum Zurücksetzen des Passworts verschickt.";
+      errEl.style.display = "block";
+    }).catch((err) => {
+      console.error(err);
+      errEl.style.color = "#b3261e";
+      errEl.textContent = "Falls ein Konto mit dieser E-Mail existiert, wurde eine E-Mail zum Zurücksetzen des Passworts verschickt.";
       errEl.style.display = "block";
     });
   },
