@@ -663,6 +663,7 @@
     <div class="sub">SV Schapbach 1926 e.V. <span class="version-badge" id="app-version-badge">v0.1.073</span></div>
   </div>
   <footer class="toolbar-io" style="display:flex;gap:8px;align-items:center;">
+    <button type="button" class="btn secondary small" id="c-home-btn" style="display:none;" onclick="Bereich.backToStart()">🏠 Übersicht</button>
     <select id="user-role-selector" class="role-select-header" style="display:none;" onchange="Auth.switchCurrentRole(this.value)">
       <option value="A">👑 Rolle A (Admin)</option>
       <option value="B">📋 Rolle B (Vorstand)</option>
@@ -706,27 +707,29 @@
 
   <!-- BEREICHSAUSWAHL (Startseite nach Login) -->
   <section class="view active" id="view-bereichsauswahl">
-    <div class="toolbar">
-      <div>
-        <h2>Willkommen</h2>
-        <div class="desc">Wähle einen Bereich aus</div>
+    <div id="bereichsauswahl-content">
+      <div class="toolbar">
+        <div>
+          <h2>Willkommen</h2>
+          <div class="desc">Wähle einen Bereich aus</div>
+        </div>
       </div>
-    </div>
-    <div class="bereichs-grid">
-      <div class="bereichs-kachel" onclick="Bereich.open('events')">
-        <div class="bk-icon">📋</div>
-        <div class="bk-title">Events</div>
-        <div class="bk-desc">Vereins-Events planen: Aufgaben, Gastro, Material, Schichten, Wareneingang</div>
-      </div>
-      <div class="bereichs-kachel belegung-only" onclick="Bereich.open('belegungsplan')">
-        <div class="bk-icon">🏟️</div>
-        <div class="bk-title">Belegungsplan</div>
-        <div class="bk-desc">Sportstätten und Vereinsbusse buchen und Auslastung einsehen</div>
-      </div>
-      <div class="bereichs-kachel" onclick="Bereich.open('kurse')">
-        <div class="bk-icon">🧘</div>
-        <div class="bk-title">Kurse</div>
-        <div class="bk-desc">Stempelkarten für Kurse wie Yoga verwalten und einsehen</div>
+      <div class="bereichs-grid">
+        <div class="bereichs-kachel" onclick="Bereich.open('events')">
+          <div class="bk-icon">📋</div>
+          <div class="bk-title">Events</div>
+          <div class="bk-desc">Vereins-Events planen: Aufgaben, Gastro, Material, Schichten, Wareneingang</div>
+        </div>
+        <div class="bereichs-kachel belegung-only" onclick="Bereich.open('belegungsplan')">
+          <div class="bk-icon">🏟️</div>
+          <div class="bk-title">Belegungsplan</div>
+          <div class="bk-desc">Sportstätten und Vereinsbusse buchen und Auslastung einsehen</div>
+        </div>
+        <div class="bereichs-kachel" onclick="Bereich.open('kurse')">
+          <div class="bk-icon">🧘</div>
+          <div class="bk-title">Kurse</div>
+          <div class="bk-desc">Stempelkarten für Kurse wie Yoga verwalten und einsehen</div>
+        </div>
       </div>
     </div>
   </section>
@@ -1720,7 +1723,7 @@
    ZENTRALE KONFIGURATION & DATENSCHICHT
    ============================================================ */
 
-const APP_VERSION = "0.1.114";
+const APP_VERSION = "0.1.116";
 let currentUserProfile = { role: "A", actualRole: "A", email: "", name: "" };
 
 function uid(prefix) {
@@ -2301,6 +2304,15 @@ function applyRolePermissions(role) {
 
   updateNavVisibility();
 
+  const isRoleC = role === "C";
+  const navEl = document.querySelector("nav.tabs");
+  if (navEl) navEl.style.display = isRoleC ? "none" : "";
+  const cHomeBtn = document.getElementById("c-home-btn");
+  if (cHomeBtn) cHomeBtn.style.display = isRoleC ? "" : "none";
+
+  const activeView = document.querySelector(".view.active");
+  if (activeView && activeView.id === "view-bereichsauswahl") renderBereichsauswahl();
+
   const selector = document.getElementById("user-role-selector");
   const badge = document.getElementById("user-role-badge");
 
@@ -2340,7 +2352,124 @@ function clearAllUI() {
    NAVIGATION
    ============================================================ */
 
+function renderBereichsauswahl() {
+  const el = document.getElementById("bereichsauswahl-content");
+  if (!el) return;
+
+  if (currentUserProfile.role === "C") {
+    const heute = new Date().toISOString().slice(0, 10);
+    const uidM = window.FB.auth.currentUser ? window.FB.auth.currentUser.uid : "";
+
+    const kommendeEvents = (Store.data.events || [])
+      .filter(e => e.datumStart >= heute)
+      .sort((a, b) => (a.datumStart || "").localeCompare(b.datumStart || ""));
+    const naechstesEvent = kommendeEvents[0];
+
+    let meineSchichtenAnzahl = 0;
+    (Store.data.events || []).forEach(e => {
+      (e.schichten || []).forEach(s => {
+        if ((s.datum || e.datumStart) >= heute && (s.eintragungen || []).some(en => en.uid === uidM)) {
+          meineSchichtenAnzahl++;
+        }
+      });
+    });
+
+    const meineKarte = (Store.data.stempelkarten || []).find(k => k.id === uidM);
+    const guthaben = meineKarte && typeof Karten !== "undefined" ? Karten.saldo(meineKarte) : 0;
+
+    const ungelesen = typeof Nachrichten !== "undefined"
+      ? Nachrichten.meineNachrichten().filter(n => !(n.geleseneUids || []).includes(uidM)).length
+      : 0;
+
+    const eigeneBuchungen = (Store.data.belegungen || []).filter(b => b.erstelltVonUid === uidM && b.datum >= heute).length;
+
+    let kacheln = `
+      <div class="bereichs-kachel" onclick="switchToView('events')">
+        <div class="bk-icon">📋</div>
+        <div class="bk-title">Events</div>
+        <div class="bk-desc">${naechstesEvent ? `Nächstes Event: ${escapeHtml(naechstesEvent.name)} am ${escapeHtml(naechstesEvent.datumStart)}` : 'Keine bevorstehenden Events'}</div>
+      </div>
+      <div class="bereichs-kachel" onclick="switchToView('meine-schichten')">
+        <div class="bk-icon">📅</div>
+        <div class="bk-title">Meine Schichten</div>
+        <div class="bk-desc">${meineSchichtenAnzahl > 0 ? `${meineSchichtenAnzahl} gebuchte Schicht(en)` : 'Keine gebuchten Schichten'}</div>
+      </div>
+      <div class="bereichs-kachel" onclick="switchToView('meine-karten')">
+        <div class="bk-icon">🧘</div>
+        <div class="bk-title">Meine Karten</div>
+        <div class="bk-desc">Guthaben: ${guthaben.toFixed(2)} €</div>
+      </div>
+    `;
+
+    if (darfBelegungsplanNutzen()) {
+      kacheln += `
+        <div class="bereichs-kachel" onclick="switchToView('belegungskalender')">
+          <div class="bk-icon">🏟️</div>
+          <div class="bk-title">Belegungskalender</div>
+          <div class="bk-desc">${eigeneBuchungen} eigene Buchung(en) anstehend</div>
+        </div>
+      `;
+    }
+
+    kacheln += `
+      <div class="bereichs-kachel" onclick="switchToView('nachrichten')">
+        <div class="bk-icon">🔔</div>
+        <div class="bk-title">Nachrichten</div>
+        <div class="bk-desc">${ungelesen > 0 ? `${ungelesen} neue Nachricht(en)` : 'Keine neuen Nachrichten'}</div>
+      </div>
+    `;
+
+    if (darfKurseVerwalten()) {
+      kacheln += `
+        <div class="bereichs-kachel" onclick="switchToView('karten-verwaltung')">
+          <div class="bk-icon">🎟️</div>
+          <div class="bk-title">Karten-Verwaltung</div>
+          <div class="bk-desc">Als Trainer: Karten aktivieren, Besuche eintragen</div>
+        </div>
+      `;
+    }
+
+    el.innerHTML = `
+      <div class="toolbar">
+        <div>
+          <h2>Willkommen${currentUserProfile.name ? ', ' + escapeHtml(currentUserProfile.name) : ''}</h2>
+          <div class="desc">Wähle einen Bereich</div>
+        </div>
+      </div>
+      <div class="bereichs-grid">${kacheln}</div>
+    `;
+  } else {
+    el.innerHTML = `
+      <div class="toolbar">
+        <div>
+          <h2>Willkommen</h2>
+          <div class="desc">Wähle einen Bereich aus</div>
+        </div>
+      </div>
+      <div class="bereichs-grid">
+        <div class="bereichs-kachel" onclick="Bereich.open('events')">
+          <div class="bk-icon">📋</div>
+          <div class="bk-title">Events</div>
+          <div class="bk-desc">Vereins-Events planen: Aufgaben, Gastro, Material, Schichten, Wareneingang</div>
+        </div>
+        <div class="bereichs-kachel belegung-only" onclick="Bereich.open('belegungsplan')">
+          <div class="bk-icon">🏟️</div>
+          <div class="bk-title">Belegungsplan</div>
+          <div class="bk-desc">Sportstätten und Vereinsbusse buchen und Auslastung einsehen</div>
+        </div>
+        <div class="bereichs-kachel" onclick="Bereich.open('kurse')">
+          <div class="bk-icon">🧘</div>
+          <div class="bk-title">Kurse</div>
+          <div class="bk-desc">Stempelkarten für Kurse wie Yoga verwalten und einsehen</div>
+        </div>
+      </div>
+    `;
+    applyRolePermissions(currentUserProfile.role);
+  }
+}
+
 function renderViewContent(view) {
+  if (view === "bereichsauswahl") renderBereichsauswahl();
   if (view === "events") Events.render();
   if (view === "meine-schichten") MeineSchichten.render();
   if (view === "ryder") Ryder.render();
