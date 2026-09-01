@@ -282,6 +282,18 @@
     background: #fff; display: inline-block;
   }
   .stempel-dot.used { background: var(--accent-dark, #143f34); border-color: var(--accent-dark, #143f34); }
+  .nachrichten-badge {
+    display: inline-block; background: #c0392b; color: #fff; font-size: 10.5px; font-weight: 700;
+    border-radius: 10px; padding: 1px 6px; margin-left: 4px; vertical-align: 2px;
+  }
+  .nachricht-card { position: relative; }
+  .nachricht-card.ungelesen { border-left: 4px solid var(--accent-dark, #143f34); background: #f7faf8; }
+  .icon-picker { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+  .icon-picker button {
+    font-size: 20px; padding: 6px 9px; border: 1.5px solid var(--border-strong); border-radius: 8px;
+    background: #fff; cursor: pointer; line-height: 1;
+  }
+  .icon-picker button.selected { border-color: var(--accent-dark, #143f34); background: #eef4ef; }
   .empty-state {
     text-align: center;
     padding: 40px 20px;
@@ -673,6 +685,7 @@
 
 <nav class="tabs">
   <button type="button" class="tab-btn active" data-view="bereichsauswahl">🏠 Start</button>
+  <button type="button" class="tab-btn" data-view="nachrichten">🔔 Nachrichten <span id="nachrichten-badge" class="nachrichten-badge" style="display:none;"></span></button>
   <button type="button" class="tab-btn bereich-events" data-view="events">Events</button>
   <button type="button" class="tab-btn bereich-events" data-view="meine-schichten">📅 Mein Schichtplan</button>
   <button type="button" class="tab-btn bereich-events admin-only" data-view="ryder">📋 Aufgaben-Ryder</button>
@@ -716,6 +729,27 @@
         <div class="bk-desc">Stempelkarten für Kurse wie Yoga verwalten und einsehen</div>
       </div>
     </div>
+  </section>
+
+  <!-- NACHRICHTEN-CENTER (immer sichtbar, für alle) -->
+  <section class="view" id="view-nachrichten">
+    <div class="toolbar">
+      <div>
+        <h2>🔔 Nachrichten</h2>
+        <div class="desc">Mitteilungen für deine Abteilungen</div>
+      </div>
+      <button type="button" class="btn nachrichten-only" style="display:none;" onclick="Nachrichten.openForm()">+ Neue Nachricht</button>
+    </div>
+    <div id="nachrichten-list"></div>
+
+    <details class="collapsible-section vorstand-only" style="margin-top:24px;">
+      <summary>⚙️ Abteilungen verwalten</summary>
+      <div class="toolbar" style="margin-top:2px;">
+        <div class="desc">Zusätzliche Abteilungen neben "Alle Mitglieder" (automatisch für jeden)</div>
+        <button type="button" class="btn secondary small" onclick="Nachrichten.openAbteilungForm()">+ Neue Abteilung</button>
+      </div>
+      <div id="abteilungen-verwaltung-list"></div>
+    </details>
   </section>
 
   <!-- EVENTS -->
@@ -1281,6 +1315,65 @@
   </div>
 </div>
 
+<!-- Nachricht verfassen -->
+<div class="overlay" id="modal-nachricht">
+  <div class="modal">
+    <h3>Neue Nachricht</h3>
+    <div class="field"><label>Titel</label><input id="nachrichtTitel" placeholder="z. B. Training fällt aus"></div>
+    <div class="field">
+      <label>Icon</label>
+      <input type="hidden" id="nachrichtIcon" value="📢">
+      <div class="icon-picker" id="nachrichtIconPicker"></div>
+    </div>
+    <div class="field"><label>Text</label><textarea id="nachrichtText" rows="4" placeholder="Deine Mitteilung..."></textarea></div>
+    <div class="field">
+      <label>Empfänger (Abteilungen)</label>
+      <div id="nachrichtAbteilungenPicker" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;"></div>
+    </div>
+    <div class="field">
+      <label>Mit Event verknüpfen (optional)</label>
+      <select id="nachrichtEventId"><option value="">Kein Event</option></select>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn secondary" onclick="Modal.close('modal-nachricht')">Abbrechen</button>
+      <button type="button" class="btn" onclick="Nachrichten.senden()">Senden</button>
+    </div>
+  </div>
+</div>
+
+<!-- Abteilung anlegen -->
+<div class="overlay" id="modal-abteilung">
+  <div class="modal">
+    <h3>Neue Abteilung</h3>
+    <input type="hidden" id="abteilungId">
+    <div class="field"><label>Bezeichnung</label><input id="abteilungName" placeholder="z. B. Schwimmen"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn secondary" onclick="Modal.close('modal-abteilung')">Abbrechen</button>
+      <button type="button" class="btn" onclick="Nachrichten.saveAbteilung()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- Benutzer-Abteilungen zuordnen -->
+<div class="overlay" id="modal-user-abteilungen">
+  <div class="modal">
+    <h3 id="user-abteilungen-modal-title">Abteilungen zuordnen</h3>
+    <input type="hidden" id="userAbteilungenUserId">
+    <div class="field">
+      <label>Mitglied in folgenden Abteilungen (zusätzlich zu "Alle Mitglieder")</label>
+      <div id="userAbteilungenMitgliedPicker" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;"></div>
+    </div>
+    <div class="field">
+      <label>Abteilungsleiter für (darf dort Nachrichten versenden)</label>
+      <div id="userAbteilungenLeiterPicker" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;"></div>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn secondary" onclick="Modal.close('modal-user-abteilungen')">Abbrechen</button>
+      <button type="button" class="btn" onclick="Nachrichten.saveUserAbteilungen()">Speichern</button>
+    </div>
+  </div>
+</div>
+
 <!-- Material-Ryder Bereich -->
 <div class="overlay" id="modal-material-bereich">
   <div class="modal">
@@ -1627,7 +1720,7 @@
    ZENTRALE KONFIGURATION & DATENSCHICHT
    ============================================================ */
 
-const APP_VERSION = "0.1.113";
+const APP_VERSION = "0.1.114";
 let currentUserProfile = { role: "A", actualRole: "A", email: "", name: "" };
 
 function uid(prefix) {
@@ -1840,6 +1933,7 @@ const Store = {
         Store.data.sportstaetten = d.sportstaetten || [];
         Store.data.vereinsbusse = d.vereinsbusse || [];
         Store.data.kurse = d.kurse || [];
+        Store.data.abteilungen = d.abteilungen || [];
       } else {
         const seed = seedData();
         Store.data.lieferanten = seed.lieferanten;
@@ -1850,6 +1944,12 @@ const Store = {
         Store.data.sportstaetten = [];
         Store.data.vereinsbusse = [];
         Store.data.kurse = [];
+        Store.data.abteilungen = [
+          { id: uid("abt"), name: "Fußball" },
+          { id: uid("abt"), name: "Turnen" },
+          { id: uid("abt"), name: "Leichtathletik" },
+          { id: uid("abt"), name: "Gymnastik" }
+        ];
         setDoc(configDocRef, {
           lieferanten: seed.lieferanten,
           kategorien: seed.kategorien,
@@ -1858,7 +1958,8 @@ const Store = {
           materialRyder: seed.materialRyder,
           sportstaetten: [],
           vereinsbusse: [],
-          kurse: []
+          kurse: [],
+          abteilungen: Store.data.abteilungen
         });
       }
       Lieferanten.render();
@@ -1871,6 +1972,7 @@ const Store = {
       if (typeof Belegungsplan !== "undefined") Belegungsplan.renderKalender();
       if (typeof Kurse !== "undefined") Kurse.render();
       if (typeof Karten !== "undefined") Karten.renderAll();
+      if (typeof Nachrichten !== "undefined") Nachrichten.renderAbteilungenVerwaltung();
     });
 
     const personenCol = collection(db, ...PATH_BASE, "personen");
@@ -1912,7 +2014,13 @@ const Store = {
       if (typeof Karten !== "undefined") Karten.renderAll();
     });
 
-    this._unsubscribes.push(unsubConfig, unsubPersonen, unsubEvents, unsubUsers, unsubBelegungen, unsubStempelkarten);
+    const nachrichtenCol = collection(db, ...PATH_BASE, "nachrichten");
+    const unsubNachrichten = onSnapshot(nachrichtenCol, (snap) => {
+      Store.data.nachrichten = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      if (typeof Nachrichten !== "undefined") Nachrichten.onDataChanged();
+    });
+
+    this._unsubscribes.push(unsubConfig, unsubPersonen, unsubEvents, unsubUsers, unsubBelegungen, unsubStempelkarten, unsubNachrichten);
     if (onReady) onReady();
   },
 
@@ -1927,7 +2035,8 @@ const Store = {
       materialRyder: this.data.materialRyder || [],
       sportstaetten: this.data.sportstaetten || [],
       vereinsbusse: this.data.vereinsbusse || [],
-      kurse: this.data.kurse || []
+      kurse: this.data.kurse || [],
+      abteilungen: this.data.abteilungen || []
     });
   },
 
@@ -1982,6 +2091,13 @@ const Store = {
     toast(erlaubt ? "Trainer-Rechte für Kurse erlaubt." : "Trainer-Rechte für Kurse entzogen.");
   },
 
+  async updateUserAbteilungen(uid, abteilungenIds, abteilungsleiterIds) {
+    const { db, doc, updateDoc } = window.FB;
+    const ref = doc(db, ...PATH_BASE, "users", uid);
+    await updateDoc(ref, { abteilungen: abteilungenIds, abteilungsleiterVon: abteilungsleiterIds });
+    toast("Abteilungen aktualisiert.");
+  },
+
   async saveBelegung(belegung) {
     const { db, doc, setDoc } = window.FB;
     const ref = doc(db, ...PATH_BASE, "belegungen", belegung.id);
@@ -2003,6 +2119,18 @@ const Store = {
   async deleteStempelkarte(id) {
     const { db, doc, deleteDoc } = window.FB;
     const ref = doc(db, ...PATH_BASE, "stempelkarten", id);
+    await deleteDoc(ref);
+  },
+
+  async saveNachricht(n) {
+    const { db, doc, setDoc } = window.FB;
+    const ref = doc(db, ...PATH_BASE, "nachrichten", n.id);
+    await setDoc(ref, n);
+  },
+
+  async deleteNachricht(id) {
+    const { db, doc, deleteDoc } = window.FB;
+    const ref = doc(db, ...PATH_BASE, "nachrichten", id);
     await deleteDoc(ref);
   },
 
@@ -2115,6 +2243,19 @@ function darfKurseVerwalten() {
   return currentUserProfile.role === "A" || currentUserProfile.role === "B" || !!currentUserProfile.duerfteKurseVerwalten;
 }
 
+function darfNachrichtenSenden() {
+  return currentUserProfile.role === "A" || currentUserProfile.role === "B" || ((currentUserProfile.abteilungsleiterVon || []).length > 0);
+}
+
+// A/B: alle Abteilungen inkl. "Alle Mitglieder". C-Abteilungsleiter: nur die eigenen geleiteten Abteilungen.
+function meineSendbarenAbteilungen() {
+  if (currentUserProfile.role === "A" || currentUserProfile.role === "B") {
+    return [{ id: "mitglied", name: "Alle Mitglieder" }, ...(Store.data.abteilungen || [])];
+  }
+  const meine = currentUserProfile.abteilungsleiterVon || [];
+  return (Store.data.abteilungen || []).filter(a => meine.includes(a.id));
+}
+
 function updateNavVisibility() {
   const role = currentUserProfile.role;
   const isA = role === "A", isB = role === "B";
@@ -2152,6 +2293,10 @@ function applyRolePermissions(role) {
 
   document.querySelectorAll(".kurse-only:not(.tab-btn)").forEach(el => {
     el.style.display = darfKurseVerwalten() ? "" : "none";
+  });
+
+  document.querySelectorAll(".nachrichten-only:not(.tab-btn)").forEach(el => {
+    el.style.display = darfNachrichtenSenden() ? "" : "none";
   });
 
   updateNavVisibility();
@@ -2210,6 +2355,7 @@ function renderViewContent(view) {
   if (view === "karten-verwaltung") Karten.renderVerwaltung();
   if (view === "kurse-verwaltung") Kurse.render();
   if (view === "kassenabrechnung") Karten.renderKassenabrechnung();
+  if (view === "nachrichten") { Nachrichten.render(); Nachrichten.renderAbteilungenVerwaltung(); }
 }
 
 function switchToView(view) {
@@ -3488,6 +3634,285 @@ const Karten = {
   }
 };
 
+const NACHRICHT_ICONS = ["📢", "⚠️", "🎉", "📅", "✅", "ℹ️", "⚽", "🤸", "🏃", "🤾", "🏆", "🚌"];
+
+const Nachrichten = {
+  currentUid() {
+    return window.FB.auth.currentUser ? window.FB.auth.currentUser.uid : "";
+  },
+
+  // Prüft, ob eine Nachricht für die aktuell angemeldete Person bestimmt ist
+  istFuerMich(n) {
+    if ((n.zielAbteilungen || []).includes("mitglied")) return true;
+    const meine = currentUserProfile.abteilungen || [];
+    return (n.zielAbteilungen || []).some(a => meine.includes(a));
+  },
+
+  meineNachrichten() {
+    return (Store.data.nachrichten || [])
+      .filter(n => this.istFuerMich(n))
+      .sort((a, b) => (b.erstelltAm || "").localeCompare(a.erstelltAm || ""));
+  },
+
+  abteilungName(id) {
+    if (id === "mitglied") return "Alle Mitglieder";
+    const a = (Store.data.abteilungen || []).find(x => x.id === id);
+    return a ? a.name : id;
+  },
+
+  onDataChanged() {
+    this.updateBadge();
+    const activeView = document.querySelector(".view.active");
+    if (activeView && activeView.id === "view-nachrichten") this.render();
+  },
+
+  updateBadge() {
+    const badge = document.getElementById("nachrichten-badge");
+    if (!badge) return;
+    const uidM = this.currentUid();
+    const anzahl = this.meineNachrichten().filter(n => !(n.geleseneUids || []).includes(uidM)).length;
+    if (anzahl > 0) {
+      badge.textContent = anzahl;
+      badge.style.display = "";
+    } else {
+      badge.style.display = "none";
+    }
+  },
+
+  render() {
+    const list = document.getElementById("nachrichten-list");
+    if (!list) return;
+    const uidM = this.currentUid();
+    const meine = this.meineNachrichten();
+
+    if (meine.length === 0) {
+      list.innerHTML = '<div class="empty-state">Keine Nachrichten vorhanden.</div>';
+    } else {
+      list.innerHTML = meine.map(n => {
+        const ungelesen = !(n.geleseneUids || []).includes(uidM);
+        const event = n.eventId ? Store.getEvent(n.eventId) : null;
+        return `
+          <div class="card nachricht-card ${ungelesen ? 'ungelesen' : ''}">
+            <div class="card-head">
+              <div>
+                <h3>${escapeHtml(n.icon || '📢')} ${escapeHtml(n.titel)}</h3>
+                <div class="meta">
+                  An: ${(n.zielAbteilungen || []).map(a => escapeHtml(this.abteilungName(a))).join(", ")}
+                  &middot; von ${escapeHtml(n.erstelltVonName || '')} &middot; ${(n.erstelltAm || '').slice(0, 10)}
+                </div>
+                <div style="margin-top:8px;white-space:pre-wrap;">${escapeHtml(n.text || '')}</div>
+                ${event ? `<div class="meta" style="margin-top:6px;">🔗 Verknüpft mit Event: <strong>${escapeHtml(event.name)}</strong></div>` : ''}
+              </div>
+              <div class="card-actions">
+                ${(currentUserProfile.role === 'A' || currentUserProfile.role === 'B' || n.erstelltVonUid === uidM) ? `<button type="button" class="btn danger small" onclick="Nachrichten.remove('${n.id}')">Löschen</button>` : ''}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    // Alle sichtbaren, noch ungelesenen Nachrichten als gelesen markieren
+    const ungeleseneIds = meine.filter(n => !(n.geleseneUids || []).includes(uidM)).map(n => n.id);
+    if (ungeleseneIds.length > 0) this.markiereGelesen(ungeleseneIds);
+
+    this.updateBadge();
+  },
+
+  async markiereGelesen(ids) {
+    const uidM = this.currentUid();
+    for (const id of ids) {
+      const n = (Store.data.nachrichten || []).find(x => x.id === id);
+      if (!n || (n.geleseneUids || []).includes(uidM)) continue;
+      const update = { ...n, geleseneUids: [...(n.geleseneUids || []), uidM] };
+      try {
+        await Store.saveNachricht(update);
+      } catch (err) {
+        console.error("Konnte Nachricht nicht als gelesen markieren:", err);
+      }
+    }
+  },
+
+  async remove(id) {
+    if (!confirm("Diese Nachricht wirklich löschen?")) return;
+    try {
+      await Store.deleteNachricht(id);
+      toast("Nachricht gelöscht.");
+    } catch (err) {
+      console.error(err);
+      toast("Fehler beim Löschen: " + (err?.message || "Unbekannter Fehler"));
+    }
+  },
+
+  // ---- Nachricht verfassen ----
+  openForm() {
+    if (!darfNachrichtenSenden()) {
+      toast("Du hast keine Berechtigung, Nachrichten zu versenden.");
+      return;
+    }
+    document.getElementById("nachrichtTitel").value = "";
+    document.getElementById("nachrichtText").value = "";
+    document.getElementById("nachrichtIcon").value = "📢";
+
+    const iconPicker = document.getElementById("nachrichtIconPicker");
+    iconPicker.innerHTML = NACHRICHT_ICONS.map(ic => `
+      <button type="button" data-icon="${ic}" class="${ic === '📢' ? 'selected' : ''}" onclick="Nachrichten.waehleIcon('${ic}')">${ic}</button>
+    `).join("");
+
+    const abteilungen = meineSendbarenAbteilungen();
+    const abtPicker = document.getElementById("nachrichtAbteilungenPicker");
+    abtPicker.innerHTML = abteilungen.map(a => `
+      <label style="display:flex;align-items:center;gap:5px;font-size:13px;border:1px solid var(--border-strong);padding:5px 9px;border-radius:16px;cursor:pointer;">
+        <input type="checkbox" class="nachricht-abteilung-cb" value="${a.id}"> ${escapeHtml(a.name)}
+      </label>
+    `).join("");
+
+    const eventSel = document.getElementById("nachrichtEventId");
+    const eventsSorted = [...(Store.data.events || [])].sort((a, b) => (b.datumStart || "").localeCompare(a.datumStart || ""));
+    eventSel.innerHTML = '<option value="">Kein Event</option>' + eventsSorted.map(e => `<option value="${e.id}">${escapeHtml(e.name)}</option>`).join("");
+
+    Modal.open("modal-nachricht");
+  },
+
+  waehleIcon(icon) {
+    document.getElementById("nachrichtIcon").value = icon;
+    document.querySelectorAll("#nachrichtIconPicker button").forEach(btn => {
+      btn.classList.toggle("selected", btn.dataset.icon === icon);
+    });
+  },
+
+  async senden() {
+    const titel = document.getElementById("nachrichtTitel").value.trim();
+    if (!titel) { toast("Bitte einen Titel angeben."); return; }
+    const text = document.getElementById("nachrichtText").value.trim();
+    if (!text) { toast("Bitte einen Text angeben."); return; }
+
+    const zielAbteilungen = [...document.querySelectorAll(".nachricht-abteilung-cb:checked")].map(cb => cb.value);
+    if (zielAbteilungen.length === 0) { toast("Bitte mindestens eine Abteilung als Empfänger auswählen."); return; }
+
+    // Sicherheitscheck: C-Abteilungsleiter dürfen nur an ihre eigenen Abteilungen senden
+    const erlaubte = meineSendbarenAbteilungen().map(a => a.id);
+    if (zielAbteilungen.some(z => !erlaubte.includes(z))) {
+      toast("Du darfst nicht an alle ausgewählten Abteilungen senden.");
+      return;
+    }
+
+    const nachricht = {
+      id: uid("nachricht"),
+      titel,
+      text,
+      icon: document.getElementById("nachrichtIcon").value || "📢",
+      zielAbteilungen,
+      eventId: document.getElementById("nachrichtEventId").value || null,
+      erstelltVonUid: this.currentUid(),
+      erstelltVonName: currentUserProfile.name || currentUserProfile.email || "",
+      erstelltAm: new Date().toISOString(),
+      geleseneUids: [this.currentUid()]
+    };
+
+    try {
+      await Store.saveNachricht(nachricht);
+      Modal.close("modal-nachricht");
+      toast("Nachricht gesendet.");
+    } catch (err) {
+      console.error(err);
+      toast("Fehler beim Senden: " + (err?.message || "Unbekannter Fehler"));
+    }
+  },
+
+  // ---- Abteilungen-Stammdaten verwalten (A/B) ----
+  renderAbteilungenVerwaltung() {
+    const list = document.getElementById("abteilungen-verwaltung-list");
+    if (!list) return;
+    const abteilungen = [...(Store.data.abteilungen || [])].sort((a, b) => (a.name || "").localeCompare(b.name || "", "de"));
+
+    if (abteilungen.length === 0) {
+      list.innerHTML = '<div class="empty-state">Noch keine zusätzlichen Abteilungen angelegt.</div>';
+      return;
+    }
+
+    list.innerHTML = abteilungen.map(a => `
+      <div class="card">
+        <div class="card-head">
+          <div><h3>${escapeHtml(a.name)}</h3></div>
+          <div class="card-actions">
+            <button type="button" class="btn secondary small" onclick="Nachrichten.openAbteilungForm('${a.id}')">Bearbeiten</button>
+            <button type="button" class="btn danger small" onclick="Nachrichten.removeAbteilung('${a.id}')">Löschen</button>
+          </div>
+        </div>
+      </div>
+    `).join("");
+  },
+
+  openAbteilungForm(id = "") {
+    document.getElementById("abteilungId").value = id;
+    const a = id ? (Store.data.abteilungen || []).find(x => x.id === id) : {};
+    document.getElementById("abteilungName").value = a?.name || "";
+    Modal.open("modal-abteilung");
+  },
+
+  async saveAbteilung() {
+    const id = document.getElementById("abteilungId").value || uid("abt");
+    const name = document.getElementById("abteilungName").value.trim();
+    if (!name) { toast("Bitte eine Bezeichnung angeben."); return; }
+
+    if (!Store.data.abteilungen) Store.data.abteilungen = [];
+    const idx = Store.data.abteilungen.findIndex(x => x.id === id);
+    if (idx >= 0) Store.data.abteilungen[idx] = { id, name };
+    else Store.data.abteilungen.push({ id, name });
+
+    await Store.persistConfig();
+    Modal.close("modal-abteilung");
+    toast("Abteilung gespeichert.");
+  },
+
+  async removeAbteilung(id) {
+    if (!confirm("Diese Abteilung wirklich löschen? Mitgliedern, die ihr zugeordnet sind, wird sie entzogen.")) return;
+    Store.data.abteilungen = (Store.data.abteilungen || []).filter(x => x.id !== id);
+    await Store.persistConfig();
+    toast("Abteilung gelöscht.");
+  },
+
+  // ---- Einem Benutzer Abteilungen / Abteilungsleiter-Rechte zuordnen (A/B) ----
+  openUserAbteilungenForm(userId) {
+    const u = (Store.data.users || []).find(x => x.id === userId);
+    if (!u) return;
+    document.getElementById("userAbteilungenUserId").value = userId;
+    document.getElementById("user-abteilungen-modal-title").textContent = `Abteilungen: ${u.name || u.email}`;
+
+    const abteilungen = [...(Store.data.abteilungen || [])].sort((a, b) => (a.name || "").localeCompare(b.name || "", "de"));
+    const meineAbt = u.abteilungen || [];
+    const meineLeiter = u.abteilungsleiterVon || [];
+
+    document.getElementById("userAbteilungenMitgliedPicker").innerHTML = abteilungen.map(a => `
+      <label style="display:flex;align-items:center;gap:5px;font-size:13px;border:1px solid var(--border-strong);padding:5px 9px;border-radius:16px;cursor:pointer;">
+        <input type="checkbox" class="user-abteilung-cb" value="${a.id}" ${meineAbt.includes(a.id) ? 'checked' : ''}> ${escapeHtml(a.name)}
+      </label>
+    `).join("") || '<span class="meta">Keine zusätzlichen Abteilungen angelegt.</span>';
+
+    document.getElementById("userAbteilungenLeiterPicker").innerHTML = abteilungen.map(a => `
+      <label style="display:flex;align-items:center;gap:5px;font-size:13px;border:1px solid var(--border-strong);padding:5px 9px;border-radius:16px;cursor:pointer;">
+        <input type="checkbox" class="user-abteilung-leiter-cb" value="${a.id}" ${meineLeiter.includes(a.id) ? 'checked' : ''}> ${escapeHtml(a.name)}
+      </label>
+    `).join("") || '<span class="meta">Keine zusätzlichen Abteilungen angelegt.</span>';
+
+    Modal.open("modal-user-abteilungen");
+  },
+
+  async saveUserAbteilungen() {
+    const userId = document.getElementById("userAbteilungenUserId").value;
+    const abteilungenIds = [...document.querySelectorAll(".user-abteilung-cb:checked")].map(cb => cb.value);
+    const leiterIds = [...document.querySelectorAll(".user-abteilung-leiter-cb:checked")].map(cb => cb.value);
+    try {
+      await Store.updateUserAbteilungen(userId, abteilungenIds, leiterIds);
+      Modal.close("modal-user-abteilungen");
+    } catch (err) {
+      console.error(err);
+      toast("Fehler: " + (err?.message || "Unbekannter Fehler"));
+    }
+  }
+};
+
 /* ============================================================
    AUFGABEN-RYDER (ZENTRALE ADMIN MATRIX)
    ============================================================ */
@@ -4267,6 +4692,7 @@ const Personen = {
             <th style="width:160px;">Rolle zuweisen</th>
             <th style="width:110px;">Belegungsplan</th>
             <th style="width:110px;">Kurse (Trainer)</th>
+            <th style="width:150px;">Abteilungen</th>
           </tr>
         </thead>
         <tbody>
@@ -4303,6 +4729,11 @@ const Personen = {
                        erlaubt
                      </label>`
                 }
+              </td>
+              <td>
+                <div class="meta" style="margin-bottom:4px;">Mitglied${(u.abteilungen || []).length ? ', ' + u.abteilungen.map(id => escapeHtml(Nachrichten.abteilungName(id))).join(', ') : ''}</div>
+                ${(u.abteilungsleiterVon || []).length ? `<div class="meta" style="color:var(--accent-dark,#143f34);">Leiter: ${u.abteilungsleiterVon.map(id => escapeHtml(Nachrichten.abteilungName(id))).join(', ')}</div>` : ''}
+                <button type="button" class="btn secondary small" style="margin-top:4px;" onclick="Nachrichten.openUserAbteilungenForm('${u.id}')">Bearbeiten</button>
               </td>
             </tr>
           `).join("")}
