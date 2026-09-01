@@ -1767,7 +1767,7 @@
    ZENTRALE KONFIGURATION & DATENSCHICHT
    ============================================================ */
 
-const APP_VERSION = "0.1.131";
+const APP_VERSION = "0.1.132";
 let currentUserProfile = { role: "A", actualRole: "A", email: "", name: "" };
 
 function uid(prefix) {
@@ -7486,6 +7486,7 @@ const Events = {
               <div class="meta">
                 Uhrzeit: <strong>${s.start} - ${s.ende} Uhr</strong> &middot; Besetzung: <strong>${s.eintragungen.length} / ${s.max}</strong> Personen
                 ${s.deadline ? ` &middot; Frist: <strong>${s.deadline}</strong>` : ''}
+                ${s.austragen === false ? ` &middot; <span style="color:#b2481f;font-weight:600;">🔒 Austragen nur durch Admin möglich</span>` : ''}
               </div>
             </div>
             <div style="display:flex;gap:6px;align-items:center;">
@@ -7498,7 +7499,7 @@ const Events = {
           </div>
           <div class="meta" style="margin-top:8px;">
             <strong>Eingeteilte Helfer:</strong> ${s.eintragungen.length > 0 ? s.eintragungen.map(en => `
-              <span>${escapeHtml(en.name)} ${isVorstandOrAdmin || en.uid === userUid ? `<a href="javascript:void(0)" style="color:var(--danger-text);text-decoration:none;margin-left:3px;" onclick="Events.austragen('${e.id}', '${s.id}', '${en.uid}')">&times;</a>` : ''}</span>
+              <span>${escapeHtml(en.name)} ${isVorstandOrAdmin || (en.uid === userUid && s.austragen !== false) ? `<a href="javascript:void(0)" style="color:var(--danger-text);text-decoration:none;margin-left:3px;" onclick="Events.austragen('${e.id}', '${s.id}', '${en.uid}')">&times;</a>` : ''}</span>
             `).join(", ") : "Noch niemand eingetragen"}
           </div>
         </div>
