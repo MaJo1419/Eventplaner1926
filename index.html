@@ -670,6 +670,11 @@
     nav.tabs button { width: 76px; min-height: 76px; padding: 8px 4px; flex-shrink: 0; border-radius: 16px; }
     nav.tabs button .nav-icon { font-size: 22px; }
     nav.tabs button .nav-label { font-size: 9.5px; }
+    .bereichs-grid { grid-template-columns: repeat(auto-fill, minmax(115px, 1fr)); gap: 12px; }
+    .bereichs-kachel { padding: 16px 10px; border-radius: 18px; }
+    .bereichs-kachel .bk-icon { font-size: 28px; width: 40px; height: 40px; margin-bottom: 8px; }
+    .bereichs-kachel .bk-title { font-size: 13px; min-height: 2.2em; }
+    .bereichs-kachel .bk-desc { font-size: 11px; }
     .unified-item-row {
       display: flex;
       flex-direction: column;
@@ -1803,7 +1808,7 @@
    ZENTRALE KONFIGURATION & DATENSCHICHT
    ============================================================ */
 
-const APP_VERSION = "0.1.137";
+const APP_VERSION = "0.1.138";
 let currentUserProfile = { role: "A", actualRole: "A", email: "", name: "" };
 
 function uid(prefix) {
