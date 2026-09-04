@@ -69,7 +69,7 @@
     --danger-border: #edb0a8;
     --ok-bg: #dcf0e6;
     --ok-text: #146b48;
-    --radius: 10px;
+    --radius: 14px;
     --font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   }
   * { box-sizing: border-box; }
@@ -198,8 +198,10 @@
     align-items: center;
     gap: 5px;
     text-decoration: none;
+    transition: background .15s, box-shadow .15s, transform .1s;
   }
-  button.btn:hover, a.btn:hover { background: var(--accent-dark); }
+  button.btn:hover, a.btn:hover { background: var(--accent-dark); box-shadow: 0 3px 10px rgba(30,148,99,.25); }
+  button.btn:active, a.btn:active { transform: translateY(1px); }
   button.btn.secondary, a.btn.secondary {
     background: var(--surface);
     color: var(--accent-dark);
@@ -230,6 +232,7 @@
     border-radius: var(--radius);
     padding: 16px 18px;
     margin-bottom: 14px;
+    transition: box-shadow .15s, border-color .15s;
   }
   .card-head {
     display: flex;
@@ -254,16 +257,18 @@
   .subtable { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
   .subtable th {
     text-align: left;
-    font-weight: 500;
-    color: var(--text-muted);
+    font-weight: 600;
+    color: var(--accent-dark);
     font-size: 11.5px;
     text-transform: uppercase;
     letter-spacing: .3px;
+    background: var(--surface-2);
     border-bottom: 1px solid var(--border);
-    padding: 6px 8px;
+    padding: 7px 8px;
   }
   .subtable td { padding: 7px 8px; border-bottom: 1px solid var(--border); vertical-align: middle; }
   .subtable tr:last-child td { border-bottom: none; }
+  .subtable tbody tr:hover td { background: var(--surface-2); }
   .we-input {
     padding: 4px 6px;
     font-size: 12.5px;
@@ -397,7 +402,7 @@
   .event-tile {
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: var(--radius);
+    border-radius: 16px;
     padding: 12px 14px;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -407,6 +412,8 @@
   .event-tile:hover {
     border-color: var(--accent);
     background: var(--surface-2);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(0,0,0,.08);
   }
   .event-tile.active {
     background: var(--accent-dark);
@@ -458,23 +465,30 @@
 
   .modal {
     background: var(--surface);
-    border-radius: var(--radius);
+    border-radius: 20px;
     max-width: 720px;
     width: 100%;
-    padding: 22px 24px 24px;
+    padding: 24px 26px 26px;
+    box-shadow: 0 20px 50px rgba(20,30,25,.25);
   }
   .modal h3 { margin: 0 0 14px; font-size: 16px; }
   .field { margin-bottom: 12px; }
   .field label { display: block; font-size: 12.5px; font-weight: 500; color: var(--text-muted); margin-bottom: 4px; }
   .field input, .field select, .field textarea {
     width: 100%;
-    padding: 8px 10px;
+    padding: 9px 11px;
     border: 1px solid var(--border-strong);
-    border-radius: 7px;
+    border-radius: 10px;
     font-size: 13.5px;
     font-family: var(--font);
     background: var(--surface);
     color: var(--text);
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-light);
   }
   .field input:disabled {
     background: var(--surface-2);
@@ -591,10 +605,22 @@
     padding: 8px 12px;
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: 8px;
+    border-radius: 10px;
     margin-bottom: 6px;
     font-size: 13.5px;
+    transition: border-color .15s, box-shadow .15s;
   }
+  .unified-item-row:hover { border-color: var(--border-strong); box-shadow: 0 2px 8px rgba(0,0,0,.05); }
+  .helfer-liste { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .helfer-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 7px 12px; font-size: 13px; background: var(--surface);
+    border-bottom: 1px solid var(--border);
+  }
+  .helfer-row:last-child { border-bottom: none; }
+  .helfer-row:hover { background: var(--surface-2); }
+  .helfer-row a { color: var(--danger-text); text-decoration: none; font-size: 12px; font-weight: 600; }
+  .helfer-row a:hover { text-decoration: underline; }
   .unified-item-row.is-done { background: var(--surface-2); }
   .unified-item-row.is-done .item-main-title { text-decoration: none; color: var(--text); }
   .unified-item-row input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; accent-color: var(--accent); }
@@ -1026,7 +1052,13 @@
       </div>
     </div>
     <input type="search" class="search-input" placeholder="Suchen (Name)…" oninput="Karten.filterVerwaltung(this.value)">
-    <div id="karten-verwaltung-list"></div>
+
+    <details class="collapsible-section" style="margin-top:16px;">
+      <summary>📋 Heute eingecheckt – nach Kurs</summary>
+      <div id="heute-eingecheckt-content" style="margin-top:10px;"></div>
+    </details>
+
+    <div id="karten-verwaltung-list" style="margin-top:16px;"></div>
   </section>
 
   <!-- KURSE VERWALTEN (Stammdaten, A/B) -->
@@ -1808,7 +1840,7 @@
    ZENTRALE KONFIGURATION & DATENSCHICHT
    ============================================================ */
 
-const APP_VERSION = "0.1.138";
+const APP_VERSION = "0.1.142";
 let currentUserProfile = { role: "A", actualRole: "A", email: "", name: "" };
 
 function uid(prefix) {
@@ -2129,7 +2161,7 @@ const Store = {
       vereinsbusse: this.data.vereinsbusse || [],
       kurse: this.data.kurse || [],
       abteilungen: this.data.abteilungen || []
-    });
+    }, { merge: true });
   },
 
   async savePerson(person) {
@@ -3547,6 +3579,8 @@ const Karten = {
     const list = document.getElementById("karten-verwaltung-list");
     if (!list) return;
 
+    this.renderHeuteEingecheckt();
+
     // Jedes Mitglied (registrierter Benutzer) bekommt automatisch eine Karte, auch mit 0 € Guthaben
     let karten = (Store.data.users || []).map(u => this.getOrCreateKarte(u.id, u.name || u.email || ""));
     karten = [...karten].sort((a, b) => (a.inhaberName || "").localeCompare(b.inhaberName || "", "de"));
@@ -3561,6 +3595,52 @@ const Karten = {
       return;
     }
     list.innerHTML = karten.map(k => this.renderKarteCard(k, true)).join("");
+  },
+
+  renderHeuteEingecheckt() {
+    const container = document.getElementById("heute-eingecheckt-content");
+    if (!container) return;
+
+    const heute = new Date().toISOString().slice(0, 10);
+    const kurse = [...(Store.data.kurse || [])].sort((a, b) => (a.name || "").localeCompare(b.name || "", "de"));
+
+    if (kurse.length === 0) {
+      container.innerHTML = '<div class="empty-state">Noch keine Kurse angelegt.</div>';
+      return;
+    }
+
+    container.innerHTML = kurse.map(kurs => {
+      const checkins = [];
+      (Store.data.stempelkarten || []).forEach(k => {
+        (k.stempelHistorie || []).forEach(h => {
+          if (h.kursId === kurs.id && h.datum === heute) {
+            checkins.push({ name: k.inhaberName || "Unbekannt", zeit: h.zeit || "" });
+          }
+        });
+      });
+      checkins.sort((a, b) => (a.zeit || "").localeCompare(b.zeit || ""));
+
+      return `
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <h3>🧘 ${escapeHtml(kurs.name)}</h3>
+              <div class="meta">${checkins.length} Check-in(s) heute</div>
+            </div>
+          </div>
+          ${checkins.length > 0 ? `
+            <div class="helfer-liste" style="margin-top:8px;">
+              ${checkins.map(c => `
+                <div class="helfer-row">
+                  <span>${escapeHtml(c.name)}</span>
+                  ${c.zeit ? `<span class="meta">${escapeHtml(c.zeit)} Uhr</span>` : ''}
+                </div>
+              `).join("")}
+            </div>
+          ` : '<div class="meta" style="margin-top:6px;">Noch niemand eingecheckt.</div>'}
+        </div>
+      `;
+    }).join("");
   },
 
   openAusstellenForm(presetUserId = "") {
@@ -3684,6 +3764,7 @@ const Karten = {
     }
     k.stempelHistorie = [...(k.stempelHistorie || []), {
       datum: new Date().toISOString().slice(0, 10),
+      zeit: new Date().toTimeString().slice(0, 5),
       kursId: kurs.id,
       kursName: kurs.name,
       betrag: kurs.kostenProBesuch || 0,
@@ -6330,7 +6411,7 @@ const Events = {
             ${groups[bereichName].map(item => {
               const p = Store.getPerson(item.personId);
               return `
-                <div class="unified-item-row ${item.erledigt ? 'is-done' : ''}" style="grid-template-columns: 32px 1fr 180px 140px 36px;">
+                <div class="unified-item-row ${item.erledigt ? 'is-done' : ''}" style="grid-template-columns: 32px 1fr 150px 140px 36px;">
                   <div>
                     <input type="checkbox" ${item.erledigt ? 'checked' : ''} onchange="Events.toggleChecklistDone('${e.id}', '${item.id}', this.checked)">
                   </div>
@@ -7538,10 +7619,18 @@ const Events = {
               ` : ''}
             </div>
           </div>
-          <div class="meta" style="margin-top:8px;">
-            <strong>Eingeteilte Helfer:</strong> ${s.eintragungen.length > 0 ? s.eintragungen.map(en => `
-              <span>${escapeHtml(en.name)} ${isVorstandOrAdmin || (en.uid === userUid && s.austragen !== false) ? `<a href="javascript:void(0)" style="color:var(--danger-text);text-decoration:none;margin-left:3px;" onclick="Events.austragen('${e.id}', '${s.id}', '${en.uid}')">&times;</a>` : ''}</span>
-            `).join(", ") : "Noch niemand eingetragen"}
+          <div style="margin-top:10px;">
+            <div class="meta" style="font-weight:600;margin-bottom:4px;">Eingeteilte Helfer</div>
+            ${s.eintragungen.length > 0 ? `
+              <div class="helfer-liste">
+                ${s.eintragungen.map(en => `
+                  <div class="helfer-row">
+                    <span>${escapeHtml(en.name)}</span>
+                    ${isVorstandOrAdmin || (en.uid === userUid && s.austragen !== false) ? `<a href="javascript:void(0)" onclick="Events.austragen('${e.id}', '${s.id}', '${en.uid}')">Austragen</a>` : ''}
+                  </div>
+                `).join("")}
+              </div>
+            ` : '<div class="meta">Noch niemand eingetragen</div>'}
           </div>
         </div>
       `;
