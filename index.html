@@ -342,6 +342,7 @@
   .bereichs-kachel.kompakt .bk-desc { font-size: 11px; }
   .kompakt-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 14px; }
   .meine-sachen-label { font-size: 12.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .03em; margin-top: 6px; margin-bottom: 4px; }
+  .verwaltung-mobil, .verwaltung-mobil-label { display: none; }
   .stempel-row { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
   .stempel-dot {
     width: 20px; height: 20px; border-radius: 5px;
@@ -722,17 +723,11 @@
     main { padding: 12px; }
     header { padding: 12px 16px; }
     header h1 { font-size: 17px; }
-    nav.tabs {
-      padding: 6px 12px 0;
-      overflow-x: auto;
-      white-space: nowrap;
-      flex-wrap: nowrap;
-      -webkit-overflow-scrolling: touch;
-    }
-    nav.tabs::-webkit-scrollbar { display: none; }
-    nav.tabs button { width: 76px; min-height: 76px; padding: 8px 4px; flex-shrink: 0; border-radius: 16px; }
-    nav.tabs button .nav-icon { font-size: 22px; }
-    nav.tabs button .nav-label { font-size: 9.5px; }
+    nav.tabs { display: none !important; }
+    #c-home-btn { display: inline-flex !important; }
+    .verwaltung-desktop, .verwaltung-desktop-label { display: none !important; }
+    .verwaltung-mobil { display: grid !important; }
+    .verwaltung-mobil-label { display: block !important; }
     .bereichs-grid { grid-template-columns: repeat(auto-fill, minmax(115px, 1fr)); gap: 12px; }
     .bereichs-kachel { padding: 16px 10px; border-radius: 18px; }
     .bereichs-kachel .bk-icon { font-size: 28px; width: 40px; height: 40px; margin-bottom: 8px; }
@@ -1917,7 +1912,7 @@
    ZENTRALE KONFIGURATION & DATENSCHICHT
    ============================================================ */
 
-const APP_VERSION = "0.1.144";
+const APP_VERSION = "0.1.145";
 let currentUserProfile = { role: "A", actualRole: "A", email: "", name: "" };
 
 function uid(prefix) {
@@ -2617,6 +2612,30 @@ function refreshBereichsauswahlIfAktiv() {
   }
 }
 
+// Baut für Rolle A/B auf Mobile die "Verwaltung"-Kacheln 1:1 aus den tatsächlich
+// sichtbaren Nav-Buttons nach - garantiert identische Rechte/Sichtbarkeit wie die
+// obere Leiste am PC, ohne die Berechtigungslogik ein zweites Mal pflegen zu müssen.
+function renderVerwaltungMobilKacheln() {
+  const ziel = document.getElementById("verwaltung-mobil-kacheln");
+  if (!ziel) return;
+  const buttons = document.querySelectorAll("nav.tabs button.tab-btn");
+  let html = "";
+  buttons.forEach(btn => {
+    if (btn.style.display === "none") return;
+    const view = btn.dataset.view;
+    if (!view || view === "bereichsauswahl" || view === "nachrichten") return;
+    const icon = btn.querySelector(".nav-icon")?.textContent || "📌";
+    const label = btn.querySelector(".nav-label")?.textContent || view;
+    html += `
+      <div class="bereichs-kachel kompakt" onclick="switchToView('${view}')">
+        <div class="bk-icon">${icon}</div>
+        <div class="bk-title">${escapeHtml(label)}</div>
+      </div>
+    `;
+  });
+  ziel.innerHTML = html;
+}
+
 function renderBereichsauswahl() {
   const el = document.getElementById("bereichsauswahl-content");
   if (!el) return;
@@ -2676,10 +2695,11 @@ function renderBereichsauswahl() {
           <div class="desc">Wähle einen Bereich aus</div>
         </div>
       </div>
-      <div class="meine-sachen-label">👤 Meine Sachen</div>
+      <div class="meine-sachen-label">👤 Meins</div>
       <div class="bereichs-grid kompakt-grid">${renderMeineSachenKacheln(true)}</div>
-      <div class="meine-sachen-label" style="margin-top:22px;">🗂️ Verwaltung</div>
-      <div class="bereichs-grid">
+
+      <div class="meine-sachen-label verwaltung-desktop-label" style="margin-top:22px;">🗂️ Verwaltung</div>
+      <div class="bereichs-grid verwaltung-desktop">
         <div class="bereichs-kachel" onclick="Bereich.open('events')">
           <div class="bk-icon">📋</div>
           <div class="bk-title">Events</div>
@@ -2696,6 +2716,9 @@ function renderBereichsauswahl() {
           <div class="bk-desc">Stempelkarten für Kurse wie Yoga verwalten und einsehen</div>
         </div>
       </div>
+
+      <div class="meine-sachen-label verwaltung-mobil-label" style="margin-top:22px;">🗂️ Verwaltung</div>
+      <div class="bereichs-grid kompakt-grid verwaltung-mobil" id="verwaltung-mobil-kacheln"></div>
     `;
     // Nur die Sichtbarkeit der "belegung-only"-Kachel korrigieren (nicht die komplette
     // applyRolePermissions() erneut aufrufen, da die wiederum renderBereichsauswahl() aufruft
@@ -2703,6 +2726,7 @@ function renderBereichsauswahl() {
     document.querySelectorAll("#bereichsauswahl-content .belegung-only").forEach(elx => {
       elx.style.display = darfBelegungsplanNutzen() ? "" : "none";
     });
+    renderVerwaltungMobilKacheln();
   }
 }
 
