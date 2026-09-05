@@ -830,7 +830,7 @@
   <button type="button" class="tab-btn bereich-events admin-only" data-view="kategorien"><span class="nav-icon">🏷️</span><span class="nav-label">Kategorien</span></button>
   <button type="button" class="tab-btn bereich-events vorstand-only" data-view="personen" title="Benutzer, Personen &amp; Lieferanten"><span class="nav-icon">👥</span><span class="nav-label">Benutzer &amp; Personen</span></button>
   <button type="button" class="tab-btn bereich-belegung vorstand-only" data-view="ressourcen"><span class="nav-icon">🏟️</span><span class="nav-label">Sportstätten &amp; Busse</span></button>
-  <button type="button" class="tab-btn bereich-belegung belegung-only" data-view="belegungskalender"><span class="nav-icon">📅</span><span class="nav-label">Belegungskalender</span></button>
+  <button type="button" class="tab-btn bereich-belegung" data-view="belegungskalender"><span class="nav-icon">📅</span><span class="nav-label">Belegungskalender</span></button>
   <button type="button" class="tab-btn bereich-events admin-only" data-view="material-ryder"><span class="nav-icon">📦</span><span class="nav-label">Material-Ryder</span></button>
   <button type="button" class="tab-btn bereich-events vorstand-only" data-view="material-kalender"><span class="nav-icon">🗂️</span><span class="nav-label">Material-Kalender</span></button>
   <button type="button" class="tab-btn bereich-kurse kurse-only" data-view="karten-verwaltung"><span class="nav-icon">🎟️</span><span class="nav-label">Karten-Verwaltung</span></button>
@@ -1062,7 +1062,7 @@
         <h2>📅 Belegungskalender</h2>
         <div class="desc">Sportstätten und Vereinsbusse buchen</div>
       </div>
-      <button type="button" class="btn" onclick="Belegungsplan.openForm()">+ Neue Buchung</button>
+      <button type="button" class="btn belegung-only" onclick="Belegungsplan.openForm()">+ Neue Buchung</button>
     </div>
     <div class="toolbar" style="margin-top:-6px;flex-wrap:wrap;gap:10px;">
       <div id="belegungskalender-tabs" style="display:flex;gap:6px;flex-wrap:wrap;">
@@ -1917,7 +1917,7 @@
    ZENTRALE KONFIGURATION & DATENSCHICHT
    ============================================================ */
 
-const APP_VERSION = "0.1.143";
+const APP_VERSION = "0.1.144";
 let currentUserProfile = { role: "A", actualRole: "A", email: "", name: "" };
 
 function uid(prefix) {
@@ -2641,15 +2641,13 @@ function renderBereichsauswahl() {
       ${renderMeineSachenKacheln(false)}
     `;
 
-    if (darfBelegungsplanNutzen()) {
-      kacheln += `
-        <div class="bereichs-kachel" onclick="switchToView('belegungskalender')">
-          <div class="bk-icon">🏟️</div>
-          <div class="bk-title">Belegungskalender</div>
-          <div class="bk-desc">${eigeneBuchungen} eigene Buchung(en) anstehend</div>
-        </div>
-      `;
-    }
+    kacheln += `
+      <div class="bereichs-kachel" onclick="switchToView('belegungskalender')">
+        <div class="bk-icon">🏟️</div>
+        <div class="bk-title">Belegungskalender</div>
+        <div class="bk-desc">${darfBelegungsplanNutzen() ? `${eigeneBuchungen} eigene Buchung(en) anstehend` : 'Kalender ansehen'}</div>
+      </div>
+    `;
 
     if (darfKurseVerwalten()) {
       kacheln += `
@@ -3476,6 +3474,11 @@ const Belegungsplan = {
     const isEdit = !!id;
     const b = isEdit ? (Store.data.belegungen || []).find(x => x.id === id) : null;
     if (isEdit && !b) return;
+
+    if (!isEdit && !darfBelegungsplanNutzen()) {
+      toast("Du hast keine Berechtigung, Buchungen anzulegen.");
+      return;
+    }
 
     const isVorstandOrAdmin = currentUserProfile.role === "A" || currentUserProfile.role === "B";
     if (isEdit && !isVorstandOrAdmin && b.erstelltVonUid !== this.currentUid()) {
