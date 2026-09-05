@@ -362,6 +362,43 @@
     background: #fff; cursor: pointer; line-height: 1;
   }
   .icon-picker button.selected { border-color: var(--accent-dark, #146b48); background: #dcf0e6; }
+  .color-swatch {
+    width: 30px; height: 30px; border-radius: 50%; border: 2px solid transparent;
+    cursor: pointer; padding: 0; box-shadow: inset 0 0 0 1px rgba(0,0,0,.08);
+  }
+  .color-swatch.selected { border-color: var(--text); box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--text); }
+  .mannschaft-badge {
+    display: inline-flex; align-items: center; gap: 5px; font-size: 12px; padding: 2px 8px 2px 4px;
+    border-radius: 12px; color: #fff; font-weight: 600;
+  }
+  .mannschaft-dot { width: 9px; height: 9px; border-radius: 50%; background: #fff; opacity: .85; flex-shrink: 0; }
+  #belegungskalender-tabs button.active { background: var(--accent-dark); color: #fff; border-color: var(--accent-dark); }
+  .kal-grid-wrap { display: flex; overflow-x: auto; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
+  .kal-zeitachse { flex-shrink: 0; width: 46px; border-right: 1px solid var(--border); }
+  .kal-zeitachse-head { height: 40px; border-bottom: 1px solid var(--border); }
+  .kal-stunde { height: 60px; font-size: 10.5px; color: var(--text-muted); text-align: right; padding-right: 6px; box-sizing: border-box; border-bottom: 1px dashed var(--border); transform: translateY(-6px); }
+  .kal-spalten { display: flex; flex: 1; min-width: 0; }
+  .kal-spalte { flex: 1; min-width: 130px; border-right: 1px solid var(--border); }
+  .kal-spalte:last-child { border-right: none; }
+  .kal-spalte-head { height: 40px; display:flex; align-items:center; justify-content:center; font-size: 12px; font-weight: 700; color: var(--accent-dark); border-bottom: 1px solid var(--border); background: var(--surface-2); text-align:center; padding: 0 4px; }
+  .kal-spalte-body { position: relative; background-image: repeating-linear-gradient(to bottom, transparent, transparent 59px, var(--border) 59px, var(--border) 60px); cursor: pointer; }
+  .kal-block {
+    position: absolute; left: 3px; right: 3px; border-radius: 7px; padding: 3px 6px; font-size: 11px;
+    color: #fff; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,.2); line-height: 1.3; text-shadow: 0 1px 1px rgba(0,0,0,.25);
+  }
+  .kal-monat-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  .kal-monat-kopf { font-size: 11.5px; font-weight: 700; color: var(--text-muted); text-align: center; padding: 4px 0; text-transform: uppercase; }
+  .kal-monat-zelle {
+    min-height: 68px; border: 1px solid var(--border); border-radius: 8px; padding: 4px 5px;
+    cursor: pointer; background: var(--surface); transition: border-color .15s, box-shadow .15s;
+  }
+  .kal-monat-zelle:hover { border-color: var(--accent); box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+  .kal-monat-zelle.leer { border: none; cursor: default; background: transparent; }
+  .kal-monat-zelle.heute { border-color: var(--accent-dark); border-width: 2px; }
+  .kal-monat-tag { font-size: 12px; font-weight: 700; color: var(--text); }
+  .kal-monat-punkte { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 4px; }
+  .mannschaft-dot-solo { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+  .kal-monat-mehr { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
   .empty-state {
     text-align: center;
     padding: 40px 20px;
@@ -1007,6 +1044,15 @@
       </div>
       <div id="vereinsbusse-list"></div>
     </details>
+
+    <details class="collapsible-section" style="margin-top:20px;">
+      <summary>🎨 Mannschaften (Farben für den Belegungskalender)</summary>
+      <div class="toolbar" style="margin-top:2px;">
+        <div class="desc">Jede Mannschaft bekommt eine feste Farbe, damit man ihre Buchungen im Kalender auf einen Blick erkennt</div>
+        <button type="button" class="btn" onclick="Mannschaften.openForm()">+ Neue Mannschaft</button>
+      </div>
+      <div id="mannschaften-list"></div>
+    </details>
   </section>
 
   <!-- BELEGUNGSKALENDER -->
@@ -1014,13 +1060,22 @@
     <div class="toolbar">
       <div>
         <h2>📅 Belegungskalender</h2>
-        <div class="desc">Sportstätten und Vereinsbusse buchen – 🟢 frei, 🟡 belegt</div>
+        <div class="desc">Sportstätten und Vereinsbusse buchen</div>
       </div>
-      <div style="display:flex;gap:6px;align-items:center;">
-        <button type="button" class="btn" onclick="Belegungsplan.openForm()">+ Neue Buchung</button>
-        <button type="button" class="btn secondary small" onclick="Belegungsplan.prevWeek()">◀ Woche</button>
-        <button type="button" class="btn secondary small" onclick="Belegungsplan.today()">Heute</button>
-        <button type="button" class="btn secondary small" onclick="Belegungsplan.nextWeek()">Woche ▶</button>
+      <button type="button" class="btn" onclick="Belegungsplan.openForm()">+ Neue Buchung</button>
+    </div>
+    <div class="toolbar" style="margin-top:-6px;flex-wrap:wrap;gap:10px;">
+      <div id="belegungskalender-tabs" style="display:flex;gap:6px;flex-wrap:wrap;">
+        <button type="button" class="btn secondary small" data-ansicht="monat" onclick="Belegungsplan.setAnsicht('monat')">Monat</button>
+        <button type="button" class="btn secondary small" data-ansicht="woche" onclick="Belegungsplan.setAnsicht('woche')">Woche</button>
+        <button type="button" class="btn secondary small" data-ansicht="tag" onclick="Belegungsplan.setAnsicht('tag')">Tag</button>
+        <button type="button" class="btn secondary small" data-ansicht="ampel" onclick="Belegungsplan.setAnsicht('ampel')">Ampel-Übersicht</button>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+        <select id="belegungskalenderRessourceFilter" onchange="Belegungsplan.onRessourceFilterChange(this.value)" style="display:none;"></select>
+        <button type="button" class="btn secondary small" onclick="Belegungsplan.navPrev()">◀</button>
+        <button type="button" class="btn secondary small" onclick="Belegungsplan.navToday()">Heute</button>
+        <button type="button" class="btn secondary small" onclick="Belegungsplan.navNext()">▶</button>
       </div>
     </div>
     <div id="belegungskalender-content"></div>
@@ -1322,6 +1377,10 @@
       <div class="field"><label>Von</label><input type="time" id="belegungStart" value="18:00"></div>
       <div class="field"><label>Bis</label><input type="time" id="belegungEnde" value="20:00"></div>
     </div>
+    <div class="field">
+      <label>Mannschaft <span style="font-weight:400;color:var(--text-muted);">(optional, färbt die Buchung im Kalender ein)</span></label>
+      <select id="belegungMannschaftId"><option value="">Keine / Sonstige</option></select>
+    </div>
     <div class="field"><label>Zweck / Titel</label><input id="belegungZweck" placeholder="z. B. Training F-Jugend, Fahrt zum Auswärtsspiel"></div>
     <div class="field"><label>Gebucht von</label><input id="belegungGebuchtVon"></div>
     <div id="belegungEinzelHinweis" style="display:none;background:#fbeceb;padding:10px 12px;border-radius:6px;margin-bottom:4px;font-size:13px;">
@@ -1470,6 +1529,24 @@
     <div class="modal-actions">
       <button type="button" class="btn secondary" onclick="Modal.close('modal-abteilung')">Abbrechen</button>
       <button type="button" class="btn" onclick="Nachrichten.saveAbteilung()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- Mannschaft anlegen/bearbeiten -->
+<div class="overlay" id="modal-mannschaft">
+  <div class="modal">
+    <h3 id="mannschaft-modal-title">Neue Mannschaft</h3>
+    <input type="hidden" id="mannschaftId">
+    <div class="field"><label>Bezeichnung</label><input id="mannschaftName" placeholder="z. B. 1. Mannschaft"></div>
+    <div class="field">
+      <label>Farbe</label>
+      <input type="hidden" id="mannschaftFarbe">
+      <div class="icon-picker" id="mannschaftFarbePicker"></div>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn secondary" onclick="Modal.close('modal-mannschaft')">Abbrechen</button>
+      <button type="button" class="btn" onclick="Mannschaften.save()">Speichern</button>
     </div>
   </div>
 </div>
@@ -1840,7 +1917,7 @@
    ZENTRALE KONFIGURATION & DATENSCHICHT
    ============================================================ */
 
-const APP_VERSION = "0.1.142";
+const APP_VERSION = "0.1.143";
 let currentUserProfile = { role: "A", actualRole: "A", email: "", name: "" };
 
 function uid(prefix) {
@@ -2054,6 +2131,7 @@ const Store = {
         Store.data.vereinsbusse = d.vereinsbusse || [];
         Store.data.kurse = d.kurse || [];
         Store.data.abteilungen = d.abteilungen || [];
+        Store.data.mannschaften = d.mannschaften || [];
       } else {
         const seed = seedData();
         Store.data.lieferanten = seed.lieferanten;
@@ -2070,6 +2148,7 @@ const Store = {
           { id: uid("abt"), name: "Leichtathletik" },
           { id: uid("abt"), name: "Gymnastik" }
         ];
+        Store.data.mannschaften = [];
         setDoc(configDocRef, {
           lieferanten: seed.lieferanten,
           kategorien: seed.kategorien,
@@ -2079,7 +2158,8 @@ const Store = {
           sportstaetten: [],
           vereinsbusse: [],
           kurse: [],
-          abteilungen: Store.data.abteilungen
+          abteilungen: Store.data.abteilungen,
+          mannschaften: []
         });
       }
       Lieferanten.render();
@@ -2089,6 +2169,7 @@ const Store = {
       MaterialRyder.render();
       Events.refreshKategorieSelect();
       if (typeof Ressourcen !== "undefined") Ressourcen.render();
+      if (typeof Mannschaften !== "undefined") Mannschaften.render();
       if (typeof Belegungsplan !== "undefined") Belegungsplan.renderKalender();
       if (typeof Kurse !== "undefined") Kurse.render();
       if (typeof Karten !== "undefined") Karten.renderAll();
@@ -2160,7 +2241,8 @@ const Store = {
       sportstaetten: this.data.sportstaetten || [],
       vereinsbusse: this.data.vereinsbusse || [],
       kurse: this.data.kurse || [],
-      abteilungen: this.data.abteilungen || []
+      abteilungen: this.data.abteilungen || [],
+      mannschaften: this.data.mannschaften || []
     }, { merge: true });
   },
 
@@ -2636,7 +2718,7 @@ function renderViewContent(view) {
   if (view === "material-kalender") MaterialKalender.render();
   if (view === "personen") { Lieferanten.render(); Personen.render(); }
   if (view === "kategorien") Kategorien.render();
-  if (view === "ressourcen") Ressourcen.render();
+  if (view === "ressourcen") { Ressourcen.render(); Mannschaften.render(); }
   if (view === "belegungskalender") Belegungsplan.renderKalender();
   if (view === "meine-karten") Karten.renderMeine();
   if (view === "karten-verwaltung") Karten.renderVerwaltung();
@@ -3007,6 +3089,88 @@ const Ressourcen = {
   }
 };
 
+const Mannschaften = {
+  render() {
+    const list = document.getElementById("mannschaften-list");
+    if (!list) return;
+    const items = [...(Store.data.mannschaften || [])].sort((a, b) => (a.name || "").localeCompare(b.name || "", "de"));
+
+    if (items.length === 0) {
+      list.innerHTML = '<div class="empty-state">Noch keine Mannschaften angelegt.</div>';
+      return;
+    }
+    list.innerHTML = items.map(m => `
+      <div class="card">
+        <div class="card-head">
+          <div><span class="mannschaft-badge" style="background:${m.farbe};"><span class="mannschaft-dot"></span>${escapeHtml(m.name)}</span></div>
+          <div class="card-actions">
+            <button type="button" class="btn secondary small" onclick="Mannschaften.openForm('${m.id}')">Bearbeiten</button>
+            <button type="button" class="btn danger small" onclick="Mannschaften.remove('${m.id}')">Löschen</button>
+          </div>
+        </div>
+      </div>
+    `).join("");
+  },
+
+  openForm(id = "") {
+    const m = id ? (Store.data.mannschaften || []).find(x => x.id === id) : null;
+    document.getElementById("mannschaftId").value = id;
+    document.getElementById("mannschaft-modal-title").textContent = id ? "Mannschaft bearbeiten" : "Neue Mannschaft";
+    document.getElementById("mannschaftName").value = m ? m.name : "";
+    const gewaehlteFarbe = m ? m.farbe : MANNSCHAFT_FARBEN[(Store.data.mannschaften || []).length % MANNSCHAFT_FARBEN.length];
+    document.getElementById("mannschaftFarbe").value = gewaehlteFarbe;
+
+    const belegteFarben = (Store.data.mannschaften || []).filter(x => x.id !== id).map(x => x.farbe);
+    const picker = document.getElementById("mannschaftFarbePicker");
+    picker.innerHTML = MANNSCHAFT_FARBEN.map(farbe => `
+      <button type="button" class="color-swatch ${farbe === gewaehlteFarbe ? 'selected' : ''}"
+              style="background:${farbe};" title="${belegteFarben.includes(farbe) ? 'Schon vergeben' : ''}"
+              onclick="Mannschaften.waehleFarbe('${farbe}')"></button>
+    `).join("");
+
+    Modal.open("modal-mannschaft");
+  },
+
+  waehleFarbe(farbe) {
+    document.getElementById("mannschaftFarbe").value = farbe;
+    document.querySelectorAll("#mannschaftFarbePicker .color-swatch").forEach(btn => {
+      btn.classList.toggle("selected", btn.style.backgroundColor === hexToRgbStr(farbe));
+    });
+  },
+
+  async save() {
+    const id = document.getElementById("mannschaftId").value || uid("team");
+    const name = document.getElementById("mannschaftName").value.trim();
+    const farbe = document.getElementById("mannschaftFarbe").value;
+    if (!name) { toast("Bitte eine Bezeichnung angeben."); return; }
+    if (!farbe) { toast("Bitte eine Farbe auswählen."); return; }
+
+    if (!Store.data.mannschaften) Store.data.mannschaften = [];
+    const idx = Store.data.mannschaften.findIndex(x => x.id === id);
+    if (idx >= 0) Store.data.mannschaften[idx] = { id, name, farbe };
+    else Store.data.mannschaften.push({ id, name, farbe });
+
+    await Store.persistConfig();
+    Modal.close("modal-mannschaft");
+    toast("Mannschaft gespeichert.");
+  },
+
+  async remove(id) {
+    if (!confirm("Diese Mannschaft wirklich löschen? Bestehende Buchungen bleiben erhalten, zeigen dann aber keine Mannschaft mehr an.")) return;
+    Store.data.mannschaften = (Store.data.mannschaften || []).filter(x => x.id !== id);
+    await Store.persistConfig();
+    toast("Gelöscht.");
+  }
+};
+
+function hexToRgbStr(hex) {
+  const h = hex.replace('#', '');
+  const r = parseInt(h.substring(0, 2), 16);
+  const g = parseInt(h.substring(2, 4), 16);
+  const b = parseInt(h.substring(4, 6), 16);
+  return `rgb(${r}, ${g}, ${b})`;
+}
+
 const Belegungsplan = {
   weekStart: null,
 
@@ -3018,7 +3182,216 @@ const Belegungsplan = {
     return window.FB.auth.currentUser ? window.FB.auth.currentUser.uid : "";
   },
 
+  ansicht: "woche", // 'monat' | 'woche' | 'tag' | 'ampel'
+  ressourceFilter: "",
+
   renderKalender() {
+    document.querySelectorAll("#belegungskalender-tabs button").forEach(btn => {
+      btn.classList.toggle("active", btn.dataset.ansicht === this.ansicht);
+    });
+    const filterSel = document.getElementById("belegungskalenderRessourceFilter");
+    if (filterSel) filterSel.style.display = this.ansicht === "woche" ? "" : "none";
+
+    if (this.ansicht === "woche") this.populateRessourceFilter();
+
+    if (this.ansicht === "monat") this.renderMonat();
+    else if (this.ansicht === "woche") this.renderWoche();
+    else if (this.ansicht === "tag") this.renderTag();
+    else this.renderAmpelUebersicht();
+  },
+
+  setAnsicht(a) {
+    this.ansicht = a;
+    this.renderKalender();
+  },
+
+  alleRessourcen() {
+    return [
+      ...(Store.data.sportstaetten || []).map(r => ({ typ: "sportstaette", id: r.id, name: "🏟️ " + r.name })),
+      ...(Store.data.vereinsbusse || []).map(r => ({ typ: "bus", id: r.id, name: "🚌 " + r.name }))
+    ];
+  },
+
+  populateRessourceFilter() {
+    const sel = document.getElementById("belegungskalenderRessourceFilter");
+    if (!sel) return;
+    const alle = this.alleRessourcen();
+    if (!this.ressourceFilter && alle.length > 0) this.ressourceFilter = `${alle[0].typ}:${alle[0].id}`;
+    sel.innerHTML = alle.map(r => `<option value="${r.typ}:${r.id}" ${this.ressourceFilter === `${r.typ}:${r.id}` ? "selected" : ""}>${escapeHtml(r.name)}</option>`).join("");
+  },
+
+  onRessourceFilterChange(val) {
+    this.ressourceFilter = val;
+    this.renderWoche();
+  },
+
+  navPrev() {
+    if (this.ansicht === "monat") this.monatAnker = addMonateISO(this.monatAnker || (new Date().toISOString().slice(0, 8) + "01"), -1);
+    else if (this.ansicht === "tag") this.tagAnker = addDaysISO(this.tagAnker || new Date().toISOString().slice(0, 10), -1);
+    else this.weekStart = addDaysISO(this.weekStart || getMondayISO(), -7);
+    this.renderKalender();
+  },
+  navNext() {
+    if (this.ansicht === "monat") this.monatAnker = addMonateISO(this.monatAnker || (new Date().toISOString().slice(0, 8) + "01"), 1);
+    else if (this.ansicht === "tag") this.tagAnker = addDaysISO(this.tagAnker || new Date().toISOString().slice(0, 10), 1);
+    else this.weekStart = addDaysISO(this.weekStart || getMondayISO(), 7);
+    this.renderKalender();
+  },
+  navToday() {
+    this.monatAnker = new Date().toISOString().slice(0, 8) + "01";
+    this.weekStart = getMondayISO();
+    this.tagAnker = new Date().toISOString().slice(0, 10);
+    this.renderKalender();
+  },
+
+  gehZuTag(iso) {
+    this.tagAnker = iso;
+    this.ansicht = "tag";
+    this.renderKalender();
+  },
+
+  // ---- Gemeinsames Zeitraster (07:00–23:00) für Woche & Tag ----
+  renderZeitgitter(spaltenDefs) {
+    const startMin = 7 * 60, endMin = 23 * 60, totalMin = endMin - startMin;
+    const stunden = [];
+    for (let h = 7; h <= 23; h++) stunden.push(h);
+
+    const isVorstandOrAdmin = currentUserProfile.role === "A" || currentUserProfile.role === "B";
+    const uidM = this.currentUid();
+
+    const spalten = spaltenDefs.map(sp => {
+      const buchungen = (Store.data.belegungen || [])
+        .filter(b => b.ressourceTyp === sp.typ && b.ressourceId === sp.ressourceId && b.datum === sp.datum)
+        .sort((a, b) => (a.start || "").localeCompare(b.start || ""));
+
+      const blocks = buchungen.map(b => {
+        const bStart = zeitZuMinuten(b.start), bEnde = zeitZuMinuten(b.ende);
+        const top = Math.max(0, bStart - startMin);
+        const height = Math.max(22, bEnde - bStart);
+        const mannschaft = (Store.data.mannschaften || []).find(m => m.id === b.mannschaftId);
+        const farbe = mannschaft ? mannschaft.farbe : "#6b7573";
+        const eigeneBuchung = isVorstandOrAdmin || b.erstelltVonUid === uidM;
+        return `
+          <div class="kal-block" style="top:${top}px;height:${height}px;background:${farbe};${eigeneBuchung ? "" : "cursor:default;"}"
+               ${eigeneBuchung ? `onclick="event.stopPropagation();Belegungsplan.openForm('${b.id}')"` : ""}
+               title="${escapeHtml(b.start)}–${escapeHtml(b.ende)} ${mannschaft ? escapeHtml(mannschaft.name) + " – " : ""}${escapeHtml(b.zweck || "")}">
+            <strong>${b.start}–${b.ende}</strong><br>${mannschaft ? escapeHtml(mannschaft.name) + " – " : ""}${escapeHtml(b.zweck || "")}
+          </div>`;
+      }).join("");
+
+      return `
+        <div class="kal-spalte">
+          <div class="kal-spalte-head">${escapeHtml(sp.label)}</div>
+          <div class="kal-spalte-body" style="height:${totalMin}px;" onclick="Belegungsplan.openForm(null, '${sp.typ}', '${sp.ressourceId}', '${sp.datum}')">${blocks}</div>
+        </div>`;
+    }).join("");
+
+    return `
+      <div class="kal-grid-wrap">
+        <div class="kal-zeitachse">
+          <div class="kal-zeitachse-head"></div>
+          ${stunden.map(h => `<div class="kal-stunde">${h}:00</div>`).join("")}
+        </div>
+        <div class="kal-spalten">${spalten}</div>
+      </div>
+    `;
+  },
+
+  // ---- Wochenansicht: eine Ressource, 7 Tage nebeneinander ----
+  renderWoche() {
+    const wrap = document.getElementById("belegungskalender-content");
+    if (!wrap) return;
+    if (!this.weekStart) this.weekStart = getMondayISO();
+
+    const alle = this.alleRessourcen();
+    if (alle.length === 0) {
+      wrap.innerHTML = '<div class="empty-state">Noch keine Sportstätten oder Busse angelegt.</div>';
+      return;
+    }
+    if (!this.ressourceFilter) this.ressourceFilter = `${alle[0].typ}:${alle[0].id}`;
+    const [filterTyp, filterId] = this.ressourceFilter.split(":");
+    const ressource = alle.find(r => r.typ === filterTyp && r.id === filterId) || alle[0];
+
+    const tage = Array.from({ length: 7 }, (_, i) => addDaysISO(this.weekStart, i));
+    const spaltenDefs = tage.map(d => {
+      const wd = WOCHENTAGE_KURZ[new Date(d + "T00:00:00").getDay()];
+      return { label: `${wd} ${formatDatumKurz(d)}`, datum: d, typ: ressource.typ, ressourceId: ressource.id };
+    });
+
+    wrap.innerHTML = `
+      <div class="desc" style="margin-bottom:8px;">${escapeHtml(ressource.name)} — Woche vom ${tage[0]} bis ${tage[6]}</div>
+      ${this.renderZeitgitter(spaltenDefs)}
+    `;
+  },
+
+  // ---- Tagesansicht: alle Ressourcen nebeneinander, ein Tag ----
+  renderTag() {
+    const wrap = document.getElementById("belegungskalender-content");
+    if (!wrap) return;
+    if (!this.tagAnker) this.tagAnker = new Date().toISOString().slice(0, 10);
+
+    const alle = this.alleRessourcen();
+    if (alle.length === 0) {
+      wrap.innerHTML = '<div class="empty-state">Noch keine Sportstätten oder Busse angelegt.</div>';
+      return;
+    }
+    const wd = WOCHENTAGE_KURZ[new Date(this.tagAnker + "T00:00:00").getDay()];
+    const spaltenDefs = alle.map(r => ({ label: r.name, datum: this.tagAnker, typ: r.typ, ressourceId: r.id }));
+
+    wrap.innerHTML = `
+      <div class="desc" style="margin-bottom:8px;">${wd}, ${formatDatumKurz(this.tagAnker)} ${this.tagAnker.slice(0, 4)}</div>
+      ${this.renderZeitgitter(spaltenDefs)}
+    `;
+  },
+
+  // ---- Monatsansicht: Kalendergitter mit farbigen Punkten pro Buchung ----
+  renderMonat() {
+    const wrap = document.getElementById("belegungskalender-content");
+    if (!wrap) return;
+    if (!this.monatAnker) this.monatAnker = new Date().toISOString().slice(0, 8) + "01";
+
+    const anker = new Date(this.monatAnker + "T00:00:00");
+    const jahr = anker.getFullYear(), monat = anker.getMonth();
+    const ersterTag = new Date(jahr, monat, 1);
+    const letzterTag = new Date(jahr, monat + 1, 0);
+    const startOffset = (ersterTag.getDay() + 6) % 7; // Montag = 0
+    const tageImMonat = letzterTag.getDate();
+    const monatsName = ersterTag.toLocaleDateString("de-DE", { month: "long", year: "numeric" });
+
+    let zellen = [];
+    for (let i = 0; i < startOffset; i++) zellen.push(null);
+    for (let d = 1; d <= tageImMonat; d++) {
+      zellen.push(`${jahr}-${String(monat + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`);
+    }
+    while (zellen.length % 7 !== 0) zellen.push(null);
+
+    const heute = new Date().toISOString().slice(0, 10);
+
+    wrap.innerHTML = `
+      <div class="desc" style="margin-bottom:8px;text-transform:capitalize;">${escapeHtml(monatsName)}</div>
+      <div class="kal-monat-grid">
+        ${["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"].map(t => `<div class="kal-monat-kopf">${t}</div>`).join("")}
+        ${zellen.map(iso => {
+          if (!iso) return `<div class="kal-monat-zelle leer"></div>`;
+          const buchungen = (Store.data.belegungen || []).filter(b => b.datum === iso);
+          const punkte = buchungen.slice(0, 8).map(b => {
+            const mannschaft = (Store.data.mannschaften || []).find(m => m.id === b.mannschaftId);
+            return `<span class="mannschaft-dot-solo" style="background:${mannschaft ? mannschaft.farbe : "#6b7573"};" title="${escapeHtml(b.start)} ${mannschaft ? escapeHtml(mannschaft.name) + " – " : ""}${escapeHtml(b.zweck || "")}"></span>`;
+          }).join("");
+          return `
+            <div class="kal-monat-zelle ${iso === heute ? "heute" : ""}" onclick="Belegungsplan.gehZuTag('${iso}')">
+              <div class="kal-monat-tag">${Number(iso.slice(8, 10))}</div>
+              <div class="kal-monat-punkte">${punkte}</div>
+              ${buchungen.length > 8 ? `<div class="kal-monat-mehr">+${buchungen.length - 8}</div>` : ""}
+            </div>
+          `;
+        }).join("")}
+      </div>
+    `;
+  },
+
+  // ---- Bisherige Ampel-Kreuztabelle (4 Wochen, frei/belegt) ----
+  renderAmpelUebersicht() {
     if (!this.weekStart) this.weekStart = getMondayISO();
     const wochen = 4;
     const tage = Array.from({ length: wochen * 7 }, (_, i) => addDaysISO(this.weekStart, i));
@@ -3069,7 +3442,8 @@ const Belegungsplan = {
                     const inhalt = buchungen.map(b => {
                       const eigeneBuchung = isVorstandOrAdmin || b.erstelltVonUid === uid;
                       const klick = eigeneBuchung ? `onclick="event.stopPropagation();Belegungsplan.openForm('${b.id}')" style="cursor:pointer;"` : '';
-                      return `<div ${klick} title="${escapeHtml(b.zweck || '')} — ${escapeHtml(b.gebuchtVon || '')}">${b.start}–${b.ende}<br>${escapeHtml(b.zweck || '')}</div>`;
+                      const mannschaft = (Store.data.mannschaften || []).find(m => m.id === b.mannschaftId);
+                      return `<div ${klick} title="${escapeHtml(b.zweck || '')} — ${escapeHtml(b.gebuchtVon || '')}">${mannschaft ? `<span class="mannschaft-dot-solo" style="background:${mannschaft.farbe};display:inline-block;margin-right:4px;"></span>` : ''}${b.start}–${b.ende}<br>${escapeHtml(b.zweck || '')}</div>`;
                     }).join('<hr style="border:none;border-top:1px dashed #c9c28a;margin:3px 0;">');
 
                     return `<td class="mk-yellow" style="vertical-align:top;text-align:left;padding:4px 6px;font-weight:400;">${inhalt}</td>`;
@@ -3082,10 +3456,6 @@ const Belegungsplan = {
       `).join("")}
     `;
   },
-
-  prevWeek() { this.weekStart = addDaysISO(this.weekStart || getMondayISO(), -7); this.renderKalender(); },
-  nextWeek() { this.weekStart = addDaysISO(this.weekStart || getMondayISO(), 7); this.renderKalender(); },
-  today() { this.weekStart = getMondayISO(); this.renderKalender(); },
 
   onTypChange() {
     const typ = document.getElementById("belegungTyp").value;
@@ -3124,6 +3494,11 @@ const Belegungsplan = {
     document.getElementById("belegungStart").value = b?.start || "18:00";
     document.getElementById("belegungEnde").value = b?.ende || "20:00";
     document.getElementById("belegungZweck").value = b?.zweck || "";
+
+    const mannschaften = [...(Store.data.mannschaften || [])].sort((a, b2) => (a.name || "").localeCompare(b2.name || "", "de"));
+    const mannschaftSel = document.getElementById("belegungMannschaftId");
+    mannschaftSel.innerHTML = '<option value="">Keine / Sonstige</option>' +
+      mannschaften.map(m => `<option value="${m.id}" ${b?.mannschaftId === m.id ? 'selected' : ''}>${escapeHtml(m.name)}</option>`).join("");
 
     // Serientermin-Optionen: bei Neuanlage frei wählbar; bei Bearbeitung eines Serientermins
     // werden Wochentage/Dauer aus den bestehenden Terminen rekonstruiert und sind über
@@ -3203,6 +3578,7 @@ const Belegungsplan = {
     const bestehend = (Store.data.belegungen || []).find(b => b.id === id);
     const belegung = {
       id, ressourceTyp: typ, ressourceId, datum, start, ende, zweck,
+      mannschaftId: document.getElementById("belegungMannschaftId").value || null,
       gebuchtVon: document.getElementById("belegungGebuchtVon").value.trim() || currentUserProfile.name || "",
       serienId: bestehend?.serienId || null,
       erstelltVonUid: bestehend?.erstelltVonUid || this.currentUid(),
@@ -3259,6 +3635,7 @@ const Belegungsplan = {
 
       const belegung = {
         id: uid("beleg"), ressourceTyp: typ, ressourceId, datum: d, start, ende, zweck,
+        mannschaftId: document.getElementById("belegungMannschaftId").value || null,
         gebuchtVon, serienId,
         erstelltVonUid: this.currentUid(), erstelltAm: new Date().toISOString()
       };
@@ -3379,6 +3756,7 @@ const Belegungsplan = {
 
       const belegung = {
         id: uid("beleg"), ressourceTyp: typ, ressourceId, datum: d, start, ende, zweck,
+        mannschaftId: document.getElementById("belegungMannschaftId").value || null,
         gebuchtVon, serienId,
         erstelltVonUid: b.erstelltVonUid, erstelltAm: b.erstelltAm
       };
@@ -4049,6 +4427,15 @@ const Karten = {
 };
 
 const NACHRICHT_ICONS = ["📢", "⚠️", "🎉", "📅", "✅", "ℹ️", "⚽", "🤸", "🏃", "🤾", "🏆", "🚌"];
+
+// 25 gut unterscheidbare Farben für Mannschaften im Belegungskalender
+const MANNSCHAFT_FARBEN = [
+  "#e6194b", "#3cb44b", "#4363d8", "#f58231", "#911eb4",
+  "#42d4f4", "#f032e6", "#bfef45", "#fabed4", "#469990",
+  "#dcbeff", "#9a6324", "#800000", "#aaffc3", "#808000",
+  "#ffd8b1", "#000075", "#a9a9a9", "#000000", "#e6beff",
+  "#ff4500", "#2e8b57", "#1e90ff", "#daa520", "#8b008b"
+];
 
 const Nachrichten = {
   currentUid() {
@@ -5400,6 +5787,18 @@ function addDaysISO(dateStr, days) {
   const d = new Date(dateStr + "T00:00:00");
   d.setDate(d.getDate() + days);
   return d.toISOString().slice(0, 10);
+}
+
+function addMonateISO(dateStr, monate) {
+  const d = new Date(dateStr + "T00:00:00");
+  d.setMonth(d.getMonth() + monate);
+  return d.toISOString().slice(0, 10);
+}
+
+function zeitZuMinuten(hhmm) {
+  if (!hhmm) return 0;
+  const [h, m] = hhmm.split(":").map(Number);
+  return (h || 0) * 60 + (m || 0);
 }
 
 const WOCHENTAGE_KURZ = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
